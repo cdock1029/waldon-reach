@@ -1,0 +1,33 @@
+{
+  "name": "waldon-reach",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@reach/router": "^1.0.5",
+    "@reactions/component": "^2.0.2",
+    "emotion": "^9.1.3",
+    "firebase": "^5.0.4",
+    "formik": "^0.11.11",
+    "react": "^16.4.0",
+    "react-dom": "^16.4.0",
+    "react-emotion": "^9.1.3",
+    "react-firestore": "^0.8.0",
+    "react-hot-loader": "^4.3.0",
+    "react-scripts-ts": "2.16.0",
+    "yup": "^0.25.1"
+  },
+  "scripts": {
+    "start": "BROWSER=none react-scripts-ts start",
+    "build": "react-scripts-ts build",
+    "test": "react-scripts-ts test --env=jsdom",
+    "eject": "react-scripts-ts eject"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.0.0",
+    "@types/node": "^10.3.1",
+    "@types/react": "^16.3.16",
+    "@types/react-dom": "^16.0.6",
+    "react-testing-library": "^3.1.3",
+    "typescript": "^2.9.1"
+  }
+}
