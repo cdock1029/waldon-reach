@@ -14,12 +14,18 @@ const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 
 const DelayRedir: any = (props: any) => <Redirect {...props} />
 
+const ShowUser: any = ({ user }: any) => (
+  <div>
+    <p>{user ? user.email : 'no user'}</p>
+  </div>
+)
+
 class App extends React.Component {
   render() {
     return (
       <div className="App">
         <FirebaseAuthConsumer
-          render={({ user, hasLoaded, logIn, logOut, error }) => {
+          render={({ user, hasLoaded, logIn, logOut, error, clearError }) => {
             if (!hasLoaded) {
               return <h1>Loading..</h1>
             }
@@ -33,32 +39,44 @@ class App extends React.Component {
                     <li>
                       <Link to="dashboard">Dashboard</Link>
                     </li>
+                    <li />
                     <li>
-                      <Link to="login">Login</Link>
-                    </li>
-                    {user && (
-                      <li>
+                      {user ? (
                         <button onClick={logOut}>Log Out</button>
-                      </li>
-                    )}
+                      ) : (
+                        <Link to="login">Login</Link>
+                      )}
+                    </li>
                   </ul>
                 </nav>
                 {user ? (
                   <Router>
-                    <Home key="/" path="/" />
-                    <Dashboard key="dash" path="dashboard" />
-                    <NotFound key="nf" default />
+                    <Home path="/" />
+                    <Dashboard path="dashboard" />
+                    <Redirect from="login" to="dashboard" />
+                    <NotFound default />
                   </Router>
                 ) : (
                   <Router>
                     <Login
-                      key="login"
                       path="login"
                       logIn={logIn!}
                       error={error}
+                      clearError={clearError!}
                     />
                     <DelayRedir default to="login" />
-                    {/* <Component
+                  </Router>
+                )}
+              </>
+            )
+          }}
+        />
+      </div>
+    )
+  }
+}
+
+/* <Component
                       key="compcomp"
                       default
                       initialState={{ mounted: false }}
@@ -71,16 +89,6 @@ class App extends React.Component {
                           <Redirect noThrow to="login" />
                         ) : null
                       }}
-                    /> */}
-                  </Router>
-                )}
-              </>
-            )
-          }}
-        />
-      </div>
-    )
-  }
-}
+                    /> */
 
 export default App

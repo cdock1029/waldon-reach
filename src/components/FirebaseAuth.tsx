@@ -87,13 +87,46 @@ export class FirebaseAuthProvider extends React.Component<
     return <Provider value={this.state}>{this.props.children}</Provider>
   }
 }
-
+type AuthRender = (authContext: AuthContext) => JSX.Element | JSX.Element[]
 interface AuthConsumerProps {
-  render: (authContext: AuthContext) => JSX.Element | JSX.Element[] | null
+  render?: AuthRender
+  children?: React.ReactNode | AuthRender
+  tag?: React.Component
 }
-export const FirebaseAuthConsumer = ({ render }: AuthConsumerProps) => (
-  <Consumer>{(authContext: AuthContext) => render(authContext)}</Consumer>
-)
+export const FirebaseAuthConsumer = ({
+  render,
+  children,
+  tag,
+  ...rest
+}: AuthConsumerProps) => {
+  if (render) {
+    return (
+      <Consumer>{(authContext: AuthContext) => render(authContext)}</Consumer>
+    )
+  }
+  if (typeof children === 'function') {
+    return (
+      <Consumer>{(authContext: AuthContext) => children(authContext)}</Consumer>
+    )
+  }
+  return (
+    <Consumer>
+      {(authContext: AuthContext) => {
+        const chillens = React.Children.map(children, child =>
+          React.cloneElement(child as React.ReactElement<any>, {
+            ...authContext,
+            ...rest,
+          }),
+        )
+        let Comp: any
+        if (tag) {
+          Comp = tag
+        }
+        return Comp ? <Comp>{chillens}</Comp> : chillens
+      }}
+    </Consumer>
+  )
+}
 export default class FirebaseAuth extends React.Component {
   static Provider = FirebaseAuthProvider
   static Consumer = FirebaseAuthConsumer
