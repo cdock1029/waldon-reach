@@ -1,6 +1,7 @@
 import * as React from 'react'
-import { hot } from 'react-hot-loader'
-import { Router, Link } from '@reach/router'
+import { Router, Link, Redirect } from '@reach/router'
+import { FirebaseAuthConsumer } from '@comp/FirebaseAuth'
+import Component from '@reactions/component'
 import '../App.css'
 
 import Home from '@page/Home'
@@ -9,44 +10,77 @@ import Login from '@page/Login'
 
 import logo from '../logo.svg'
 
-const Something = (props: any) => <h3>something</h3>
+const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
+
+const DelayRedir: any = (props: any) => <Redirect {...props} />
 
 class App extends React.Component {
-  public render() {
+  render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <div>
-          <nav>
-            <ul>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-              <li>
-                <Link to="dashboard">Dashboard</Link>
-              </li>
-              <li>
-                <Link to="login">Login</Link>
-              </li>
-            </ul>
-          </nav>
-          <Router>
-            <Home path="/">
-              <Something path="/" />
-            </Home>
-            <Login path="login" />
-            <Dashboard path="dashboard" />
-          </Router>
-        </div>
+        <FirebaseAuthConsumer
+          render={({ user, hasLoaded, logIn, logOut, error }) => {
+            if (!hasLoaded) {
+              return <h1>Loading..</h1>
+            }
+            return (
+              <>
+                <nav>
+                  <ul>
+                    <li>
+                      <Link to="/">Home</Link>
+                    </li>
+                    <li>
+                      <Link to="dashboard">Dashboard</Link>
+                    </li>
+                    <li>
+                      <Link to="login">Login</Link>
+                    </li>
+                    {user && (
+                      <li>
+                        <button onClick={logOut}>Log Out</button>
+                      </li>
+                    )}
+                  </ul>
+                </nav>
+                {user ? (
+                  <Router>
+                    <Home key="/" path="/" />
+                    <Dashboard key="dash" path="dashboard" />
+                    <NotFound key="nf" default />
+                  </Router>
+                ) : (
+                  <Router>
+                    <Login
+                      key="login"
+                      path="login"
+                      logIn={logIn!}
+                      error={error}
+                    />
+                    <DelayRedir default to="login" />
+                    {/* <Component
+                      key="compcomp"
+                      default
+                      initialState={{ mounted: false }}
+                      didMount={({ setState }: any) =>
+                        setState({ mounted: true })
+                      }
+                      render={({ state }: any) => {
+                        console.log({ mounted: state.mounted })
+                        return true ? (
+                          <Redirect noThrow to="login" />
+                        ) : null
+                      }}
+                    /> */}
+                  </Router>
+                )}
+              </>
+            )
+          }}
+        />
       </div>
     )
   }
 }
 
-export default hot(module)(App)
+export default App

@@ -6,10 +6,21 @@ import App from '@comp/App'
 import './index.css'
 // import registerServiceWorker from './registerServiceWorker'
 
-ReactDOM.render(
-  <FirebaseAuthProvider firebase={firebase}>
-    <App />
-  </FirebaseAuthProvider>,
-  document.getElementById('root') as HTMLElement,
-)
+const renderApp = () => {
+  ReactDOM.render(
+    <FirebaseAuthProvider firebase={firebase}>
+      <App />
+    </FirebaseAuthProvider>,
+    document.getElementById('root') as HTMLElement,
+  )
+}
+
+renderApp()
+
+if (module.hot) {
+  module.hot.accept('@comp/App', () => {
+    renderApp()
+  })
+}
+
 // registerServiceWorker()

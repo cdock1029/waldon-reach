@@ -11,6 +11,9 @@
     "object-literal-sort-keys": false,
     "member-access": false,
     "no-console": { "severity": "none" },
-    "max-classes-per-file": false
+    "max-classes-per-file": false,
+    "jsx-no-lambda": false,
+    "jsx-boolean-value": false,
+    "no-bitwise": false
   }
 }

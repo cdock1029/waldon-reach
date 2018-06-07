@@ -1,5 +1,7 @@
 declare module '@reach/router'
+declare module '@reactions/component'
 
 interface RouteProps {
-  path: string
+  path?: string
+  default?: boolean
 }
