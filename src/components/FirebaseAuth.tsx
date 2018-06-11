@@ -92,41 +92,41 @@ interface AuthConsumerProps {
   render?: AuthRender
   children?: React.ReactNode | AuthRender
   tag?: React.Component
+  loading?: any
 }
 export const FirebaseAuthConsumer = ({
   render,
   children,
   tag,
+  loading,
   ...rest
-}: AuthConsumerProps) => {
-  if (render) {
-    return (
-      <Consumer>{(authContext: AuthContext) => render(authContext)}</Consumer>
-    )
-  }
-  if (typeof children === 'function') {
-    return (
-      <Consumer>{(authContext: AuthContext) => children(authContext)}</Consumer>
-    )
-  }
-  return (
-    <Consumer>
-      {(authContext: AuthContext) => {
-        const chillens = React.Children.map(children, child =>
-          React.cloneElement(child as React.ReactElement<any>, {
-            ...authContext,
-            ...rest,
-          }),
-        )
-        let Comp: any
-        if (tag) {
-          Comp = tag
-        }
-        return Comp ? <Comp>{chillens}</Comp> : chillens
-      }}
-    </Consumer>
-  )
-}
+}: AuthConsumerProps) => (
+  <Consumer>
+    {(authContext: AuthContext) => {
+      if (loading && !authContext.hasLoaded) {
+        const Loading: any = loading
+        return <Loading />
+      }
+      if (render) {
+        return render(authContext)
+      }
+      if (typeof children === 'function') {
+        return children(authContext)
+      }
+      const chillens = React.Children.map(children, child =>
+        React.cloneElement(child as React.ReactElement<any>, {
+          ...authContext,
+          ...rest,
+        }),
+      )
+      let Comp: any
+      if (tag) {
+        Comp = tag
+      }
+      return Comp ? <Comp>{chillens}</Comp> : chillens
+    }}
+  </Consumer>
+)
 export default class FirebaseAuth extends React.Component {
   static Provider = FirebaseAuthProvider
   static Consumer = FirebaseAuthConsumer

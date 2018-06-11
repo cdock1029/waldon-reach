@@ -24,24 +24,22 @@ const Login: SFC<LoginProps> = ({ logIn, error, clearError }) => (
       render={({ props: { handleSubmit } }: any) => {
         // console.log({ stuff })
         return (
-          <form onSubmit={handleSubmit} method="post" onFocus={clearError}>
-            {error && (
-              <div>
-                <h3 style={{ color: 'red' }}>{error}</h3>
+          <div>
+            {error && <h3 style={{ color: 'red' }}>{error}</h3>}
+            <form onSubmit={handleSubmit} method="post" onFocus={clearError}>
+              <div className="item">
+                <label htmlFor="email">Email</label>
+                <input id="email" name="email" type="email" required />
               </div>
-            )}
-            <div className="item">
-              <label htmlFor="email">Email</label>
-              <input id="email" name="email" type="email" required />
-            </div>
-            <div className="item">
-              <label htmlFor="password">Password</label>
-              <input id="password" name="password" type="password" required />
-            </div>
-            <div className="item">
-              <button>Log In</button>
-            </div>
-          </form>
+              <div className="item">
+                <label htmlFor="password">Password</label>
+                <input id="password" name="password" type="password" required />
+              </div>
+              <div className="item">
+                <button>Log In</button>
+              </div>
+            </form>
+          </div>
         )
       }}
     />
@@ -49,19 +47,21 @@ const Login: SFC<LoginProps> = ({ logIn, error, clearError }) => (
 )
 
 const loginStyle = css`
-  display: flex;
-  flex-direction: column;
   border: 1px solid red;
-  align-items: center;
+  justify-content: center;
   form {
     border: 1px solid navy;
-    width: 300px;
+    min-width: 300px;
     padding: 1em;
     .item {
+      /* min-height: 100px; */
       padding: 1em;
-      display: flex;
-      flex-direction: row;
+      grid-template-columns: auto auto;
       justify-content: space-between;
+      align-items: center;
+      & > * {
+        margin: 0.5em;
+      }
     }
   }
 `

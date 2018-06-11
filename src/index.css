@@ -1,5 +1,26 @@
+html {
+  font-size: 19px;
+  box-sizing: border-box;
+  font-family: system-ui, sans-serif;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+div,
+span {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto;
+  border: 1px solid lime;
+  padding: 0.3em;
+  margin: 0.3em;
+}
+
 body {
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
 }

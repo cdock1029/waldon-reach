@@ -1,14 +1,12 @@
 import * as React from 'react'
 import { Router, Link, Redirect } from '@reach/router'
 import { FirebaseAuthConsumer } from '@comp/FirebaseAuth'
-import Component from '@reactions/component'
+import { css } from 'react-emotion'
 import '../App.css'
 
 import Home from '@page/Home'
 import Dashboard from '@page/Dashboard'
 import Login from '@page/Login'
-
-import logo from '../logo.svg'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 
@@ -20,54 +18,59 @@ const ShowUser: any = ({ user }: any) => (
   </div>
 )
 
+const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
+  <nav className={headerStyles}>
+    <Link to="/">Home</Link>
+    <Link to="dashboard">Dashboard</Link>
+    <button className="logout" onClick={logOut}>
+      Log Out
+    </button>
+  </nav>
+)
+const headerStyles = css`
+  height: 3em;
+  padding: 0 1em;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  a {
+    margin-right: 1.5em;
+    border: 1px solid navy;
+    padding: 0.5em 1em;
+    text-decoration: none;
+  }
+  .logout {
+    margin-left: auto;
+  }
+`
+
 class App extends React.Component {
   render() {
     return (
       <div className="App">
         <FirebaseAuthConsumer
-          render={({ user, hasLoaded, logIn, logOut, error, clearError }) => {
-            if (!hasLoaded) {
-              return <h1>Loading..</h1>
-            }
-            return (
+          loading={() => <h1>Loading..</h1>}
+          render={({ user, logIn, logOut, error, clearError }) => {
+            return user ? (
               <>
-                <nav>
-                  <ul>
-                    <li>
-                      <Link to="/">Home</Link>
-                    </li>
-                    <li>
-                      <Link to="dashboard">Dashboard</Link>
-                    </li>
-                    <li />
-                    <li>
-                      {user ? (
-                        <button onClick={logOut}>Log Out</button>
-                      ) : (
-                        <Link to="login">Login</Link>
-                      )}
-                    </li>
-                  </ul>
-                </nav>
-                {user ? (
-                  <Router>
-                    <Home path="/" />
-                    <Dashboard path="dashboard" />
-                    <Redirect from="login" to="dashboard" />
-                    <NotFound default />
-                  </Router>
-                ) : (
-                  <Router>
-                    <Login
-                      path="login"
-                      logIn={logIn!}
-                      error={error}
-                      clearError={clearError!}
-                    />
-                    <DelayRedir default to="login" />
-                  </Router>
-                )}
+                <Header logOut={logOut} />
+                <Router>
+                  <Home path="/" />
+                  <Dashboard path="dashboard" />
+                  <Redirect from="login" to="dashboard" />
+                  <NotFound default />
+                </Router>
               </>
+            ) : (
+              <Router>
+                <Login
+                  path="login"
+                  logIn={logIn!}
+                  error={error}
+                  clearError={clearError!}
+                />
+                <DelayRedir default to="login" />
+              </Router>
             )
           }}
         />
@@ -75,20 +78,5 @@ class App extends React.Component {
     )
   }
 }
-
-/* <Component
-                      key="compcomp"
-                      default
-                      initialState={{ mounted: false }}
-                      didMount={({ setState }: any) =>
-                        setState({ mounted: true })
-                      }
-                      render={({ state }: any) => {
-                        console.log({ mounted: state.mounted })
-                        return true ? (
-                          <Redirect noThrow to="login" />
-                        ) : null
-                      }}
-                    /> */
 
 export default App
