@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom'
 import firebase from '@lib/firebase'
 import { FirebaseAuthProvider } from '@comp/FirebaseAuth'
 import App from '@comp/App'
+import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 // import registerServiceWorker from './registerServiceWorker'
 

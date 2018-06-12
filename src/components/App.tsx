@@ -3,10 +3,9 @@ import { Router, Link, Redirect } from '@reach/router'
 import { FirebaseAuthConsumer } from '@comp/FirebaseAuth'
 import { css } from 'react-emotion'
 
-import Home from '@page/Home'
 import Dashboard from '@page/Dashboard'
-import PropertyDetail from '@page/PropertyDetail'
 import Login from '@page/Login'
+import { Button } from 'reactstrap'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 const DelayRedir: any = (props: any) => <Redirect {...props} />
@@ -15,9 +14,9 @@ const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
   <nav className={headerStyles}>
     <Link to="/">Home</Link>
     {/* <Link to="dashboard">Dashboard</Link> */}
-    <button className="logout" onClick={logOut}>
+    <Button className="logout" onClick={logOut}>
       Log Out
-    </button>
+    </Button>
   </nav>
 )
 const headerStyles = css`

@@ -3,9 +3,20 @@ import { Collection, Doc } from '@comp/FirestoreData'
 import { Link, Router } from '@reach/router'
 import { Property, Unit } from '../types'
 import Component from '@reactions/component'
+import { ListGroup, ListGroupItem } from 'reactstrap'
+import { collator } from '@lib/index'
 
 interface DashboardProps {
   activeCompany?: string
+}
+
+const isActive = ({ isCurrent }: any) => {
+  return isCurrent ? { className: 'active' } : null
+}
+const isPartiallyActive = (classes: string) => ({
+  isPartiallyCurrent,
+}: any) => {
+  return isPartiallyCurrent ? { className: `${classes} active` } : null
 }
 
 class Properties extends Collection<Property> {}
@@ -18,26 +29,30 @@ const PropertyHeader = ({ propertyId, getProperty }: any) => {
 
 const getGetProperty = (properties: Property[]) => (id: string) =>
   properties.find(p => p.id === id)
-const Dashboard: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
+const Dashboard: SFC<RouteProps & DashboardProps> = ({
+  activeCompany,
+  ...rest
+}) => {
+  console.log({ rest })
   return (
     <Properties
       path={`companies/${activeCompany}/properties`}
+      orderBy={{ field: 'name', direction: 'asc' }}
       render={properties => {
         return (
           <div
             css={{
               display: 'grid',
               gridTemplateAreas: `
-                ". header"
+                "props header"
                 "props ."
                 "units ."
               ;`,
-              gridTemplateColumns: '1fr 1fr',
-              gridTemplateRows: 'auto 1fr 1fr',
+              gridTemplateColumns: 'auto 1fr',
+              gridTemplateRows: '110px repeat(2, calc((100vh - 170px) / 2))',
             }}>
             <div
               css={{
-                minHeight: '110px',
                 gridArea: 'header',
                 // gridColumn: '2 / 3',
               }}>
@@ -48,21 +63,35 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                 />
               </Router>
             </div>
-            <ul
+            <ListGroup
+              flush
               css={{
+                padding: '1em 0.5em',
+                border: '1px solid rgba(0,0,0,0.2)',
                 gridArea: 'props',
-                /*gridColumn: '1 / 2',
-              gridRow: '2',*/
+                maxHeight: '100%',
+                overflowY: 'scroll',
               }}>
-              {properties.map(p => (
-                <li key={p.id}>
-                  <Link to={p.id}>{p.name}</Link>
-                </li>
-              ))}
-            </ul>
+              {properties.map(p => {
+                return (
+                  <ListGroupItem
+                    action
+                    key={p.id}
+                    tag={props => {
+                      const fn: any = isPartiallyActive(props.className)
+                      return <Link getProps={fn} {...props} />
+                    }}
+                    to={p.id}>
+                    {p.name}
+                  </ListGroupItem>
+                )
+              })}
+            </ListGroup>
             <div
               css={{
                 gridArea: 'units',
+                maxHeight: '100%',
+                overflowY: 'scroll',
               }}>
               <Router>
                 <Component
@@ -72,13 +101,27 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                       <Units
                         key={propertyId}
                         path={`companies/${activeCompany}/properties/${propertyId}/units`}
+                        transform={units =>
+                          units.sort((a, b) =>
+                            collator.compare(a.address, b.address),
+                          )
+                        }
                         render={units => {
                           return (
-                            <ul>
+                            <ListGroup
+                              css={{
+                                padding: '1em 0.5em',
+                                border: '1px solid rgba(0,0,0,0.2)',
+                              }}
+                              flush>
                               {units.map(u => {
-                                return <li key={u.id}>{u.address}</li>
+                                return (
+                                  <ListGroupItem key={u.id}>
+                                    {u.address}
+                                  </ListGroupItem>
+                                )
                               })}
-                            </ul>
+                            </ListGroup>
                           )
                         }}
                       />

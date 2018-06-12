@@ -5,6 +5,7 @@
   "dependencies": {
     "@reach/router": "^1.1.0",
     "@reactions/component": "^2.0.2",
+    "bootstrap": "^4.1.1",
     "emotion": "^9.2.3",
     "firebase": "^5.0.4",
     "formik": "^0.11.11",
@@ -14,6 +15,7 @@
     "react-firestore": "^0.8.1",
     "react-scripts": "^2.0.0-next.b2fd8db8",
     "react-scripts-ts": "2.16.0",
+    "reactstrap": "^6.1.0",
     "yup": "^0.25.1"
   },
   "scripts": {
@@ -28,6 +30,7 @@
     "@types/node": "^10.3.2",
     "@types/react": "^16.3.17",
     "@types/react-dom": "^16.0.6",
+    "@types/reactstrap": "^5.0.27",
     "@types/webpack": "^4.4.0",
     "@types/webpack-env": "^1.13.6",
     "babel-jest": "^23.0.1",
