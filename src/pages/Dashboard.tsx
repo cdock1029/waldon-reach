@@ -27,47 +27,66 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
           <div
             css={{
               display: 'grid',
+              gridTemplateAreas: `
+                ". header"
+                "props ."
+                "units ."
+              ;`,
               gridTemplateColumns: '1fr 1fr',
-              gridTemplateRows: 'auto 1fr',
+              gridTemplateRows: 'auto 1fr 1fr',
             }}>
-            <Router
+            <div
               css={{
-                gridColumn: '2 / 3',
+                minHeight: '110px',
+                gridArea: 'header',
+                // gridColumn: '2 / 3',
               }}>
-              <PropertyHeader
-                path=":propertyId"
-                getProperty={getGetProperty(properties)}
-              />
-            </Router>
-            <ul css={{ gridColumn: '1 / 2', gridRow: '2' }}>
+              <Router>
+                <PropertyHeader
+                  path=":propertyId"
+                  getProperty={getGetProperty(properties)}
+                />
+              </Router>
+            </div>
+            <ul
+              css={{
+                gridArea: 'props',
+                /*gridColumn: '1 / 2',
+              gridRow: '2',*/
+              }}>
               {properties.map(p => (
                 <li key={p.id}>
                   <Link to={p.id}>{p.name}</Link>
                 </li>
               ))}
             </ul>
-            <Router>
-              <Component
-                path=":propertyId"
-                render={({ props: { propertyId } }: any) => {
-                  return (
-                    <Units
-                      key={propertyId}
-                      path={`companies/${activeCompany}/properties/${propertyId}/units`}
-                      render={units => {
-                        return (
-                          <ul>
-                            {units.map(u => {
-                              return <li key={u.id}>{u.address}</li>
-                            })}
-                          </ul>
-                        )
-                      }}
-                    />
-                  )
-                }}
-              />
-            </Router>
+            <div
+              css={{
+                gridArea: 'units',
+              }}>
+              <Router>
+                <Component
+                  path=":propertyId"
+                  render={({ props: { propertyId } }: any) => {
+                    return (
+                      <Units
+                        key={propertyId}
+                        path={`companies/${activeCompany}/properties/${propertyId}/units`}
+                        render={units => {
+                          return (
+                            <ul>
+                              {units.map(u => {
+                                return <li key={u.id}>{u.address}</li>
+                              })}
+                            </ul>
+                          )
+                        }}
+                      />
+                    )
+                  }}
+                />
+              </Router>
+            </div>
           </div>
         )
       }}
