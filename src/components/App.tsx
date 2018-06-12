@@ -9,26 +9,19 @@ import PropertyDetail from '@page/PropertyDetail'
 import Login from '@page/Login'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
-
 const DelayRedir: any = (props: any) => <Redirect {...props} />
-
-const ShowUser: any = ({ user }: any) => (
-  <div>
-    <p>{user ? user.email : 'no user'}</p>
-  </div>
-)
 
 const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
   <nav className={headerStyles}>
     <Link to="/">Home</Link>
-    <Link to="dashboard">Dashboard</Link>
+    {/* <Link to="dashboard">Dashboard</Link> */}
     <button className="logout" onClick={logOut}>
       Log Out
     </button>
   </nav>
 )
 const headerStyles = css`
-  height: 3em;
+  border: 1px solid navy;
   padding: 0 1em;
   display: flex;
   justify-content: flex-start;
@@ -47,7 +40,11 @@ const headerStyles = css`
 class App extends React.Component {
   render() {
     return (
-      <div className="App">
+      <div
+        css={`
+          display: grid;
+          grid-template-rows: 60px 1fr;
+        `}>
         <FirebaseAuthConsumer
           loading={() => <h1>Loading..</h1>}
           render={({
@@ -62,8 +59,8 @@ class App extends React.Component {
               <>
                 <Header logOut={logOut} />
                 <Router>
-                  <Home path="/" />
-                  <Dashboard path="dashboard/*" activeCompany={activeCompany} />
+                  {/* <Home path="/" /> */}
+                  <Dashboard path="/*" activeCompany={activeCompany} />
                   <Redirect from="login" to="dashboard" />
                   <NotFound default />
                 </Router>
