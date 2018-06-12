@@ -2,10 +2,10 @@ import * as React from 'react'
 import { Router, Link, Redirect } from '@reach/router'
 import { FirebaseAuthConsumer } from '@comp/FirebaseAuth'
 import { css } from 'react-emotion'
-import '../App.css'
 
 import Home from '@page/Home'
 import Dashboard from '@page/Dashboard'
+import PropertyDetail from '@page/PropertyDetail'
 import Login from '@page/Login'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
@@ -50,13 +50,20 @@ class App extends React.Component {
       <div className="App">
         <FirebaseAuthConsumer
           loading={() => <h1>Loading..</h1>}
-          render={({ user, logIn, logOut, error, clearError }) => {
+          render={({
+            user,
+            activeCompany,
+            logIn,
+            logOut,
+            error,
+            clearError,
+          }) => {
             return user ? (
               <>
                 <Header logOut={logOut} />
                 <Router>
                   <Home path="/" />
-                  <Dashboard path="dashboard" />
+                  <Dashboard path="dashboard/*" activeCompany={activeCompany} />
                   <Redirect from="login" to="dashboard" />
                   <NotFound default />
                 </Router>

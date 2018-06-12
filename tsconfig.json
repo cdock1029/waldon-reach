@@ -1,15 +1,14 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "outDir": "build/dist",
+    "target": "es6",
     "module": "esnext",
-    "target": "es5",
+    "moduleResolution": "node",
     "lib": ["es6", "dom"],
+    "jsx": "react",
+    "rootDir": "src",
+    "outDir": "build/dist",
     "sourceMap": true,
     "allowJs": true,
-    "jsx": "react",
-    "moduleResolution": "node",
-    "rootDir": "src",
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "noImplicitReturns": true,
@@ -18,6 +17,7 @@
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": false,
+    "baseUrl": ".",
     "paths": {
       "@comp/*": ["src/components/*"],
       "@page/*": ["src/pages/*"],

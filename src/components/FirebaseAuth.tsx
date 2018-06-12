@@ -41,7 +41,6 @@ export class FirebaseAuthProvider extends React.Component<
     const { firebase } = this.props
     const auth = firebase.auth!()
     this.unsub = auth.onAuthStateChanged(async user => {
-      /*
       let activeCompany: string | undefined
       if (user) {
         const refresh = !this.state.hasLoaded
@@ -49,9 +48,6 @@ export class FirebaseAuthProvider extends React.Component<
         activeCompany = result.claims.activeCompany
       }
       this.setState(() => ({ hasLoaded: true, user, activeCompany }))
-      TODO testing injecting company at build..
-      */
-      this.setState(() => ({ hasLoaded: true, user }))
     })
   }
   componentWillUnmount() {

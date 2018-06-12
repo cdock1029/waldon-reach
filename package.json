@@ -12,25 +12,43 @@
     "react-dom": "^16.4.0",
     "react-emotion": "^9.2.3",
     "react-firestore": "^0.8.1",
+    "react-scripts": "^2.0.0-next.b2fd8db8",
     "react-scripts-ts": "2.16.0",
     "yup": "^0.25.1"
   },
   "scripts": {
-    "start": "BROWSER=none react-scripts-ts start",
+    "start": "BROWSER=none react-app-rewired start",
     "build": "react-scripts-ts build",
-    "test": "react-scripts-ts test --env=jsdom",
+    "test": "react-app-rewired test --env=jsdom",
     "eject": "react-scripts-ts eject"
   },
   "devDependencies": {
+    "@babel/preset-typescript": "^7.0.0-beta.49",
     "@types/jest": "^23.0.0",
     "@types/node": "^10.3.2",
     "@types/react": "^16.3.17",
     "@types/react-dom": "^16.0.6",
     "@types/webpack": "^4.4.0",
     "@types/webpack-env": "^1.13.6",
+    "babel-jest": "^23.0.1",
+    "convert-tsconfig-paths-to-webpack-aliases": "^0.9.2",
     "react-app-rewire-emotion": "^4.0.0",
-    "react-app-rewired": "^1.5.2",
+    "react-app-rewire-typescript-babel-preset": "^2.2.1",
+    "react-app-rewired": "^2.0.0",
     "react-testing-library": "^3.1.4",
     "typescript": "^2.9.1"
+  },
+  "browserslist": {
+    "development": [
+      "last 1 chrome versions",
+      "last 1 firefox versions",
+      "last 1 edge versions"
+    ],
+    "production": [
+      ">1%",
+      "last 2 versions",
+      "Firefox ESR",
+      "not ie < 11"
+    ]
   }
 }

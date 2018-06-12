@@ -14,8 +14,14 @@ const renderApp = () => {
     document.getElementById('root') as HTMLElement,
   )
 }
-
-renderApp()
+// TODO handle multiple tabs error..
+firebase
+  .firestore()
+  .enablePersistence()
+  .then(() => {
+    console.log('persistence enabled..')
+    renderApp()
+  })
 
 if (module.hot) {
   module.hot.accept('@comp/App', () => {
