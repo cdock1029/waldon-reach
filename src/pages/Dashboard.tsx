@@ -22,17 +22,6 @@ const isPartiallyActive = (classes: string) => ({
 class Properties extends Collection<Property> {}
 class Units extends Collection<Unit> {}
 
-// const PropertyDetail = ({propertyId}: any) => {
-//   return (
-//     <Router>
-//       <PropertyHeader
-//         path=":propertyId"
-//         getProperty={getGetProperty(properties)}
-//       />
-//     </Router>
-//   )
-// }
-
 const PropertyDetail = (props: any) => {
   console.log({ props })
   return (
@@ -51,8 +40,6 @@ const UnitDetail = ({ propertyId, unitId }: any) => {
   )
 }
 
-// const getGetProperty = (properties: Property[]) => (id: string) =>
-//   properties.find(p => p.id === id)
 const Dashboard: SFC<RouteProps & DashboardProps> = ({
   activeCompany,
   ...rest
@@ -99,10 +86,16 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
             <div
               css={{
                 gridArea: 'props',
+                paddingTop: '0.5em',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
               }}>
+              <h5 css={{ paddingLeft: '0.5em' }}>Properties</h5>
               <ListGroup
                 css={`
-                  max-height: 100%;
+                  /* max-height: 100%; */
+                  flex: 1;
                   overflow-y: scroll;
                 `}
                 flush>
@@ -126,6 +119,10 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
             <Router
               css={{
                 gridArea: 'units',
+                padding: '0.5em 0',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'flex-start',
               }}>
               <Component
                 path=":propertyId/*"
@@ -141,37 +138,41 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                       }
                       render={units => {
                         return (
-                          <ListGroup
-                            flush
-                            css={`
-                              max-height: 100%;
-                              overflow-y: scroll;
-                              /*.list-group-item-action.active {
+                          <>
+                            <h6 css={{ paddingLeft: '0.5em' }}>Units</h6>
+                            <ListGroup
+                              flush
+                              css={`
+                                /* max-height: 100%; */
+                                flex: 1;
+                                overflow-y: scroll;
+                                /*.list-group-item-action.active {
                                   color: #fff;
                                   background-color: var(--info);
                                   border-color: #0c5460;
                                 }*/
-                            `}>
-                            {units.map(u => {
-                              return (
-                                <ListGroupItem
-                                  action
-                                  color="info"
-                                  key={u.id}
-                                  to={`units/${u.id}`}
-                                  tag={props => (
-                                    <Link
-                                      getProps={isPartiallyActive(
-                                        props.className,
-                                      )}
-                                      {...props}
-                                    />
-                                  )}>
-                                  {u.address}
-                                </ListGroupItem>
-                              )
-                            })}
-                          </ListGroup>
+                              `}>
+                              {units.map(u => {
+                                return (
+                                  <ListGroupItem
+                                    action
+                                    color="info"
+                                    key={u.id}
+                                    to={`units/${u.id}`}
+                                    tag={props => (
+                                      <Link
+                                        getProps={isPartiallyActive(
+                                          props.className,
+                                        )}
+                                        {...props}
+                                      />
+                                    )}>
+                                    {u.address}
+                                  </ListGroupItem>
+                                )
+                              })}
+                            </ListGroup>
+                          </>
                         )
                       }}
                     />
@@ -185,22 +186,5 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
     />
   )
 }
-
-/*
-<Units
-        key={propertyId}
-        path={`companies/${activeCompany}/properties/${propertyId}/units`}
-        render={units => {
-          return (
-            <ul>
-              {units.map(u => {
-                return <li key={u.id}>{u.address}</li>
-              })}
-            </ul>
-          )
-        }}
-      />
-
-*/
 
 export default Dashboard
