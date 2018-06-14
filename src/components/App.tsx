@@ -12,7 +12,9 @@ const DelayRedir: any = (props: any) => <Redirect {...props} />
 
 const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
   <nav className={headerStyles}>
-    <Link to="/">Home</Link>
+    <Link className="btn btn-secondary" to="/">
+      Home
+    </Link>
     {/* <Link to="dashboard">Dashboard</Link> */}
     <Button className="logout" onClick={logOut}>
       Log Out
@@ -20,17 +22,16 @@ const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
   </nav>
 )
 const headerStyles = css`
-  border: 1px solid navy;
-  padding: 0 1em;
+  padding: 0 1.5em;
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  a {
+  /* a {
     margin-right: 1.5em;
     border: 1px solid navy;
     padding: 0.5em 1em;
     text-decoration: none;
-  }
+  } */
   .logout {
     margin-left: auto;
   }
@@ -42,7 +43,8 @@ class App extends React.Component {
       <div
         css={`
           display: grid;
-          grid-template-rows: 60px 1fr;
+          grid-template-rows: 3.5rem calc(100vh - 3.5rem);
+          height: 100vh;
         `}>
         <FirebaseAuthConsumer
           loading={() => <h1>Loading..</h1>}
@@ -57,7 +59,10 @@ class App extends React.Component {
             return user ? (
               <>
                 <Header logOut={logOut} />
-                <Router>
+                <Router
+                  css={{
+                    position: 'relative',
+                  }}>
                   {/* <Home path="/" /> */}
                   <Dashboard path="/*" activeCompany={activeCompany} />
                   <Redirect from="login" to="dashboard" />
