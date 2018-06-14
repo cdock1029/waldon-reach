@@ -11,20 +11,20 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
+  Card,
+  CardText,
+  CardTitle,
+  Navbar,
+  Nav,
+  Form,
+  FormGroup,
+  Input,
+  Button,
 } from 'reactstrap'
-import { collator } from '@lib/index'
+import { collator, isPartiallyActive } from '@lib/index'
 
 interface DashboardProps {
   activeCompany?: string
-}
-
-const isActive = ({ isCurrent }: any) => {
-  return isCurrent ? { className: 'active' } : null
-}
-const isPartiallyActive = (classes: string) => ({
-  isPartiallyCurrent,
-}: any) => {
-  return isPartiallyCurrent ? { className: `${classes} active` } : null
 }
 
 class Properties extends Collection<Property> {}
@@ -73,17 +73,30 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                 "units dash"
               ;`,
               gridTemplateColumns: 'minmax(0, 250px) 1fr',
-              gridTemplateRows: '4rem repeat(5, calc((100vh - 7.5rem) / 5))',
+              gridTemplateRows:
+                '47px repeat(5, calc((100vh - calc(56px + 47px)) / 5))',
             }}>
             <div
-              css={`
-                grid-area: header;
-                border-top: 1px solid rgba(0, 0, 0, 0.12);
-                border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-                /* background-color: papayawhip; */
-                padding: 0.5em;
-              `}>
-              <h3>todo</h3>
+              css={{
+                gridArea: 'header',
+              }}>
+              <Navbar color="secondary" light expand="md">
+                <Nav navbar css={{ marginLeft: 'auto' }}>
+                  <Form inline>
+                    <FormGroup className="mr-sm-2">
+                      <Input
+                        className="mr-sm-2"
+                        bsSize="sm"
+                        type="search"
+                        id="search"
+                        name="search"
+                        placeholder="search"
+                      />
+                      <Button size="sm">Search</Button>
+                    </FormGroup>
+                  </Form>
+                </Nav>
+              </Navbar>
             </div>
             <div
               css={{
@@ -98,10 +111,10 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
             <div
               css={{
                 gridArea: 'props',
-                paddingTop: '0.5em',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'flex-start',
+                borderBottom: '1px solid rgba(0,0,0,0.1)',
               }}>
               <Component
                 initialState={{ modal: false }}
@@ -113,8 +126,10 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                 }: any) => (
                   <>
                     <h6
+                      className="bg-light"
                       css={{
-                        paddingLeft: '0.5em',
+                        padding: '0.5em',
+                        margin: 0,
                         display: 'flex',
                         justifyContent: 'space-between',
                       }}>
@@ -152,7 +167,6 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                 {properties.map(p => {
                   return (
                     <ListGroupItem
-                      color="success"
                       action
                       key={p.id}
                       to={p.id}
@@ -169,7 +183,7 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
             <Router
               css={{
                 gridArea: 'units',
-                padding: '0.5em 0',
+                paddingBottom: '1em',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'flex-start',
@@ -190,8 +204,10 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                         return (
                           <>
                             <h6
+                              className="bg-light"
                               css={{
-                                paddingLeft: '0.5em',
+                                padding: '0.5em',
+                                margin: 0,
                                 display: 'flex',
                                 justifyContent: 'space-between',
                               }}>
@@ -214,25 +230,48 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                                   border-color: #0c5460;
                                 }*/
                               `}>
-                              {units.map(u => {
-                                return (
-                                  <ListGroupItem
-                                    action
-                                    color="info"
-                                    key={u.id}
-                                    to={`units/${u.id}`}
-                                    tag={props => (
-                                      <Link
-                                        getProps={isPartiallyActive(
-                                          props.className,
-                                        )}
-                                        {...props}
-                                      />
-                                    )}>
-                                    {u.address}
-                                  </ListGroupItem>
-                                )
-                              })}
+                              {units.length ? (
+                                units.map(u => {
+                                  return (
+                                    <ListGroupItem
+                                      action
+                                      key={u.id}
+                                      to={`units/${u.id}`}
+                                      tag={props => {
+                                        return (
+                                          <Link
+                                            getProps={isPartiallyActive(
+                                              props.className,
+                                            )}
+                                            {...props}
+                                          />
+                                        )
+                                        // return (
+                                        //   <Link
+                                        //     ref={link}
+                                        //     onClick={handleClick}
+                                        //     getProps={isPartiallyActive(
+                                        //       props.className,
+                                        //     )}
+                                        //     {...props}
+                                        //   />
+                                        // )
+                                      }}>
+                                      {u.address}
+                                    </ListGroupItem>
+                                  )
+                                })
+                              ) : (
+                                <div css={{ padding: '1em' }}>
+                                  <Card body>
+                                    <CardTitle>No units</CardTitle>
+                                    <CardText>
+                                      click <code>New</code> to create a new
+                                      unit
+                                    </CardText>
+                                  </Card>
+                                </div>
+                              )}
                             </ListGroup>
                           </>
                         )

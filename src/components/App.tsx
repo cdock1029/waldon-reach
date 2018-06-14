@@ -5,37 +5,29 @@ import { css } from 'react-emotion'
 
 import Dashboard from '@page/Dashboard'
 import Login from '@page/Login'
-import { Button } from 'reactstrap'
+import { Button, Navbar, Nav, NavItem, NavLink, NavbarBrand } from 'reactstrap'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 const DelayRedir: any = (props: any) => <Redirect {...props} />
 
 const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
-  <nav className={headerStyles}>
-    <Link className="btn btn-outline-secondary" to="/">
-      Home
-    </Link>
-    {/* <Link to="dashboard">Dashboard</Link> */}
-    <Button outline className="logout" onClick={logOut}>
-      Log Out
-    </Button>
-  </nav>
+  <Navbar color="dark" dark expand="md">
+    <NavbarBrand to="/" tag={props => <Link {...props}>Home</Link>} />
+    <Nav className="ml-auto" navbar>
+      {/* <Link className="btn btn-outline-secondary" to="/">
+        Home
+      </Link> */}
+      <Button
+        color="info"
+        outline
+        size="sm"
+        className="logout"
+        onClick={logOut}>
+        Log Out
+      </Button>
+    </Nav>
+  </Navbar>
 )
-const headerStyles = css`
-  padding: 0 1.5em;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  /* a {
-    margin-right: 1.5em;
-    border: 1px solid navy;
-    padding: 0.5em 1em;
-    text-decoration: none;
-  } */
-  .logout {
-    margin-left: auto;
-  }
-`
 
 class App extends React.Component {
   render() {
@@ -43,7 +35,7 @@ class App extends React.Component {
       <div
         css={`
           display: grid;
-          grid-template-rows: 3.5rem calc(100vh - 3.5rem);
+          grid-template-rows: 56px calc(100vh - 56px);
           height: 100vh;
         `}>
         <FirebaseAuthConsumer
