@@ -12,11 +12,11 @@ const DelayRedir: any = (props: any) => <Redirect {...props} />
 
 const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
   <nav className={headerStyles}>
-    <Link className="btn btn-secondary" to="/">
+    <Link className="btn btn-outline-secondary" to="/">
       Home
     </Link>
     {/* <Link to="dashboard">Dashboard</Link> */}
-    <Button className="logout" onClick={logOut}>
+    <Button outline className="logout" onClick={logOut}>
       Log Out
     </Button>
   </nav>

@@ -3,7 +3,15 @@ import { Collection } from '@comp/FirestoreData'
 import { Link, Router } from '@reach/router'
 import { Property, Unit } from '../types'
 import Component from '@reactions/component'
-import { ListGroup, ListGroupItem } from 'reactstrap'
+import {
+  ListGroup,
+  ListGroupItem,
+  Badge,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+} from 'reactstrap'
 import { collator } from '@lib/index'
 
 interface DashboardProps {
@@ -40,6 +48,8 @@ const UnitDetail = ({ propertyId, unitId }: any) => {
   )
 }
 
+const showAlert = () => alert('yo')
+
 const Dashboard: SFC<RouteProps & DashboardProps> = ({
   activeCompany,
   ...rest
@@ -68,7 +78,9 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
             <div
               css={`
                 grid-area: header;
-                background-color: papayawhip;
+                border-top: 1px solid rgba(0, 0, 0, 0.12);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+                /* background-color: papayawhip; */
                 padding: 0.5em;
               `}>
               <h3>todo</h3>
@@ -91,7 +103,45 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                 flexDirection: 'column',
                 justifyContent: 'flex-start',
               }}>
-              <h5 css={{ paddingLeft: '0.5em' }}>Properties</h5>
+              <Component
+                initialState={{ modal: false }}
+                toggleCallback={({ modal }: any) => ({ modal: !modal })}
+                render={({
+                  setState,
+                  props: { toggleCallback },
+                  state,
+                }: any) => (
+                  <>
+                    <h6
+                      css={{
+                        paddingLeft: '0.5em',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                      }}>
+                      Properties{' '}
+                      <Badge
+                        css={{ cursor: 'pointer' }}
+                        color="secondary"
+                        onClick={() => setState(toggleCallback)}>
+                        New
+                      </Badge>
+                    </h6>
+                    <Modal
+                      centered
+                      isOpen={state.modal}
+                      toggle={() => setState(toggleCallback)}>
+                      <ModalHeader
+                        css={{ flexDirection: 'row' }}
+                        toggle={() => setState(toggleCallback)}>
+                        New Property
+                      </ModalHeader>
+                      <ModalBody>
+                        <h4>New Property form TODO</h4>
+                      </ModalBody>
+                    </Modal>
+                  </>
+                )}
+              />
               <ListGroup
                 css={`
                   /* max-height: 100%; */
@@ -139,7 +189,19 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                       render={units => {
                         return (
                           <>
-                            <h6 css={{ paddingLeft: '0.5em' }}>Units</h6>
+                            <h6
+                              css={{
+                                paddingLeft: '0.5em',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                              }}>
+                              Units{' '}
+                              <Badge
+                                css={{ cursor: 'pointer' }}
+                                color="secondary">
+                                New
+                              </Badge>
+                            </h6>
                             <ListGroup
                               flush
                               css={`
