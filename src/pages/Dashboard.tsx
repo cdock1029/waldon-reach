@@ -126,6 +126,13 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                 {properties.map(p => {
                   return (
                     <ListGroupItem
+                      css={`
+                        &.list-group-item.list-group-item-action.active {
+                          color: #fff;
+                          background-color: #0c5460;
+                          border-color: #0c5460;
+                        }
+                      `}
                       action
                       key={p.id}
                       to={p.id}
@@ -213,6 +220,13 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                                   return (
                                     <ListGroupItem
                                       action
+                                      css={`
+                                        &.list-group-item.list-group-item-action.active {
+                                          color: #fff;
+                                          background-color: #155724;
+                                          border-color: #155724;
+                                        }
+                                      `}
                                       key={u.id}
                                       to={`units/${u.id}`}
                                       tag={props => {
