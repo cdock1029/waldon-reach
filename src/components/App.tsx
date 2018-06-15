@@ -5,28 +5,92 @@ import { css } from 'react-emotion'
 
 import Dashboard from '@page/Dashboard'
 import Login from '@page/Login'
-import { Button, Navbar, Nav, NavItem, NavLink, NavbarBrand } from 'reactstrap'
+import {
+  Button,
+  Navbar,
+  Nav,
+  NavItem,
+  NavLink,
+  NavbarBrand,
+  Form,
+  FormGroup,
+  Input,
+  Dropdown,
+  DropdownToggle,
+  DropdownMenu,
+  DropdownItem,
+} from 'reactstrap'
+import Component from '@reactions/component'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 const DelayRedir: any = (props: any) => <Redirect {...props} />
 
 const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
-  <Navbar color="dark" dark expand="md">
-    <NavbarBrand to="/" tag={props => <Link {...props}>Home</Link>} />
-    <Nav className="ml-auto" navbar>
-      {/* <Link className="btn btn-outline-secondary" to="/">
-        Home
-      </Link> */}
-      <Button
-        color="info"
-        outline
-        size="sm"
-        className="logout"
-        onClick={logOut}>
-        Log Out
-      </Button>
-    </Nav>
-  </Navbar>
+  <>
+    <Navbar css={{ height: '56px' }} color="dark" dark expand="md">
+      <NavbarBrand to="/" tag={props => <Link {...props}>Home</Link>} />
+      <Nav className="ml-auto" navbar>
+        <Form inline>
+          <FormGroup className="mr-sm-2">
+            <Input
+              className="mr-sm-3"
+              bsSize="sm"
+              type="search"
+              id="search"
+              name="search"
+              placeholder="search"
+            />
+            <Button outline color="info" size="sm" className="mr-sm-3">
+              Search
+            </Button>
+          </FormGroup>
+        </Form>
+        <Component
+          initialState={{ open: false }}
+          toggleCb={({ open }: any) => ({ open: !open })}
+          render={({ state, props, setState }: any) => (
+            <Dropdown
+              nav
+              inNavbar
+              group
+              size="sm"
+              isOpen={state.open}
+              toggle={() => setState(props.toggleCb)}>
+              <DropdownToggle nav caret />
+              <DropdownMenu right>
+                <DropdownItem onClick={logOut}>Log Out</DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          )}
+        />
+      </Nav>
+    </Navbar>
+    {/* <Navbar color="secondary" light expand="md">
+      <Nav navbar css={{ marginLeft: 'auto' }}>
+        <Form inline>
+          <FormGroup className="mr-sm-2">
+            <Input
+              className="mr-sm-2"
+              bsSize="sm"
+              type="search"
+              id="search"
+              name="search"
+              placeholder="search"
+            />
+            <Button size="sm">Search</Button>
+          </FormGroup>
+        </Form>
+      </Nav>
+    </Navbar> */}
+  </>
+)
+
+const Home: React.SFC<any> = () => (
+  <div css={{ padding: '1em' }}>
+    <h4>Home page</h4>
+    <br />
+    <Link to="properties">Properties</Link>
+  </div>
 )
 
 class App extends React.Component {
@@ -35,7 +99,7 @@ class App extends React.Component {
       <div
         css={`
           display: grid;
-          grid-template-rows: 56px calc(100vh - 56px);
+          grid-template-rows: 56px calc(100vh - 110px);
           height: 100vh;
         `}>
         <FirebaseAuthConsumer
@@ -55,9 +119,12 @@ class App extends React.Component {
                   css={{
                     position: 'relative',
                   }}>
-                  {/* <Home path="/" /> */}
-                  <Dashboard path="/*" activeCompany={activeCompany} />
-                  <Redirect from="login" to="dashboard" />
+                  <Home path="/" />
+                  <Dashboard
+                    path="properties/*"
+                    activeCompany={activeCompany}
+                  />
+                  <Redirect from="login" to="/" />
                   <NotFound default />
                 </Router>
               </>

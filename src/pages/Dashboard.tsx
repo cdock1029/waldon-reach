@@ -32,7 +32,6 @@ class Properties extends Collection<Property> {}
 class Units extends Collection<Unit> {}
 
 const PropertyDetail = (props: any) => {
-  console.log({ props })
   return (
     <div css={{ padding: '1em' }}>
       <small>Property id: {props.propertyId}</small>
@@ -51,11 +50,7 @@ const UnitDetail = ({ propertyId, unitId }: any) => {
 
 const showAlert = () => alert('yo')
 
-const Dashboard: SFC<RouteProps & DashboardProps> = ({
-  activeCompany,
-  ...rest
-}) => {
-  console.log({ rest })
+const Dashboard: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
   return (
     <Properties
       path={`companies/${activeCompany}/properties`}
@@ -66,7 +61,6 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
             css={{
               display: 'grid',
               gridTemplateAreas: `
-                "header header"
                 "props dash"
                 "props dash"
                 "units dash"
@@ -74,31 +68,8 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                 "units dash"
               ;`,
               gridTemplateColumns: 'minmax(0, 250px) 1fr',
-              gridTemplateRows:
-                '47px repeat(5, calc((100vh - calc(56px + 47px)) / 5))',
+              gridTemplateRows: 'repeat(5, calc((100vh - 56px) / 5))',
             }}>
-            <div
-              css={{
-                gridArea: 'header',
-              }}>
-              <Navbar color="secondary" light expand="md">
-                <Nav navbar css={{ marginLeft: 'auto' }}>
-                  <Form inline>
-                    <FormGroup className="mr-sm-2">
-                      <Input
-                        className="mr-sm-2"
-                        bsSize="sm"
-                        type="search"
-                        id="search"
-                        name="search"
-                        placeholder="search"
-                      />
-                      <Button size="sm">Search</Button>
-                    </FormGroup>
-                  </Form>
-                </Nav>
-              </Navbar>
-            </div>
             <div
               css={{
                 gridArea: 'dash',
