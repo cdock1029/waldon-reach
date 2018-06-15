@@ -1,5 +1,6 @@
 import { app, User } from 'firebase/app'
 import React from 'react'
+import Login from '@page/Login'
 
 interface AuthContext {
   hasLoaded: boolean
@@ -91,12 +92,14 @@ interface AuthConsumerProps {
   children?: React.ReactNode | AuthRender
   tag?: React.Component
   loading?: any
+  loginNoRedirect?: boolean
 }
 export const FirebaseAuthConsumer = ({
   render,
   children,
   tag,
   loading,
+  loginNoRedirect = true,
   ...rest
 }: AuthConsumerProps) => (
   <Consumer>
@@ -104,6 +107,15 @@ export const FirebaseAuthConsumer = ({
       if (loading && !authContext.hasLoaded) {
         const Loading: any = loading
         return <Loading />
+      }
+      if (loginNoRedirect && authContext.hasLoaded && !authContext.user) {
+        return (
+          <Login
+            logIn={authContext.logIn!}
+            error={authContext.error}
+            clearError={authContext.clearError!}
+          />
+        )
       }
       if (render) {
         return render(authContext)

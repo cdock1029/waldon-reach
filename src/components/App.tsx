@@ -24,8 +24,6 @@ import Component from '@reactions/component'
 import { isPartiallyActive } from '@lib/index'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
-const DelayRedir: any = (props: any) => <Redirect {...props} />
-
 const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
   <>
     <Navbar css={{ height: '56px' }} color="dark" dark expand="md">
@@ -77,23 +75,6 @@ const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
         />
       </Nav>
     </Navbar>
-    {/* <Navbar color="secondary" light expand="md">
-      <Nav navbar css={{ marginLeft: 'auto' }}>
-        <Form inline>
-          <FormGroup className="mr-sm-2">
-            <Input
-              className="mr-sm-2"
-              bsSize="sm"
-              type="search"
-              id="search"
-              name="search"
-              placeholder="search"
-            />
-            <Button size="sm">Search</Button>
-          </FormGroup>
-        </Form>
-      </Nav>
-    </Navbar> */}
   </>
 )
 
@@ -116,15 +97,8 @@ class App extends React.Component {
         `}>
         <FirebaseAuthConsumer
           loading={() => <h1>Loading..</h1>}
-          render={({
-            user,
-            activeCompany,
-            logIn,
-            logOut,
-            error,
-            clearError,
-          }) => {
-            return user ? (
+          render={({ activeCompany, logOut }) => {
+            return (
               <>
                 <Header logOut={logOut} />
                 <Router
@@ -133,20 +107,9 @@ class App extends React.Component {
                   }}>
                   <Home path="/" />
                   <Dashboard path="dashboard/*" activeCompany={activeCompany} />
-                  <Redirect from="login" to="/" />
                   <NotFound default />
                 </Router>
               </>
-            ) : (
-              <Router>
-                <Login
-                  path="login"
-                  logIn={logIn!}
-                  error={error}
-                  clearError={clearError!}
-                />
-                <DelayRedir default to="login" />
-              </Router>
             )
           }}
         />
