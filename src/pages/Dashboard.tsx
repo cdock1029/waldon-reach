@@ -140,7 +140,6 @@ const Tenants: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
               />
               <ListGroup
                 css={`
-                  /* max-height: 100%; */
                   flex: 1;
                   overflow-y: scroll;
                 `}
@@ -193,8 +192,7 @@ const Properties: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                 "units dash"
               ;`,
               gridTemplateColumns: 'minmax(0, 250px) 1fr',
-              // gridTemplateRows: 'repeat(5, calc((100vh - 56px) / 5))',
-              gridTemplateRows: '2fr 3fr',
+              gridTemplateRows: 'repeat(2, calc((100vh - 56px)/2))',
             }}>
             <div
               css={{
@@ -210,9 +208,7 @@ const Properties: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
               css={{
                 gridArea: 'props',
                 display: 'flex',
-                overflowY: 'hidden',
                 flexDirection: 'column',
-                justifyContent: 'flex-start',
                 borderBottom: '1px solid rgba(0,0,0,0.1)',
               }}>
               <Component
@@ -273,11 +269,9 @@ const Properties: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
             <Router
               css={{
                 gridArea: 'units',
-                paddingBottom: '1em',
                 display: 'flex',
-                overflowY: 'hidden',
                 flexDirection: 'column',
-                justifyContent: 'flex-start',
+                paddingBottom: '1em',
               }}>
               <Component
                 path=":propertyId/*"
@@ -380,6 +374,7 @@ const Properties: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                 }}
               />
             </Router>
+            {/* </div> */}
           </div>
         )
       }}
