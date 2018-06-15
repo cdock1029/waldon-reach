@@ -6,3 +6,8 @@ export interface Property extends Doc {
 export interface Unit extends Doc {
   address: string
 }
+export interface Tenant extends Doc {
+  firstName: string
+  lastName: string
+  email?: string
+}

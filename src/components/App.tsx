@@ -21,6 +21,7 @@ import {
   DropdownItem,
 } from 'reactstrap'
 import Component from '@reactions/component'
+import { isPartiallyActive } from '@lib/index'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 const DelayRedir: any = (props: any) => <Redirect {...props} />
@@ -29,6 +30,17 @@ const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
   <>
     <Navbar css={{ height: '56px' }} color="dark" dark expand="md">
       <NavbarBrand to="/" tag={props => <Link {...props}>Home</Link>} />
+      <Nav navbar>
+        <NavItem>
+          <NavLink
+            tag={props => (
+              <Link getProps={isPartiallyActive(props.className)} {...props} />
+            )}
+            to="dashboard">
+            Dashboard
+          </NavLink>
+        </NavItem>
+      </Nav>
       <Nav className="ml-auto" navbar>
         <Form inline>
           <FormGroup className="mr-sm-2">
@@ -38,11 +50,11 @@ const Header: React.SFC<{ logOut: any }> = ({ logOut }) => (
               type="search"
               id="search"
               name="search"
-              placeholder="search"
+              placeholder="Search"
             />
-            <Button outline color="info" size="sm" className="mr-sm-3">
+            {/* <Button outline color="info" size="sm" className="mr-sm-3">
               Search
-            </Button>
+            </Button> */}
           </FormGroup>
         </Form>
         <Component
@@ -89,7 +101,7 @@ const Home: React.SFC<any> = () => (
   <div css={{ padding: '1em' }}>
     <h4>Home page</h4>
     <br />
-    <Link to="properties">Properties</Link>
+    <Link to="dashboard">Dashboard</Link>
   </div>
 )
 
@@ -120,10 +132,7 @@ class App extends React.Component {
                     position: 'relative',
                   }}>
                   <Home path="/" />
-                  <Dashboard
-                    path="properties/*"
-                    activeCompany={activeCompany}
-                  />
+                  <Dashboard path="dashboard/*" activeCompany={activeCompany} />
                   <Redirect from="login" to="/" />
                   <NotFound default />
                 </Router>

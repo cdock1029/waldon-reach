@@ -6,7 +6,7 @@
   "rules": {
     "ordered-imports": false,
     "jsx-self-close": false,
-    "no-unused-variable:": false,
+    "no-unused-variable:": { "severity": "warning" },
     "interface-name": false,
     "object-literal-sort-keys": false,
     "member-access": false,
