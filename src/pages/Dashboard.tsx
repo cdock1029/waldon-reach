@@ -23,6 +23,7 @@ import {
 } from 'reactstrap'
 import { collator, isPartiallyActive } from '@lib/index'
 import NewUnitForm from '@comp/NewUnitForm'
+import LeaseView from '@comp/LeaseView'
 
 interface DashboardProps {
   activeCompany?: string
@@ -69,9 +70,9 @@ const DashIndex = (props: any) => {
 
 const Dashboard: SFC<RouteProps & DashboardProps> = ({
   activeCompany,
-  ...rest
+  // ...rest
 }) => {
-  console.log({ rest })
+  // console.log({ rest })
   return (
     <Router>
       <DashIndex path="/" />
@@ -98,7 +99,7 @@ const Tenants: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
             css={{
               display: 'grid',
               gridTemplateAreas: `
-                "tenants dash"
+                "tenants lease"
               ;`,
               gridTemplateColumns: 'minmax(0, 250px) 1fr',
               gridTemplateRows: 'calc(100vh - 56px)',
@@ -169,6 +170,15 @@ const Tenants: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                 })}
               </ListGroup>
             </div>
+            <Router css={{ gridArea: 'lease' }}>
+              <Component
+                activeCompany={activeCompany!}
+                path=":tenantId"
+                render={({ props }: any) => {
+                  return <LeaseView key={`t:${props.tenantId}`} {...props} />
+                }}
+              />
+            </Router>
           </div>
         )
       }}
@@ -188,22 +198,38 @@ const Properties: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
               display: 'grid',
               height: 'calc(100vh - 56px)',
               gridTemplateAreas: `
-                "props dash"
-                "units dash"
+                "props lease"
+                "units lease"
               ;`,
               gridTemplateColumns: 'minmax(0, 250px) 1fr',
               gridTemplateRows: 'repeat(2, calc((100vh - 56px)/2))',
             }}>
-            <div
-              css={{
-                gridArea: 'dash',
-              }}>
-              <Router>
-                <PropertyDetail path=":propertyId">
-                  <UnitDetail path="units/:unitId" />
-                </PropertyDetail>
-              </Router>
-            </div>
+            <Router css={{ gridArea: 'lease' }}>
+              <Component
+                activeCompany={activeCompany!}
+                path=":propertyId"
+                render={({ props }: any) => {
+                  return <LeaseView key={`p:${props.propertyId}`} {...props} />
+                }}
+              />
+              <Component
+                activeCompany={activeCompany!}
+                path=":propertyId/units/:unitId"
+                render={({ props }: any) => {
+                  return (
+                    <LeaseView
+                      key={`p:${props.propertyId}u:${props.unitId}`}
+                      {...props}
+                    />
+                  )
+                }}
+              />
+              {/* <LeaseView activeCompany={activeCompany!} path=":propertyId" />
+              <LeaseView
+                activeCompany={activeCompany!}
+                path=":propertyId/units/:unitId"
+              /> */}
+            </Router>
             <div
               css={{
                 gridArea: 'props',
