@@ -17,13 +17,14 @@ interface CollectionProps<T extends Doc> {
   // collectionRef: CollectionReference | Query
   path: string
   initialData?: T[]
-  render: (data: T[]) => any
+  render: (data: T[], hasLoaded: boolean) => any
   transform?: (data: T[]) => T[]
   orderBy?: { field: string | fs.FieldPath; direction: fs.OrderByDirection }
 }
 interface CollectionState<T extends Doc> {
   data: T[]
   path?: string
+  hasLoaded: boolean
 }
 interface DocumentProps<T extends Doc> {
   // documentRef: DocumentReference
@@ -45,6 +46,7 @@ export class Collection<T extends Doc> extends React.Component<
   state: CollectionState<T> = {
     data: this.props.initialData || [],
     path: undefined,
+    hasLoaded: false,
   }
   private unsub: () => void
   componentDidMount() {
@@ -79,10 +81,10 @@ export class Collection<T extends Doc> extends React.Component<
     if (this.props.transform) {
       data = this.props.transform(data)
     }
-    this.setState(() => ({ data }))
+    this.setState(() => ({ data, hasLoaded: true }))
   }
   render() {
-    return this.props.render(this.state.data)
+    return this.props.render(this.state.data, this.state.hasLoaded)
   }
 }
 export class Document<T extends Doc> extends React.Component<

@@ -83,7 +83,9 @@ export class FirebaseAuthProvider extends React.Component<
     return <Provider value={this.state}>{this.props.children}</Provider>
   }
 }
-type AuthRender = (authContext: AuthContext) => JSX.Element | JSX.Element[]
+type AuthRender = (
+  authContext: AuthContext,
+) => JSX.Element | JSX.Element[] | null
 interface AuthConsumerProps {
   render?: AuthRender
   children?: React.ReactNode | AuthRender

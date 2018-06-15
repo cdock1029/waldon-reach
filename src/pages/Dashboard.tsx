@@ -22,6 +22,7 @@ import {
   Button,
 } from 'reactstrap'
 import { collator, isPartiallyActive } from '@lib/index'
+import NewUnitForm from '@comp/NewUnitForm'
 
 interface DashboardProps {
   activeCompany?: string
@@ -141,19 +142,6 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                         New
                       </Badge>
                     </h6>
-                    <Modal
-                      centered
-                      isOpen={state.modal}
-                      toggle={() => setState(toggleCallback)}>
-                      <ModalHeader
-                        css={{ flexDirection: 'row' }}
-                        toggle={() => setState(toggleCallback)}>
-                        New Property
-                      </ModalHeader>
-                      <ModalBody>
-                        <h4>New Property form TODO</h4>
-                      </ModalBody>
-                    </Modal>
                   </>
                 )}
               />
@@ -200,24 +188,43 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                           collator.compare(a.address, b.address),
                         )
                       }
-                      render={units => {
+                      render={(units, hasLoaded) => {
                         return (
                           <>
-                            <h6
-                              className="bg-light"
-                              css={{
-                                padding: '0.5em',
-                                margin: 0,
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                              }}>
-                              Units{' '}
-                              <Badge
-                                css={{ cursor: 'pointer' }}
-                                color="secondary">
-                                New
-                              </Badge>
-                            </h6>
+                            <Component
+                              initialState={{ modal: false }}
+                              toggleCallback={({ modal }: any) => ({
+                                modal: !modal,
+                              })}
+                              render={({
+                                setState,
+                                props: { toggleCallback },
+                                state,
+                              }: any) => (
+                                <h6
+                                  className="bg-light"
+                                  css={{
+                                    padding: '0.5em',
+                                    margin: 0,
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                  }}>
+                                  Units{' '}
+                                  <Badge
+                                    css={{ cursor: 'pointer' }}
+                                    onClick={() => setState(toggleCallback)}
+                                    color="secondary">
+                                    New
+                                  </Badge>
+                                  <NewUnitForm
+                                    activeCompany={activeCompany!}
+                                    propertyId={propertyId}
+                                    isModalOpen={state.modal}
+                                    toggleModal={() => setState(toggleCallback)}
+                                  />
+                                </h6>
+                              )}
+                            />
                             <ListGroup
                               flush
                               css={`
@@ -246,22 +253,12 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                                             {...props}
                                           />
                                         )
-                                        // return (
-                                        //   <Link
-                                        //     ref={link}
-                                        //     onClick={handleClick}
-                                        //     getProps={isPartiallyActive(
-                                        //       props.className,
-                                        //     )}
-                                        //     {...props}
-                                        //   />
-                                        // )
                                       }}>
                                       {u.address}
                                     </ListGroupItem>
                                   )
                                 })
-                              ) : (
+                              ) : hasLoaded ? (
                                 <div css={{ padding: '1em' }}>
                                   <Card body>
                                     <CardTitle>No units</CardTitle>
@@ -271,7 +268,7 @@ const Dashboard: SFC<RouteProps & DashboardProps> = ({
                                     </CardText>
                                   </Card>
                                 </div>
-                              )}
+                              ) : null}
                             </ListGroup>
                           </>
                         )
