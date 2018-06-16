@@ -126,7 +126,6 @@ export class Document<T extends Doc> extends React.Component<
     this.setState(() => ({ data }))
   }
   render() {
-    console.log('** render Document **')
     return this.props.render(this.state.data)
   }
 }

@@ -1,4 +1,4 @@
-import React, { SFC } from 'react'
+import React, { SFC, Children } from 'react'
 import { Collection } from '@comp/FirestoreData'
 import { Link, Router } from '@reach/router'
 import { Property, Unit, Tenant } from '../types'
@@ -12,8 +12,10 @@ import {
   ModalBody,
   ModalFooter,
   Card,
+  CardBody,
   CardText,
   CardTitle,
+  CardSubtitle,
   Navbar,
   Nav,
   Form,
@@ -24,29 +26,69 @@ import {
 import { collator, isPartiallyActive } from '@lib/index'
 import NewUnitForm from '@comp/NewUnitForm'
 import LeaseView from '@comp/LeaseView'
+import { FirebaseAuthConsumer } from '@comp/FirebaseAuth'
+import { Document } from '@comp/FirestoreData'
 
 interface DashboardProps {
-  activeCompany?: string
+  activeCompany: string
 }
 
 class PropertiesCollection extends Collection<Property> {}
+class UnitsCollection extends Collection<Unit> {}
 class TenantsCollection extends Collection<Tenant> {}
-class Units extends Collection<Unit> {}
 
-const PropertyDetail = (props: any) => {
+class PropertyDoc extends Document<Property> {}
+class UnitDoc extends Document<Unit> {}
+
+interface PropertyDetailProps {
+  propertyId: string
+}
+const PropertyDetail: SFC<PropertyDetailProps> = ({ propertyId, children }) => {
   return (
-    <div css={{ padding: '1em' }}>
-      <small>Property id: {props.propertyId}</small>
-      {props.children}
-    </div>
+    <FirebaseAuthConsumer>
+      {({ activeCompany }) => (
+        <PropertyDoc
+          path={`companies/${activeCompany}/properties/${propertyId}`}
+          render={property => (
+            <div css={{ padding: '1em' }}>
+              <Card>
+                <CardBody>
+                  <CardTitle>{property && property.name}</CardTitle>
+                  <CardText>Property</CardText>
+                  {children}
+                </CardBody>
+              </Card>
+            </div>
+          )}
+        />
+      )}
+    </FirebaseAuthConsumer>
   )
 }
-const UnitDetail = ({ propertyId, unitId }: any) => {
+interface UnitDetailProps {
+  propertyId: string
+  unitId: string
+}
+const UnitDetail: SFC<UnitDetailProps> = ({ propertyId, unitId, children }) => {
   return (
-    <div>
-      <h4>P: {propertyId}</h4>
-      <small>Uid: {unitId}</small>
-    </div>
+    <FirebaseAuthConsumer>
+      {({ activeCompany }) => (
+        <UnitDoc
+          path={`companies/${activeCompany}/properties/${propertyId}/units/${unitId}`}
+          render={unit => (
+            <div css={{ padding: '1em' }}>
+              <Card>
+                <CardBody>
+                  <CardSubtitle>{unit && unit.address}</CardSubtitle>
+                  <CardText>Unit</CardText>
+                  {children}
+                </CardBody>
+              </Card>
+            </div>
+          )}
+        />
+      )}
+    </FirebaseAuthConsumer>
   )
 }
 
@@ -209,7 +251,16 @@ const Properties: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                 activeCompany={activeCompany!}
                 path=":propertyId"
                 render={({ props }: any) => {
-                  return <LeaseView key={`p:${props.propertyId}`} {...props} />
+                  return (
+                    <div
+                      css={`
+                        display: flex;
+                        flex-direction: column;
+                      `}>
+                      <PropertyDetail propertyId={props.propertyId} />
+                      <LeaseView key={`p:${props.propertyId}`} {...props} />
+                    </div>
+                  )
                 }}
               />
               <Component
@@ -217,18 +268,24 @@ const Properties: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                 path=":propertyId/units/:unitId"
                 render={({ props }: any) => {
                   return (
-                    <LeaseView
-                      key={`p:${props.propertyId}u:${props.unitId}`}
-                      {...props}
-                    />
+                    <div
+                      css={`
+                        display: flex;
+                        flex-direction: column;
+                      `}>
+                      <PropertyDetail propertyId={props.propertyId} />
+                      <UnitDetail
+                        propertyId={props.propertyId}
+                        unitId={props.unitId}
+                      />
+                      <LeaseView
+                        key={`p:${props.propertyId}u:${props.unitId}`}
+                        {...props}
+                      />
+                    </div>
                   )
                 }}
               />
-              {/* <LeaseView activeCompany={activeCompany!} path=":propertyId" />
-              <LeaseView
-                activeCompany={activeCompany!}
-                path=":propertyId/units/:unitId"
-              /> */}
             </Router>
             <div
               css={{
@@ -303,7 +360,7 @@ const Properties: SFC<RouteProps & DashboardProps> = ({ activeCompany }) => {
                 path=":propertyId/*"
                 render={({ props: { propertyId } }: any) => {
                   return (
-                    <Units
+                    <UnitsCollection
                       key={propertyId}
                       path={`companies/${activeCompany}/properties/${propertyId}/units`}
                       transform={units =>
