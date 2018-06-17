@@ -1,8 +1,9 @@
-import React from 'react'
+import React, { SFC } from 'react'
 import { Container, Row, Col, Card, CardBody } from 'reactstrap'
 import firebase from '@lib/firebase'
 import { firestore as fs } from 'firebase/app'
 import Component from '@reactions/component'
+import { FirebaseAuthConsumer as Auth } from '@comp/FirebaseAuth'
 import { Lease } from '../types'
 
 interface LeaseViewProps extends RouteProps {
@@ -46,11 +47,10 @@ class LeaseView extends React.Component<LeaseViewProps, LeaseViewState> {
       // ref = ref.collection('tenants').doc(tenantId)
       query = query.where(`tenants.${tenantId}.exists`, '==', true)
     }
-    console.log({ query })
     this.unsub = query.onSnapshot(this.handleLeasesSnap)
   }
   componentWillUnmount() {
-    console.log('CWU LeaseView')
+    // console.log('CWU LeaseView')
     if (this.unsub) {
       this.unsub()
     }
@@ -135,4 +135,12 @@ class LeaseView extends React.Component<LeaseViewProps, LeaseViewState> {
   }
 }
 
-export default LeaseView
+const AuthLeaseView: SFC<RouteProps> = props => (
+  <Auth>
+    {({ activeCompany }) => (
+      <LeaseView {...props} activeCompany={activeCompany} />
+    )}
+  </Auth>
+)
+
+export default AuthLeaseView

@@ -5,11 +5,11 @@ import Login from '@page/Login'
 interface AuthContext {
   hasLoaded: boolean
   user: User | null
-  activeCompany?: string
-  logOut?: () => Promise<any>
-  logIn?: (email: string, password: string) => void
+  activeCompany: string
+  logOut: () => Promise<any>
+  logIn: (email: string, password: string) => void
   error?: string
-  clearError?: () => void
+  clearError: () => void
 }
 export interface AuthProps {
   authContext: AuthContext
@@ -17,6 +17,10 @@ export interface AuthProps {
 const { Provider, Consumer } = React.createContext<AuthContext>({
   hasLoaded: false,
   user: null,
+  activeCompany: '',
+  logOut: async () => {},
+  logIn: (email: string, password: string) => {},
+  clearError: () => {},
 })
 
 export interface ProviderProps {
@@ -29,26 +33,29 @@ export class FirebaseAuthProvider extends React.Component<
   private unsub: () => void
   constructor(props: ProviderProps) {
     super(props)
-    const currentUser = props.firebase.auth!().currentUser
     this.state = {
-      user: currentUser,
-      hasLoaded: Boolean(currentUser),
+      user: null,
+      hasLoaded: false,
       logIn: this.logIn,
       logOut: this.logOut,
       clearError: this.clearError,
+      activeCompany: '',
     }
   }
   componentDidMount() {
+    // console.log('Auth did mount: ', { state: this.state })
     const { firebase } = this.props
     const auth = firebase.auth!()
     this.unsub = auth.onAuthStateChanged(async user => {
-      let activeCompany: string | undefined
+      let activeCompany: string = ''
       if (user) {
         const refresh = !this.state.hasLoaded
         const result = await user.getIdTokenResult(refresh)
         activeCompany = result.claims.activeCompany
       }
+      // setTimeout(() => {
       this.setState(() => ({ hasLoaded: true, user, activeCompany }))
+      // }, 2000)
     })
   }
   componentWillUnmount() {
@@ -107,6 +114,8 @@ export const FirebaseAuthConsumer = ({
       if (loading && !authContext.hasLoaded) {
         const Loading: any = loading
         return <Loading />
+      } else if (!authContext.hasLoaded) {
+        return null
       }
       if (loginNoRedirect && authContext.hasLoaded && !authContext.user) {
         return (
@@ -123,17 +132,16 @@ export const FirebaseAuthConsumer = ({
       if (typeof children === 'function') {
         return children(authContext)
       }
-      const chillens = React.Children.map(children, child =>
-        React.cloneElement(child as React.ReactElement<any>, {
-          ...authContext,
-          ...rest,
-        }),
-      )
+      // const chillens = React.Children.map(children, child =>
+      //   React.cloneElement(child as React.ReactElement<any>, {
+      //     ...authContext,
+      //   }),
+      // )
       let Comp: any
       if (tag) {
         Comp = tag
       }
-      return Comp ? <Comp>{chillens}</Comp> : chillens
+      return Comp ? <Comp {...rest}>{children}</Comp> : children
     }}
   </Consumer>
 )

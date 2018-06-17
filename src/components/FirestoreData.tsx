@@ -100,7 +100,7 @@ export class Document<T extends Doc> extends React.Component<
   }
   componentDidUpdate(prevProps: DocumentProps<T>) {
     if (this.props.path !== prevProps.path) {
-      console.log('props changed..')
+      // console.log('props changed..')
       this.detachListener()
       this.attachListener()
     }

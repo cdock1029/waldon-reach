@@ -18,15 +18,16 @@ html {
   right: 0;
 } */
 
-/* div,
+div,
 span {
   position: relative;
-  display: flex;
+  /*display: flex;
   flex-direction: column;
   align-items: stretch;
   flex-shrink: 0;
   align-content: flex-start;
-} */
+  */
+}
 
 /*
 body {
