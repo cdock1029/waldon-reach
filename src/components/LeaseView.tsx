@@ -1,9 +1,8 @@
 import React, { SFC } from 'react'
 import { Container, Row, Col, Card, CardBody } from 'reactstrap'
-import firebase from '@lib/firebase'
+import firebase, { auth } from '@lib/firebase'
 import { firestore as fs } from 'firebase/app'
 import Component from '@reactions/component'
-import { FirebaseAuthConsumer as Auth } from '@comp/FirebaseAuth'
 import { Lease } from '../types'
 
 interface LeaseViewProps extends RouteProps {
@@ -136,11 +135,7 @@ class LeaseView extends React.Component<LeaseViewProps, LeaseViewState> {
 }
 
 const AuthLeaseView: SFC<RouteProps> = props => (
-  <Auth>
-    {({ activeCompany }) => (
-      <LeaseView {...props} activeCompany={activeCompany} />
-    )}
-  </Auth>
+  <LeaseView {...props} activeCompany={auth.activeCompany} />
 )
 
 export default AuthLeaseView

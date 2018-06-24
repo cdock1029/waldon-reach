@@ -1,32 +1,44 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import firebase from '@lib/firebase'
-import { FirebaseAuthProvider } from '@comp/FirebaseAuth'
-import App from '@comp/App'
+import firebase, { auth } from '@lib/firebase'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 // import registerServiceWorker from './registerServiceWorker'
+const root = document.getElementById('root') as HTMLElement
 
 const renderApp = () => {
-  ReactDOM.render(
-    <FirebaseAuthProvider firebase={firebase}>
-      <App />
-    </FirebaseAuthProvider>,
-    document.getElementById('root') as HTMLElement,
-  )
+  const App = require('@comp/App').default
+  ReactDOM.render(<App />, root)
 }
+const renderLogin = () => {
+  const Login = require('@page/Login').default
+  ReactDOM.render(<Login />, root)
+}
+
 // TODO handle multiple tabs error..
 firebase
   .firestore()
   .enablePersistence()
   .then(() => {
     console.log('persistence enabled..')
-    renderApp()
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        renderApp()
+      } else {
+        renderLogin()
+      }
+    })
   })
 
 if (module.hot) {
-  module.hot.accept('@comp/App', () => {
-    renderApp()
+  module.hot.accept(['@comp/App', '@page/Login'], () => {
+    if (auth.currentUser) {
+      console.log('hmr App')
+      setTimeout(renderApp)
+    } else {
+      console.log('hmr Login')
+      setTimeout(renderLogin)
+    }
   })
 }
 

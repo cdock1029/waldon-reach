@@ -1,68 +1,64 @@
-import React, { SFC } from 'react'
-import Component from '@reactions/component'
+import React from 'react'
 import { css } from 'react-emotion'
+import { auth } from '@lib/firebase'
 
-interface LoginProps extends RouteProps {
-  logIn: (email: string, password: string) => void
+interface LoginState {
   error?: string
-  clearError: () => void
+}
+class Login extends React.Component<{}, LoginState> {
+  state: LoginState = {}
+  clearError = () =>
+    this.setState(
+      ({ error }: Pick<LoginState, 'error'>) =>
+        error ? { error: undefined } : null,
+    )
+  handleSubmit = (e: any) => {
+    e.preventDefault()
+    const {
+      email: { value: email },
+      password: { value: password },
+    } = e.target.elements
+    auth.signInWithEmailAndPassword(email, password).catch(error => {
+      console.log({ error })
+      this.setState({ error: error.message })
+    })
+  }
+  render() {
+    const error = this.state.error
+    return (
+      <div className={loginStyle}>
+        <h3>Login</h3>
+        <div>
+          {error && <div className="error">{error}</div>}
+          <form
+            onSubmit={this.handleSubmit}
+            method="post"
+            onFocus={this.clearError}>
+            <div className="item">
+              <label htmlFor="email">Email</label>
+              <input id="email" name="email" type="email" required />
+            </div>
+            <div className="item">
+              <label htmlFor="password">Password</label>
+              <input id="password" name="password" type="password" required />
+            </div>
+            <div className="item">
+              <button>Log In</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
 }
 
-const Login: SFC<LoginProps> = ({ logIn, error, clearError }) => (
-  <div className={loginStyle}>
-    <h3>Login</h3>
-    <Component
-      handleSubmit={(e: any) => {
-        e.preventDefault()
-        const {
-          email: { value: email },
-          password: { value: password },
-        } = e.target.elements
-        console.log({ email, password })
-        logIn(email, password)
-      }}
-      render={({ props: { handleSubmit } }: any) => {
-        // console.log({ stuff })
-        return (
-          <div>
-            {error && <h3 style={{ color: 'red' }}>{error}</h3>}
-            <form onSubmit={handleSubmit} method="post" onFocus={clearError}>
-              <div className="item">
-                <label htmlFor="email">Email</label>
-                <input id="email" name="email" type="email" required />
-              </div>
-              <div className="item">
-                <label htmlFor="password">Password</label>
-                <input id="password" name="password" type="password" required />
-              </div>
-              <div className="item">
-                <button>Log In</button>
-              </div>
-            </form>
-          </div>
-        )
-      }}
-    />
-  </div>
-)
-
 const loginStyle = css`
-  border: 1px solid red;
-  justify-content: center;
+  margin: 1.5em auto;
+  .error {
+    color: red;
+  }
   form {
-    border: 1px solid navy;
     min-width: 300px;
-    padding: 1em;
-    .item {
-      /* min-height: 100px; */
-      padding: 1em;
-      grid-template-columns: auto auto;
-      justify-content: space-between;
-      align-items: center;
-      & > * {
-        margin: 0.5em;
-      }
-    }
   }
 `
 

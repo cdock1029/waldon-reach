@@ -28,4 +28,36 @@ export const newDoc = (
     .set(data)
 }
 
+class ActiveCompany {
+  private company: string
+  constructor() {
+    firebase.auth().onAuthStateChanged(async (user: firebase.User) => {
+      if (user) {
+        const result = await user.getIdTokenResult()
+        if (!result.claims.activeCompany) {
+          throw new Error('Unauthorized user')
+        }
+        this.company = result.claims.activeCompany
+        // TODO: unset company? handle outside of here if undefined?
+      }
+    })
+  }
+  get value() {
+    return this.company
+  }
+}
+const activeCompany = new ActiveCompany()
+const handler = {
+  get(target: any, prop: string) {
+    if (prop === 'activeCompany') {
+      return activeCompany.value
+    }
+    return target[prop]
+  },
+}
+
+type Auth = firebase.auth.Auth & {
+  activeCompany: string
+}
+export const auth: Auth = new Proxy(firebase.auth(), handler)
 export default firebaseApp!
