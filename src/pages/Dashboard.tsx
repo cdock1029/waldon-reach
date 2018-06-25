@@ -111,16 +111,18 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
         path={`companies/${
           auth.activeCompany
         }/properties/${propertyId}/units/${unitId}`}
-        render={unit => (
-          <div css={{ padding: '1em' }}>
-            <Card>
-              <CardBody>
-                <CardSubtitle>{unit && unit.address}</CardSubtitle>
-                <CardText>Unit</CardText>
-              </CardBody>
-            </Card>
-          </div>
-        )}
+        render={unit =>
+          unit ? (
+            <div css={{ padding: '1em' }}>
+              <Card>
+                <CardBody>
+                  <CardSubtitle>{unit.address}</CardSubtitle>
+                  <CardText>Unit</CardText>
+                </CardBody>
+              </Card>
+            </div>
+          ) : null
+        }
       />
       {React.Children.map(children, child =>
         React.cloneElement(child as React.ReactElement<any>, {
@@ -246,7 +248,9 @@ const Tenants: SFC<RouteProps> = ({ children }) => {
                 })}
               </ListGroup>
             </div>
-            <div css={{ gridArea: 'lease' }}>{children}</div>
+            <div css={{ gridArea: 'lease', overflowY: 'scroll' }}>
+              {children}
+            </div>
           </div>
         )
       }}
@@ -369,6 +373,7 @@ const Properties: SFC<RouteProps> = ({ children }) => {
                 gridArea: 'lease',
                 display: 'flex',
                 flexDirection: 'column',
+                overflowY: 'scroll',
               }}>
               <PropertyDetail path=":propertyId">
                 <LeaseView path="/" />

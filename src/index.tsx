@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import firebase, { auth } from '@lib/firebase'
+import { auth, firestore } from '@lib/firebase'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import './index.css'
 // import registerServiceWorker from './registerServiceWorker'
@@ -16,19 +16,16 @@ const renderLogin = () => {
 }
 
 // TODO handle multiple tabs error..
-firebase
-  .firestore()
-  .enablePersistence()
-  .then(() => {
-    console.log('persistence enabled..')
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        renderApp()
-      } else {
-        renderLogin()
-      }
-    })
+firestore.enablePersistence().then(() => {
+  console.log('persistence enabled..')
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      renderApp()
+    } else {
+      renderLogin()
+    }
   })
+})
 
 if (module.hot) {
   module.hot.accept(['@comp/App', '@page/Login'], () => {

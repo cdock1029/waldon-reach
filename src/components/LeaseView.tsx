@@ -1,7 +1,7 @@
 import React, { SFC } from 'react'
 import { Container, Row, Col, Card, CardBody } from 'reactstrap'
-import firebase, { auth } from '@lib/firebase'
-import { firestore as fs } from 'firebase/app'
+import { auth, firestore, FirestoreTypes as fs } from '@lib/firebase'
+// import { firestore as fs } from 'firebase/app'
 import Component from '@reactions/component'
 import { Lease } from '../types'
 
@@ -16,7 +16,6 @@ interface LeaseViewState {
 }
 
 class LeaseView extends React.Component<LeaseViewProps, LeaseViewState> {
-  // companyRef: fs.DocumentReference
   leasesRef: fs.CollectionReference
   unsub: () => void
   constructor(props: LeaseViewProps) {
@@ -24,9 +23,7 @@ class LeaseView extends React.Component<LeaseViewProps, LeaseViewState> {
     this.state = {
       leases: [],
     }
-    const companyRef = firebase
-      .firestore()
-      .doc(`companies/${props.activeCompany}`)
+    const companyRef = firestore.doc(`companies/${props.activeCompany}`)
     this.leasesRef = companyRef.collection('leases')
   }
   componentDidMount() {

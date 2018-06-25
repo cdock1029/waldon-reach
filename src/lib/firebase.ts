@@ -1,4 +1,4 @@
-import firebase, { firestore, app } from 'firebase/app'
+import firebase from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
 
@@ -10,16 +10,14 @@ config.messagingSenderId = process.env.REACT_APP_MESSAGING_SENDER_ID!
 config.projectId = process.env.REACT_APP_PROJECT_ID!
 config.storageBucket = process.env.REACT_APP_STORAGE_BUCKET!
 
-let firebaseApp: app.App
-
-if (!firebase.apps.length) {
-  firebaseApp = firebase.initializeApp(config)
-}
+const firebaseApp = firebase.apps.length
+  ? firebase.app()
+  : firebase.initializeApp(config)
 firebase.firestore().settings({ timestampsInSnapshots: true })
 
 export const newDoc = (
   collectionPath: string,
-  data: firestore.DocumentData,
+  data: firebase.firestore.DocumentData,
 ) => {
   return firebase
     .firestore()
@@ -60,4 +58,5 @@ type Auth = firebase.auth.Auth & {
   activeCompany: string
 }
 export const auth: Auth = new Proxy(firebase.auth(), handler)
-export default firebaseApp!
+export const firestore = firebase.firestore()
+export { firestore as FirestoreTypes } from 'firebase/app'

@@ -1,12 +1,4 @@
-// import {
-//   DocumentSnapshot,
-//   FieldPath,
-//   OrderByDirection,
-//   Query,
-//   QuerySnapshot,
-// } from '@firebase/firestore-types'
-import firebase from '@lib/firebase'
-import { firestore as fs } from 'firebase'
+import { firestore, FirestoreTypes as fs } from '@lib/firebase'
 import React from 'react'
 
 export interface Doc {
@@ -65,7 +57,7 @@ export class Collection<T extends Doc> extends React.Component<
   }
   attachListener = () => {
     const { path, orderBy } = this.props
-    let collectionRef: fs.Query = firebase.firestore().collection(path)
+    let collectionRef: fs.Query = firestore.collection(path)
     if (orderBy) {
       collectionRef = collectionRef.orderBy(orderBy.field, orderBy.direction)
     }
@@ -110,7 +102,7 @@ export class Document<T extends Doc> extends React.Component<
   }
   attachListener = () => {
     const { path } = this.props
-    const documentRef = firebase.firestore().doc(path)
+    const documentRef = firestore.doc(path)
     this.unsub = documentRef.onSnapshot(this.handleSnap)
   }
   detachListener = () => {
