@@ -11,6 +11,13 @@
       }
     ]
   },
-  "dotenv": true,
+  "env": {
+    "REACT_APP_FIREBASE_API_KEY": "@wpm-reach.firebase_api_key",
+    "REACT_APP_AUTH_DOMAIN": "@wpm-reach.auth_domain",
+    "REACT_APP_DATABASE_URL": "@wpm-reach.database_url",
+    "REACT_APP_PROJECT_ID": "@wpm-reach.project_id",
+    "REACT_APP_STORAGE_BUCKET": "@wpm-reach.storage_bucket",
+    "REACT_APP_MESSAGING_SENDER_ID": "@wpm-reach.messaging_sender_id"
+  },
   "files": ["dist"]
 }
