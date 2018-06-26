@@ -384,7 +384,10 @@ const propertiesGridStyles = css({
     "units lease"
   ;`,
   gridTemplateColumns: 'minmax(0, 250px) 1fr',
-  gridTemplateRows: 'repeat(2, calc((100vh - var(--header-height))/2))',
+  gridTemplateRows: `
+    minmax(calc(2 * (100vh - var(--header-height))/5), 1fr)
+    minmax(calc(3 * (100vh - var(--header-height))/5), 1fr)
+  `,
   label: 'PropertiesParentGrid',
 })
 
