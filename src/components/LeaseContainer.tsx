@@ -16,12 +16,10 @@ import {
   CardSubtitle,
 } from 'reactstrap'
 import { auth, firestore, FirestoreTypes as fs } from '@lib/firebase'
-import Component from '@reactions/component'
 import { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
-import { Router } from '@reach/router'
 import { Document } from '@comp/FirestoreData'
-import 'react-table/react-table.css'
+// import 'react-table/react-table.css'
 
 interface LeaseContainerProps extends RouteProps {
   activeCompany: string
