@@ -1,0 +1,16 @@
+{
+  "name": "waldon-reach",
+  "alias": "waldon-reach",
+  "type": "static",
+  "static": {
+    "public": "dist",
+    "rewrites": [
+      {
+        "source": "/*",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "dotenv": true,
+  "files": ["dist"]
+}

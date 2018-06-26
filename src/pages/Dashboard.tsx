@@ -18,6 +18,7 @@ import NewUnitForm from '@comp/NewUnitForm'
 import LeaseView from '@comp/LeaseView'
 import { Document } from '@comp/FirestoreData'
 import { auth } from '@lib/firebase'
+import { css, cx } from 'react-emotion'
 
 class PropertiesCollection extends Collection<Property> {}
 class UnitsCollection extends Collection<Unit> {}
@@ -42,7 +43,7 @@ const DashIndex: SFC<RouteProps> = () => {
   const user = auth.currentUser!
   const name = user.displayName ? user.displayName : user.email
   return (
-    <div css={{ padding: '1em' }}>
+    <div className={css({ padding: '1em' })}>
       <h5>Dashboard</h5>
       <hr />
       <div>
@@ -81,7 +82,7 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
       <PropertyDoc
         path={`companies/${auth.activeCompany}/properties/${propertyId}`}
         render={property => (
-          <div css={{ padding: '1em' }}>
+          <div className={css({ padding: '1em' })}>
             <Card>
               <CardBody>
                 <CardTitle>{property && property.name}</CardTitle>
@@ -113,7 +114,7 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
         }/properties/${propertyId}/units/${unitId}`}
         render={unit =>
           unit ? (
-            <div css={{ padding: '1em' }}>
+            <div className={css({ padding: '1em' })}>
               <Card>
                 <CardBody>
                   <CardSubtitle>{unit.address}</CardSubtitle>
@@ -139,7 +140,7 @@ const TenantDetail: SFC<RouteProps & { tenantId?: string }> = props => {
       <TenantDoc
         path={`companies/${auth.activeCompany}/tenants/${props.tenantId}`}
         render={tenant => (
-          <div css={{ padding: '1em' }}>
+          <div className={css({ padding: '1em' })}>
             <Card>
               <CardBody>
                 <CardSubtitle>
@@ -173,42 +174,16 @@ const Tenants: SFC<RouteProps> = ({ children }) => {
           return <h3>TODO no tenants</h3>
         }
         return (
-          <div
-            css={{
-              display: 'grid',
-              gridTemplateAreas: `
-                "tenants lease"
-              ;`,
-              gridTemplateColumns: 'minmax(0, 250px) 1fr',
-              gridTemplateRows: 'calc(100vh - 56px)',
-            }}>
-            <div
-              css={{
-                gridArea: 'tenants',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-              }}>
+          <div className={tenantsGridStyles}>
+            <div className={tenantsListSectionStyles}>
               <Component
                 initialState={{ modal: false }}
                 toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                render={({
-                  setState,
-                  props: { toggleCallback },
-                  state,
-                }: any) => (
+                render={({ setState, props: { toggleCallback } }: any) => (
                   <>
-                    <h6
-                      className="bg-light"
-                      css={{
-                        padding: '0.5em',
-                        margin: 0,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                      }}>
+                    <h6 className={listHeaderStyles}>
                       Tenants{' '}
                       <Badge
-                        css={{ cursor: 'pointer' }}
                         color="secondary"
                         onClick={() => setState(toggleCallback)}>
                         New
@@ -217,16 +192,11 @@ const Tenants: SFC<RouteProps> = ({ children }) => {
                   </>
                 )}
               />
-              <ListGroup
-                css={`
-                  flex: 1;
-                  overflow-y: scroll;
-                `}
-                flush>
+              <ListGroup className={tenantListWrapStyles} flush>
                 {tenants.map(t => {
                   return (
                     <ListGroupItem
-                      css={`
+                      className={css`
                         &.list-group-item.list-group-item-action.active {
                           color: #fff;
                           background-color: #0c5460;
@@ -248,15 +218,31 @@ const Tenants: SFC<RouteProps> = ({ children }) => {
                 })}
               </ListGroup>
             </div>
-            <div css={{ gridArea: 'lease', overflowY: 'scroll' }}>
-              {children}
-            </div>
+            <div className={leaseSectionStyles}>{children}</div>
           </div>
         )
       }}
     />
   )
 }
+const tenantsGridStyles = css({
+  display: 'grid',
+  gridTemplateAreas: `
+    "tenants lease"
+  ;`,
+  gridTemplateColumns: 'minmax(0, 250px) 1fr',
+  gridTemplateRows: 'calc(100vh - var(--header-height))',
+})
+const tenantsListSectionStyles = css({
+  gridArea: 'tenants',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-start',
+})
+const tenantListWrapStyles = css`
+  flex: 1;
+  overflow-y: scroll;
+`
 
 const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
   const propertyId = unitProps.propertyId!
@@ -277,17 +263,9 @@ const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
                 modal: !modal,
               })}
               render={({ setState, props: { toggleCallback }, state }: any) => (
-                <h6
-                  className="bg-light"
-                  css={{
-                    padding: '0.5em',
-                    margin: 0,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                  }}>
+                <h6 className={listHeaderStyles}>
                   Units{' '}
                   <Badge
-                    css={{ cursor: 'pointer' }}
                     onClick={() => setState(toggleCallback)}
                     color="secondary">
                     New
@@ -301,17 +279,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
                 </h6>
               )}
             />
-            <ListGroup
-              flush
-              css={`
-                flex: 1;
-                overflow-y: scroll;
-                .list-group-item.list-group-item-action.active {
-                  color: #fff;
-                  background-color: #155724;
-                  border-color: #155724;
-                }
-              `}>
+            <ListGroup flush className={unitsListWrapStyles}>
               {units.length ? (
                 units.map(u => {
                   return (
@@ -332,7 +300,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
                   )
                 })
               ) : hasLoaded ? (
-                <div css={{ padding: '1em' }}>
+                <div className={css({ padding: '1em' })}>
                   <Card body>
                     <CardTitle>No units</CardTitle>
                     <CardText>
@@ -349,7 +317,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
   )
 }
 
-const Properties: SFC<RouteProps> = ({ children }) => {
+const Properties: SFC<RouteProps> = () => {
   const { activeCompany } = auth
   return (
     <PropertiesCollection
@@ -357,24 +325,8 @@ const Properties: SFC<RouteProps> = ({ children }) => {
       orderBy={{ field: 'name', direction: 'asc' }}
       render={properties => {
         return (
-          <div
-            css={{
-              display: 'grid',
-              height: 'calc(100vh - 56px)',
-              gridTemplateAreas: `
-                "props lease"
-                "units lease"
-              ;`,
-              gridTemplateColumns: 'minmax(0, 250px) 1fr',
-              gridTemplateRows: 'repeat(2, calc((100vh - 56px)/2))',
-            }}>
-            <Router
-              css={{
-                gridArea: 'lease',
-                display: 'flex',
-                flexDirection: 'column',
-                overflowY: 'scroll',
-              }}>
+          <div className={propertiesGridStyles}>
+            <Router className={leaseSectionStyles}>
               <PropertyDetail path=":propertyId">
                 <LeaseView path="/" />
                 <UnitDetail path="units/:unitId">
@@ -382,33 +334,15 @@ const Properties: SFC<RouteProps> = ({ children }) => {
                 </UnitDetail>
               </PropertyDetail>
             </Router>
-            <div
-              css={{
-                gridArea: 'props',
-                display: 'flex',
-                flexDirection: 'column',
-                borderBottom: '1px solid rgba(0,0,0,0.1)',
-              }}>
+            <div className={propertiesListSectionStyles}>
               <Component
                 initialState={{ modal: false }}
                 toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                render={({
-                  setState,
-                  props: { toggleCallback },
-                  state,
-                }: any) => (
+                render={({ setState, props: { toggleCallback } }: any) => (
                   <>
-                    <h6
-                      className="bg-light"
-                      css={{
-                        padding: '0.5em',
-                        margin: 0,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                      }}>
+                    <h6 className={listHeaderStyles}>
                       Properties{' '}
                       <Badge
-                        css={{ cursor: 'pointer' }}
                         color="secondary"
                         onClick={() => setState(toggleCallback)}>
                         New
@@ -417,17 +351,7 @@ const Properties: SFC<RouteProps> = ({ children }) => {
                   </>
                 )}
               />
-              <ListGroup
-                css={`
-                  flex: 1;
-                  overflow-y: scroll;
-                  .list-group-item.list-group-item-action.active {
-                    color: #fff;
-                    background-color: #0c5460;
-                    border-color: #0c5460;
-                  }
-                `}
-                flush>
+              <ListGroup className={propertiesListWrapStyles} flush>
                 {properties.map(p => {
                   return (
                     <ListGroupItem
@@ -444,13 +368,7 @@ const Properties: SFC<RouteProps> = ({ children }) => {
                 })}
               </ListGroup>
             </div>
-            <Router
-              css={{
-                gridArea: 'units',
-                display: 'flex',
-                flexDirection: 'column',
-                paddingBottom: '1em',
-              }}>
+            <Router className={unitsListSectionStyles}>
               <Units path=":propertyId/*" />
             </Router>
           </div>
@@ -459,5 +377,71 @@ const Properties: SFC<RouteProps> = ({ children }) => {
     />
   )
 }
+const propertiesGridStyles = css({
+  display: 'grid',
+  height: 'calc(100vh - var(--header-height))',
+  gridTemplateAreas: `
+    "props lease"
+    "units lease"
+  ;`,
+  gridTemplateColumns: 'minmax(0, 250px) 1fr',
+  gridTemplateRows: 'repeat(2, calc((100vh - var(--header-height))/2))',
+  label: 'PropertiesParentGrid',
+})
+
+const unitsListSectionStyles = css({
+  gridArea: 'units',
+  display: 'flex',
+  flexDirection: 'column',
+  paddingBottom: '1em',
+  label: 'UnitsGridArea',
+})
+const propertiesListSectionStyles = css({
+  gridArea: 'props',
+  display: 'flex',
+  flexDirection: 'column',
+  borderBottom: '1px solid rgba(0,0,0,0.1)',
+  label: 'PropsGridArea',
+})
+
+const leaseSectionStyles = css({
+  gridArea: 'lease',
+  display: 'flex',
+  flexDirection: 'column',
+  overflowY: 'scroll',
+  label: 'LeaseGridArea',
+})
+
+const propertiesListWrapStyles = css`
+  flex: 1;
+  overflow-y: scroll;
+  .list-group-item.list-group-item-action.active {
+    color: #fff;
+    background-color: #0c5460;
+    border-color: #0c5460;
+  }
+`
+const unitsListWrapStyles = css`
+  flex: 1;
+  overflow-y: scroll;
+  .list-group-item.list-group-item-action.active {
+    color: #fff;
+    background-color: #155724;
+    border-color: #155724;
+  }
+`
+
+const listHeaderStyles = cx(
+  'bg-light',
+  css`
+    padding: 0.5em;
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    .badge {
+      cursor: pointer;
+    }
+  `,
+)
 
 export default Dashboard

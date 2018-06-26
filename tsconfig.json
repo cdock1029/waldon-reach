@@ -22,7 +22,8 @@
       "@comp/*": ["src/components/*"],
       "@page/*": ["src/pages/*"],
       "@lib/*": ["src/lib/*"]
-    }
+    },
+    "types": ["node"]
   },
   "exclude": [
     "node_modules",

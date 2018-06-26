@@ -19,7 +19,6 @@ class Login extends React.Component<{}, LoginState> {
       password: { value: password },
     } = e.target.elements
     auth.signInWithEmailAndPassword(email, password).catch(error => {
-      console.log({ error })
       this.setState({ error: error.message })
     })
   }

@@ -13,6 +13,7 @@ import {
   ModalFooter,
   Button,
 } from 'reactstrap'
+import { css } from 'react-emotion'
 
 interface Props {
   activeCompany: string
@@ -63,7 +64,9 @@ class NewUnitForm extends React.Component<Props> {
         }) => {
           return (
             <Modal centered isOpen={isModalOpen} toggle={toggleModal}>
-              <ModalHeader css={{ flexDirection: 'row' }} toggle={toggleModal}>
+              <ModalHeader
+                className={css({ flexDirection: 'row' })}
+                toggle={toggleModal}>
                 New Unit
               </ModalHeader>
               <ModalBody>

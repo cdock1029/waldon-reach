@@ -17,13 +17,14 @@ import {
 } from 'reactstrap'
 import Component from '@reactions/component'
 import { isPartiallyActive } from '@lib/index'
+import { css } from 'react-emotion'
 
 import Dashboard from '@page/Dashboard'
 import Lease from '@page/Lease'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 const Header: React.SFC = () => (
-  <Navbar css={{ height: '56px' }} color="dark" dark expand="md">
+  <Navbar className={headerStyle} color="dark" dark expand="md">
     <NavbarBrand to="/" tag={props => <Link {...props}>Home</Link>} />
     <Nav navbar>
       <NavItem>
@@ -75,24 +76,27 @@ const Header: React.SFC = () => (
     </Nav>
   </Navbar>
 )
+const headerStyle = css`
+  height: var(--header-height);
+  label: Header;
+`
 
 const Home: React.SFC<any> = () => (
-  <div css={{ padding: '1em' }}>
+  <div className={homeStyle}>
     <h4>Home page</h4>
     <br />
     <Link to="dashboard">Dashboard</Link>
   </div>
 )
+const homeStyle = css`
+  padding: 1em;
+  label: Home;
+`
 
 class App extends React.Component {
   render() {
     return (
-      <div
-        css={`
-          display: grid;
-          grid-template-rows: 56px calc(100vh - 110px);
-          height: 100vh;
-        `}>
+      <div className={appStyle}>
         <Header />
         <Router>
           <Home path="/" />
@@ -104,5 +108,11 @@ class App extends React.Component {
     )
   }
 }
+const appStyle = css`
+  display: grid;
+  grid-template-rows: var(--header-height) calc(100vh - var(--header-height));
+  height: 100vh;
+  label: App;
+`
 
 export default App

@@ -1,9 +1,9 @@
 import React, { SFC } from 'react'
 import { Container, Row, Col, Card, CardBody } from 'reactstrap'
 import { auth, firestore, FirestoreTypes as fs } from '@lib/firebase'
-// import { firestore as fs } from 'firebase/app'
 import Component from '@reactions/component'
 import { Lease } from '../types'
+import { css } from 'react-emotion'
 
 interface LeaseViewProps extends RouteProps {
   activeCompany: string
@@ -59,14 +59,12 @@ class LeaseView extends React.Component<LeaseViewProps, LeaseViewState> {
     const { activeCompany, propertyId, unitId, tenantId } = this.props
     const { leases } = this.state
     return (
-      <Container css={{ paddingTop: '1em', paddingBottom: '1em' }}>
+      <Container className={leaseViewStyles}>
         <Row>
           <Col>
             <Card>
               <CardBody>
                 <Component
-                  // didMount={({setState}: any) => {
-                  // }}
                   render={() => {
                     return (
                       <>
@@ -80,12 +78,7 @@ class LeaseView extends React.Component<LeaseViewProps, LeaseViewState> {
                         <ul>
                           {leases.map(l => {
                             return (
-                              <li
-                                css={{
-                                  border: '1px solid #000',
-                                  padding: '1em',
-                                }}
-                                key={l.id}>
+                              <li className="lease-item" key={l.id}>
                                 <ul>
                                   <li>Rent: {l.rent}</li>
                                   <li>Balance: {l.balance}</li>
@@ -130,6 +123,20 @@ class LeaseView extends React.Component<LeaseViewProps, LeaseViewState> {
     )
   }
 }
+const leaseViewStyles = css`
+  grid-area: tenants;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  label: LeaseView;
+  .lease-item {
+    border: 1px solid #000;
+    padding: 1em;
+  }
+`
+/*
+
+ */
 
 const AuthLeaseView: SFC<RouteProps> = props => (
   <LeaseView {...props} activeCompany={auth.activeCompany} />

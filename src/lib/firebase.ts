@@ -10,7 +10,7 @@ config.messagingSenderId = process.env.REACT_APP_MESSAGING_SENDER_ID!
 config.projectId = process.env.REACT_APP_PROJECT_ID!
 config.storageBucket = process.env.REACT_APP_STORAGE_BUCKET!
 
-const firebaseApp = firebase.apps.length
+export const app = firebase.apps.length
   ? firebase.app()
   : firebase.initializeApp(config)
 firebase.firestore().settings({ timestampsInSnapshots: true })
@@ -28,17 +28,17 @@ export const newDoc = (
 
 class ActiveCompany {
   private company: string
-  constructor() {
-    firebase.auth().onAuthStateChanged(async (user: firebase.User) => {
-      if (user) {
-        const result = await user.getIdTokenResult()
-        if (!result.claims.activeCompany) {
-          throw new Error('Unauthorized user')
-        }
-        this.company = result.claims.activeCompany
-        // TODO: unset company? handle outside of here if undefined?
+  updateCompanyOnAuth = async () => {
+    const user = firebase.auth().currentUser
+    if (user) {
+      const result = await user.getIdTokenResult()
+      if (!result.claims.activeCompany) {
+        // if (true) {
+        return Promise.reject('Unauthorized user')
       }
-    })
+      this.company = result.claims.activeCompany
+      return Promise.resolve()
+    }
   }
   get value() {
     return this.company
@@ -50,13 +50,19 @@ const handler = {
     if (prop === 'activeCompany') {
       return activeCompany.value
     }
+    if (prop === 'updateCompany') {
+      return activeCompany.updateCompanyOnAuth
+    }
     return target[prop]
   },
 }
 
 type Auth = firebase.auth.Auth & {
   activeCompany: string
+  updateCompany: () => Promise<void>
 }
 export const auth: Auth = new Proxy(firebase.auth(), handler)
 export const firestore = firebase.firestore()
+// export const updateCompany = () => activeCompany.updateCompanyOnAuth()
+
 export { firestore as FirestoreTypes } from 'firebase/app'
