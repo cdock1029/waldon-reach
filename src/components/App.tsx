@@ -20,6 +20,8 @@ import { isPartiallyActive } from '@lib/index'
 import { css } from 'react-emotion'
 
 import Dashboard from '@page/Dashboard'
+import Properties from '@page/Properties'
+import Tenants from '@page/Tenants'
 import Lease from '@page/Lease'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
@@ -27,13 +29,31 @@ const Header: React.SFC = () => (
   <Navbar className={headerStyle} color="dark" dark expand="md">
     <NavbarBrand to="/" tag={props => <Link {...props}>Home</Link>} />
     <Nav navbar>
-      <NavItem>
+      {/* <NavItem>
         <NavLink
           tag={props => (
             <Link getProps={isPartiallyActive(props.className)} {...props} />
           )}
           to="dashboard">
           Dashboard
+        </NavLink>
+      </NavItem> */}
+      <NavItem>
+        <NavLink
+          tag={props => (
+            <Link getProps={isPartiallyActive(props.className)} {...props} />
+          )}
+          to="properties">
+          Properties
+        </NavLink>
+      </NavItem>
+      <NavItem>
+        <NavLink
+          tag={props => (
+            <Link getProps={isPartiallyActive(props.className)} {...props} />
+          )}
+          to="tenants">
+          Tenants
         </NavLink>
       </NavItem>
     </Nav>
@@ -101,6 +121,8 @@ class App extends React.Component {
         <Router>
           <Home path="/" />
           <Dashboard path="dashboard/*" />
+          <Properties path="properties/*" />
+          <Tenants path="tenants/*" />
           <Lease path="lease" />
           <NotFound default />
         </Router>
