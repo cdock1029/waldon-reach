@@ -1,10 +1,6 @@
 import { firestore, FirestoreTypes as fs } from '@lib/firebase'
 import React from 'react'
 
-export interface Doc {
-  id: string
-}
-
 interface CollectionProps<T extends Doc> {
   // collectionRef: CollectionReference | Query
   path: string

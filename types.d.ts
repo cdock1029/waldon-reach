@@ -1,7 +1,11 @@
-declare module '@reach/router'
-declare module '@reactions/component'
+// declare module '@reach/router'
+// declare module '@reactions/component'
 
-interface RouteProps {
-  path?: string
-  default?: boolean
-}
+// interface RouteProps {
+//   path?: string
+//   default?: boolean
+// }
+
+// interface Doc {
+//   id: string
+// }

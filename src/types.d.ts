@@ -1,17 +1,26 @@
-import { Doc } from './components/FirestoreData'
+declare module '@reach/router'
+declare module '@reactions/component'
 
-export interface Property extends Doc {
+interface RouteProps {
+  path?: string
+  default?: boolean
+}
+
+interface Doc {
+  id: string
+}
+interface Property extends Doc {
   name: string
 }
-export interface Unit extends Doc {
+interface Unit extends Doc {
   address: string
 }
-export interface Tenant extends Doc {
+interface Tenant extends Doc {
   firstName: string
   lastName: string
   email?: string
 }
-export interface Lease extends Doc {
+interface Lease extends Doc {
   rent: number
   balance: number
   tenants: { [id: string]: { exists: boolean; name: string } }

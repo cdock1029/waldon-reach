@@ -1,7 +1,6 @@
 import React, { SFC } from 'react'
 import { Collection } from '@comp/FirestoreData'
 import { Link, Router } from '@reach/router'
-import { Property, Unit, Tenant } from '../types'
 import Component from '@reactions/component'
 import {
   ListGroup,
@@ -15,7 +14,7 @@ import {
 } from 'reactstrap'
 import { collator, isPartiallyActive } from '@lib/index'
 import NewUnitForm from '@comp/NewUnitForm'
-import LeaseView from '@comp/LeaseView'
+import LeaseContainer from '@comp/LeaseContainer'
 import { Document } from '@comp/FirestoreData'
 import { auth } from '@lib/firebase'
 import { css, cx } from 'react-emotion'
@@ -34,7 +33,7 @@ const Dashboard: SFC<RouteProps> = () => (
     <Properties path="properties/*" />
     <Tenants path="tenants">
       <TenantDetail path=":tenantId">
-        <LeaseView path="/" />
+        <LeaseContainer path="/" />
       </TenantDetail>
     </Tenants>
   </Router>
@@ -82,14 +81,12 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
       <PropertyDoc
         path={`companies/${auth.activeCompany}/properties/${propertyId}`}
         render={property => (
-          <div className={css({ padding: '1em' })}>
-            <Card>
-              <CardBody>
-                <CardTitle>{property && property.name}</CardTitle>
-                <CardText>Property</CardText>
-              </CardBody>
-            </Card>
-          </div>
+          <Card className={css({ gridArea: 'property', padding: '1em' })}>
+            <CardBody>
+              <CardText>Property</CardText>
+              <CardTitle>{property && property.name}</CardTitle>
+            </CardBody>
+          </Card>
         )}
       />
       {routes}
@@ -117,8 +114,8 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
             <div className={css({ padding: '1em' })}>
               <Card>
                 <CardBody>
-                  <CardSubtitle>{unit.address}</CardSubtitle>
                   <CardText>Unit</CardText>
+                  <CardSubtitle>{unit.address}</CardSubtitle>
                 </CardBody>
               </Card>
             </div>
@@ -327,12 +324,14 @@ const Properties: SFC<RouteProps> = () => {
         return (
           <div className={propertiesGridStyles}>
             <Router className={leaseSectionStyles}>
-              <PropertyDetail path=":propertyId">
-                <LeaseView path="/" />
+              <LeaseContainer path="/*" />
+              <LeaseContainer path="/:propertyId/*" />
+              <LeaseContainer path="/:propertyId/units/:unitId/*" />
+              {/* <PropertyDetail path=":propertyId">
                 <UnitDetail path="units/:unitId">
-                  <LeaseView path="/" />
+                  <LeaseContainer path="/" />
                 </UnitDetail>
-              </PropertyDetail>
+              </PropertyDetail> */}
             </Router>
             <div className={propertiesListSectionStyles}>
               <Component
@@ -404,13 +403,14 @@ const propertiesListSectionStyles = css({
   label: 'PropsGridArea',
 })
 
-const leaseSectionStyles = css({
-  gridArea: 'lease',
-  display: 'flex',
-  flexDirection: 'column',
-  overflowY: 'scroll',
-  label: 'LeaseGridArea',
-})
+const leaseSectionStyles = css`
+  grid-area: lease;
+  display: grid;
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  label: LeaseGridArea;
+`
 
 const propertiesListWrapStyles = css`
   flex: 1;
