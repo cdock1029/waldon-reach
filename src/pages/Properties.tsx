@@ -34,22 +34,26 @@ const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
           <>
             <Component
               initialState={{ modal: false }}
-              toggleCallback={({ modal }: any) => ({
-                modal: !modal,
-              })}
-              render={({ setState, props: { toggleCallback }, state }: any) => (
+              render={({ setState, state: { modal } }: any) => (
                 <h6 className={listHeaderStyles}>
                   Units{' '}
                   <Badge
-                    onClick={() => setState(toggleCallback)}
+                    onClick={() =>
+                      setState(({ modal: m }: any) => ({
+                        modal: !m,
+                      }))
+                    }
                     color="secondary">
                     New
                   </Badge>
                   <NewUnitForm
-                    activeCompany={activeCompany}
                     propertyId={propertyId}
-                    isModalOpen={state.modal}
-                    toggleModal={() => setState(toggleCallback)}
+                    isModalOpen={modal}
+                    toggleModal={() =>
+                      setState(({ modal: m }: any) => ({
+                        modal: !m,
+                      }))
+                    }
                   />
                 </h6>
               )}
@@ -189,8 +193,12 @@ const leaseSectionStyles = css`
   display: grid;
   display: flex;
   flex-direction: column;
-  overflow-y: scroll;
+  padding-bottom: 1rem;
   label: LeaseGridArea;
+  overflow: hidden;
+  &:first-child {
+    overflow-y: scroll;
+  }
 `
 
 const propertiesListWrapStyles = css`

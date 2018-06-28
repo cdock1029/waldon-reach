@@ -2,13 +2,13 @@ import React, { SFC } from 'react'
 import {
   Container,
   CardBody,
+  Badge,
   TabContent,
   TabPane,
   Nav,
   NavItem,
   NavLink,
   Card,
-  Button,
   CardTitle,
   CardText,
   Row,
@@ -19,7 +19,13 @@ import { auth, firestore, FirestoreTypes as fs } from '@lib/firebase'
 import { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
 import { Document } from '@comp/FirestoreData'
-// import 'react-table/react-table.css'
+import { CurrencyAddDecimals } from '@lib/index'
+import { Link } from '@reach/router'
+
+const enum LeaseActiveFilter {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+}
 
 interface LeaseContainerProps extends RouteProps {
   activeCompany: string
@@ -29,16 +35,8 @@ interface LeaseContainerProps extends RouteProps {
 }
 interface LeaseContainerState {
   leases: Lease[]
-  activeTab: string
+  activeTab: LeaseActiveFilter
   loading: boolean
-}
-const Test = (props: any) => {
-  console.log({ props })
-  return (
-    <div>
-      <h1>hello</h1>
-    </div>
-  )
 }
 
 class LeaseContainer extends React.Component<
@@ -47,9 +45,9 @@ class LeaseContainer extends React.Component<
 > {
   leasesRef: fs.CollectionReference
   unsub: () => void
-  defaultState = {
+  defaultState: LeaseContainerState = {
     leases: [],
-    activeTab: '1',
+    activeTab: LeaseActiveFilter.ACTIVE, // or 'inactive
     loading: true,
   }
   constructor(props: LeaseContainerProps) {
@@ -58,7 +56,7 @@ class LeaseContainer extends React.Component<
     const companyRef = firestore.doc(`companies/${props.activeCompany}`)
     this.leasesRef = companyRef.collection('leases')
   }
-  toggleTab(tab: string) {
+  toggleTab(tab: LeaseActiveFilter) {
     if (this.state.activeTab !== tab) {
       this.setState(() => ({ activeTab: tab }))
     }
@@ -66,38 +64,42 @@ class LeaseContainer extends React.Component<
   componentDidMount() {
     this.setupQuery()
   }
-  componentDidUpdate({ propertyId, unitId, tenantId }: LeaseContainerProps) {
+  componentDidUpdate(
+    { propertyId, unitId, tenantId }: LeaseContainerProps,
+    { activeTab }: LeaseContainerState,
+  ) {
     if (
       propertyId !== this.props.propertyId ||
       unitId !== this.props.unitId ||
-      tenantId !== this.props.tenantId
+      tenantId !== this.props.tenantId ||
+      activeTab !== this.state.activeTab
     ) {
-      this.setState(() => this.defaultState)
+      // TODO: this is getting messy. reloading query involves props & state..
+      this.setState(() => ({
+        ...this.defaultState,
+        activeTab: this.state.activeTab,
+      }))
       this.unsubQuery()
       this.setupQuery()
     }
   }
   setupQuery = () => {
-    // console.log('CDM LeaseContainer')
     const { propertyId, unitId, tenantId } = this.props
-    // let ref: fs.DocumentReference = this.companyRef
-    let query: fs.Query = this.leasesRef
+    const { activeTab } = this.state
+    let query: fs.Query = this.leasesRef.where('status', '==', activeTab)
+
     if (propertyId) {
-      // ref = ref.collection('properties').doc(propertyId) as fs.DocumentReference
       query = query.where(`properties.${propertyId}.exists`, '==', true)
       if (unitId) {
-        // ref = ref.collection('units').doc(unitId)
         query = query.where(`units.${unitId}.exists`, '==', true)
       }
     }
     if (tenantId) {
-      // ref = ref.collection('tenants').doc(tenantId)
       query = query.where(`tenants.${tenantId}.exists`, '==', true)
     }
     this.unsub = query.onSnapshot(this.handleLeasesSnap)
   }
   unsubQuery = () => {
-    // console.log('CWU LeaseContainer')
     if (this.unsub) {
       this.unsub()
     }
@@ -106,13 +108,14 @@ class LeaseContainer extends React.Component<
     this.unsubQuery()
   }
   handleLeasesSnap = (snap: fs.QuerySnapshot) => {
-    const data: any = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    this.setState(() => ({ leases: data, loading: false }))
+    const leases: Lease[] = snap.docs.map(
+      doc => ({ id: doc.id, ...doc.data() } as Lease),
+    )
+    this.setState(() => ({ leases, loading: false }))
   }
   render() {
     const { activeCompany, propertyId, unitId, tenantId } = this.props
     const { leases } = this.state
-    console.log({ leaseContainer: this.props })
     return (
       <>
         <div
@@ -121,9 +124,6 @@ class LeaseContainer extends React.Component<
             display: grid;
             grid-gap: 1em;
             grid-template-columns: 1fr 1fr;
-            /* & > * {
-              flex: 1;
-            } */
           `}>
           {propertyId && (
             <PropertyDetail propertyId={propertyId}>
@@ -132,31 +132,46 @@ class LeaseContainer extends React.Component<
           )}
         </div>
         <Container className={leaseContainerStyles}>
-          <Row>
-            <Col>
-              <h5>Leases</h5>
-            </Col>
-          </Row>
+          <h5
+            className={css`
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              .badge {
+                cursor: pointer;
+              }
+            `}>
+            Leases
+            <Badge color="secondary" onClick={() => alert('yo')}>
+              New
+            </Badge>
+          </h5>
           <Row>
             <Col>
               <Nav tabs>
                 <NavItem>
                   <NavLink
                     className={cx(
-                      { active: this.state.activeTab === '1' },
+                      {
+                        active:
+                          this.state.activeTab === LeaseActiveFilter.ACTIVE,
+                      },
                       tabNavLinkStyles,
                     )}
-                    onClick={() => this.toggleTab('1')}>
+                    onClick={() => this.toggleTab(LeaseActiveFilter.ACTIVE)}>
                     Active
                   </NavLink>
                 </NavItem>
                 <NavItem>
                   <NavLink
                     className={cx(
-                      { active: this.state.activeTab === '2' },
+                      {
+                        active:
+                          this.state.activeTab === LeaseActiveFilter.INACTIVE,
+                      },
                       tabNavLinkStyles,
                     )}
-                    onClick={() => this.toggleTab('2')}>
+                    onClick={() => this.toggleTab(LeaseActiveFilter.INACTIVE)}>
                     Inactive
                   </NavLink>
                 </NavItem>
@@ -164,11 +179,28 @@ class LeaseContainer extends React.Component<
               <TabContent
                 className={tabContentStyles}
                 activeTab={this.state.activeTab}>
-                <TabPane tabId="1">
+                <TabPane tabId={LeaseActiveFilter.ACTIVE}>
                   <Container>
                     <Row>
                       <Col>
-                        <LeasesView leases={leases} />
+                        <LeasesView
+                          leases={leases}
+                          showProperties={!Boolean(propertyId)}
+                          showUnits={!Boolean(unitId)}
+                        />
+                      </Col>
+                    </Row>
+                  </Container>
+                </TabPane>
+                <TabPane tabId={LeaseActiveFilter.INACTIVE}>
+                  <Container>
+                    <Row>
+                      <Col>
+                        <LeasesView
+                          leases={leases}
+                          showProperties={!Boolean(propertyId)}
+                          showUnits={!Boolean(unitId)}
+                        />
                       </Col>
                     </Row>
                   </Container>
@@ -185,7 +217,6 @@ const leaseContainerStyles = css`
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding-top: 1em;
   label: LeaseContainer;
   .lease-item {
     border: 1px solid #000;
@@ -200,7 +231,9 @@ const tabNavLinkStyles = css`
 `
 
 const AuthLeaseContainer: SFC<RouteProps> = props => (
-  <LeaseContainer {...props} activeCompany={auth.activeCompany} />
+  <div>
+    <LeaseContainer {...props} activeCompany={auth.activeCompany} />
+  </div>
 )
 
 export default AuthLeaseContainer
@@ -208,56 +241,80 @@ export default AuthLeaseContainer
 interface LeasesProps {
   leases: Lease[]
   loading?: boolean
+  showProperties: boolean
+  showUnits: boolean
 }
-const LeasesView: SFC<LeasesProps> = ({ leases, loading = false }) => {
+const LeasesView: SFC<LeasesProps> = ({
+  leases,
+  showProperties,
+  showUnits,
+  loading = false,
+}) => {
+  const columns = [
+    {
+      Header: 'Tenants',
+      columns: [
+        {
+          Header: 'Name',
+          id: 'name',
+          accessor: (l: Lease) =>
+            Object.entries(l.tenants)
+              .map<string>(([id, { exists, name }]) => name)
+              .join(' | '),
+        },
+      ],
+    },
+    {
+      Header: 'Rent',
+      id: 'rent',
+      accessor: (l: Lease) => {
+        return CurrencyAddDecimals(l.rent)
+      },
+      aggregate: (vals: any[]) => vals[0],
+    },
+    {
+      Header: 'Balance',
+      id: 'balance',
+      accessor: (l: Lease) => CurrencyAddDecimals(l.balance),
+    },
+    {
+      Header: 'Link',
+      id: 'link',
+      accessor: (l: Lease) => l.id,
+      Cell: (row: any) => <Link to={`/lease/${row.value}`}>#</Link>,
+    },
+  ]
+  if (showUnits) {
+    columns.splice(1, 0, {
+      Header: 'Units',
+      id: 'units',
+      aggregate: (vals: any[]) => vals[0],
+      accessor: (l: Lease) =>
+        Object.entries(l.units)
+          .map<string>(([id, { exists, address }]) => address)
+          .join(' | '),
+    })
+  }
+  if (showProperties) {
+    columns.splice(1, 0, {
+      Header: 'Properties',
+      id: 'properties',
+      aggregate: (vals: any[]) => vals[0],
+      accessor: (l: Lease) =>
+        Object.entries(l.properties)
+          .map<string>(([id, { exists, name }]) => name)
+          .join(' | '),
+    })
+  }
   return (
-    <div>
-      <ReactTable
-        loading={loading}
-        data={leases}
-        columns={[
-          {
-            Header: 'Tenants',
-            columns: [
-              {
-                Header: 'Name',
-                id: 'name',
-                accessor: (l: Lease) =>
-                  Object.entries(l.tenants)
-                    .map<string>(([id, { exists, name }]) => name)
-                    .join(', '),
-              },
-            ],
-          },
-          {
-            Header: 'Rent',
-            accessor: 'rent',
-          },
-          {
-            Header: 'Balance',
-            accessor: 'balance',
-          },
-          {
-            Header: 'Properties',
-            id: 'properties',
-            accessor: (l: Lease) =>
-              Object.entries(l.properties)
-                .map<string>(([id, { exists, name }]) => name)
-                .join(', '),
-          },
-          {
-            Header: 'Units',
-            id: 'units',
-            accessor: (l: Lease) =>
-              Object.entries(l.units)
-                .map<string>(([id, { exists, address }]) => address)
-                .join(', '),
-          },
-        ]}
-        defaultPageSize={10}
-        className="-striped -highlight"
-      />
-    </div>
+    <ReactTable
+      loading={loading}
+      data={leases}
+      columns={columns}
+      defaultPageSize={15}
+      pageSizeOptions={[10, 15, 50, 100]}
+      className="-striped -highlight"
+    />
   )
 }
 

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Formik } from 'formik'
-import { newDoc } from '@lib/firebase'
+import { newDoc, auth } from '@lib/firebase'
 import {
   Form,
   FormGroup,
@@ -16,14 +16,14 @@ import {
 import { css } from 'react-emotion'
 
 interface Props {
-  activeCompany: string
   propertyId: string
   isModalOpen: boolean
   toggleModal: () => void
 }
 class NewUnitForm extends React.Component<Props> {
   render() {
-    const { isModalOpen, toggleModal, activeCompany } = this.props
+    const { isModalOpen, toggleModal } = this.props
+    const activeCompany = auth.activeCompany
     return (
       <Formik
         initialValues={{

@@ -13,9 +13,25 @@ import {
   Button,
 } from 'reactstrap'
 
-class NewLeaseForm extends React.Component {
+interface NewLeaseFormProps {
+  propertyId?: string
+  unitId?: string
+  tenantId?: string
+}
+
+class NewLeaseForm extends React.Component<NewLeaseFormProps> {
   render() {
-    return <div>new lease form</div>
+    const { propertyId, unitId, tenantId } = this.props
+    return (
+      <div>
+        new lease form
+        <div>
+          <p>{propertyId}</p>
+          <p>{unitId}</p>
+          <p>{tenantId}</p>
+        </div>
+      </div>
+    )
   }
 }
 

@@ -16,3 +16,11 @@ export const isPartiallyActive = (classes: string) => ({
 export const isActive = (classes: string) => ({ isCurrent }: any) => {
   return isCurrent ? { className: `${classes} active` } : null
 }
+
+export const CurrencyAddDecimals = (num: number) => {
+  const dec = num / 100.0
+  return dec.toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  })
+}

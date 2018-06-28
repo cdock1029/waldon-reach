@@ -123,7 +123,7 @@ class App extends React.Component {
           <Dashboard path="dashboard/*" />
           <Properties path="properties/*" />
           <Tenants path="tenants/*" />
-          <Lease path="lease" />
+          <Lease path="lease/*" />
           <NotFound default />
         </Router>
       </div>

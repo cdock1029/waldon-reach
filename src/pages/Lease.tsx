@@ -5,7 +5,7 @@ const Lease: SFC<RouteProps> = () => {
   return (
     <div>
       <h2>Lease</h2>
-      <NewLeaseForm />
+      {/* <NewLeaseForm /> */}
     </div>
   )
 }
