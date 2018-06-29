@@ -107,8 +107,8 @@ const Properties: SFC<RouteProps> = () => {
           <div className={propertiesGridStyles}>
             <Router className={leaseSectionStyles}>
               <LeaseContainer path="/*" />
-              <LeaseContainer path="/:propertyId/*" />
-              <LeaseContainer path="/:propertyId/units/:unitId/*" />
+              <LeaseContainer path=":propertyId/*" />
+              <LeaseContainer path=":propertyId/units/:unitId/*" />
               {/* <PropertyDetail path=":propertyId">
                 <UnitDetail path="units/:unitId">
                   <LeaseContainer path="/" />

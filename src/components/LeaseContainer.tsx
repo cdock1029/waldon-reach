@@ -16,7 +16,7 @@ import {
   CardSubtitle,
 } from 'reactstrap'
 import { auth, firestore, FirestoreTypes as fs } from '@lib/firebase'
-import { css, cx } from 'react-emotion'
+import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
 import { Document } from '@comp/FirestoreData'
 import { CurrencyAddDecimals } from '@lib/index'
@@ -28,7 +28,6 @@ const enum LeaseActiveFilter {
 }
 
 interface LeaseContainerProps extends RouteProps {
-  activeCompany: string
   propertyId?: string
   unitId?: string
   tenantId?: string
@@ -53,7 +52,8 @@ class LeaseContainer extends React.Component<
   constructor(props: LeaseContainerProps) {
     super(props)
     this.state = this.defaultState
-    const companyRef = firestore.doc(`companies/${props.activeCompany}`)
+    const activeCompany = auth.activeCompany
+    const companyRef = firestore.doc(`companies/${activeCompany}`)
     this.leasesRef = companyRef.collection('leases')
   }
   toggleTab(tab: LeaseActiveFilter) {
@@ -113,8 +113,21 @@ class LeaseContainer extends React.Component<
     )
     this.setState(() => ({ leases, loading: false }))
   }
+  shouldComponentUpdate(nP: LeaseContainerProps, nS: LeaseContainerState) {
+    const { propertyId, unitId, tenantId } = this.props
+    const { activeTab, leases, loading } = this.state
+    return (
+      nP.propertyId !== propertyId ||
+      nP.unitId !== unitId ||
+      nP.tenantId !== tenantId ||
+      nS.activeTab !== activeTab ||
+      nS.leases !== leases ||
+      nS.loading !== loading
+    )
+  }
   render() {
-    const { activeCompany, propertyId, unitId, tenantId } = this.props
+    const { propertyId, unitId, tenantId } = this.props
+    // console.table([{ ...this.props }])
     const { leases } = this.state
     return (
       <>
@@ -125,11 +138,9 @@ class LeaseContainer extends React.Component<
             grid-gap: 1em;
             grid-template-columns: 1fr 1fr;
           `}>
-          {propertyId && (
-            <PropertyDetail propertyId={propertyId}>
-              {unitId && <UnitDetail propertyId={propertyId} unitId={unitId} />}
-            </PropertyDetail>
-          )}
+          {propertyId && <PropertyDetail propertyId={propertyId} />}
+          {unitId && <UnitDetail propertyId={propertyId} unitId={unitId} />}
+          {tenantId && <TenantDetail tenantId={tenantId} />}
         </div>
         <Container className={leaseContainerStyles}>
           <h5
@@ -232,7 +243,7 @@ const tabNavLinkStyles = css`
 
 const AuthLeaseContainer: SFC<RouteProps> = props => (
   <div>
-    <LeaseContainer {...props} activeCompany={auth.activeCompany} />
+    <LeaseContainer {...props} />
   </div>
 )
 
@@ -257,10 +268,13 @@ const LeasesView: SFC<LeasesProps> = ({
         {
           Header: 'Name',
           id: 'name',
-          accessor: (l: Lease) =>
-            Object.entries(l.tenants)
-              .map<string>(([id, { exists, name }]) => name)
-              .join(' | '),
+          accessor: (l: Lease) => (
+            <StringStack>
+              {Object.entries(l.tenants)
+                .map<string>(([id, { exists, name }]) => name)
+                .join('\n')}
+            </StringStack>
+          ),
         },
       ],
     },
@@ -373,6 +387,29 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
   )
 }
 
+class TenantDoc extends Document<Tenant> {}
+const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
+  return (
+    <TenantDoc
+      path={`companies/${auth.activeCompany}/tenants/${tenantId}`}
+      render={tenant => (
+        <Card className={detailCardStyles}>
+          <CardBody>
+            <CardText>Tenant</CardText>
+            <CardSubtitle>
+              {tenant && `${tenant.firstName} ${tenant.lastName}`}
+            </CardSubtitle>
+          </CardBody>
+        </Card>
+      )}
+    />
+  )
+}
+
 const detailCardStyles = css`
   height: 100%;
+`
+const StringStack = styled('pre')`
+  margin: 0;
+  font-family: var(--font-family-sans-serif);
 `

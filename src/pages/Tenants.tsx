@@ -2,50 +2,13 @@ import React, { SFC } from 'react'
 import { Collection } from '@comp/FirestoreData'
 import { Link, Router } from '@reach/router'
 import Component from '@reactions/component'
-import {
-  ListGroup,
-  ListGroupItem,
-  Badge,
-  Card,
-  CardBody,
-  CardText,
-  CardSubtitle,
-} from 'reactstrap'
+import { ListGroup, ListGroupItem, Badge } from 'reactstrap'
 import { isPartiallyActive } from '@lib/index'
 import LeaseContainer from '@comp/LeaseContainer'
-import { Document } from '@comp/FirestoreData'
 import { auth } from '@lib/firebase'
 import { css, cx } from 'react-emotion'
 
 class TenantsCollection extends Collection<Tenant> {}
-class TenantDoc extends Document<Tenant> {}
-
-const TenantDetail: SFC<RouteProps & { tenantId?: string }> = props => {
-  return (
-    <>
-      <TenantDoc
-        path={`companies/${auth.activeCompany}/tenants/${props.tenantId}`}
-        render={tenant => (
-          <div className={css({ padding: '1em' })}>
-            <Card>
-              <CardBody>
-                <CardSubtitle>
-                  {tenant && `${tenant.firstName} ${tenant.lastName}`}
-                </CardSubtitle>
-                <CardText>Tenant</CardText>
-              </CardBody>
-            </Card>
-          </div>
-        )}
-      />
-      {React.Children.map(props.children, child =>
-        React.cloneElement(child as React.ReactElement<any>, {
-          key: props.tenantId,
-        }),
-      )}
-    </>
-  )
-}
 
 const Tenants: SFC<RouteProps> = () => {
   return (
@@ -106,9 +69,8 @@ const Tenants: SFC<RouteProps> = () => {
             </div>
             <div className={leaseSectionStyles}>
               <Router>
-                <TenantDetail path=":tenantId">
-                  <LeaseContainer path="/" />
-                </TenantDetail>
+                <LeaseContainer path="/*" />
+                <LeaseContainer path=":tenantId/*" />
               </Router>
             </div>
           </div>
