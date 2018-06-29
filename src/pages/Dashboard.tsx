@@ -268,7 +268,6 @@ const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
                     New
                   </Badge>
                   <NewUnitForm
-                    activeCompany={activeCompany}
                     propertyId={propertyId}
                     isModalOpen={state.modal}
                     toggleModal={() => setState(toggleCallback)}

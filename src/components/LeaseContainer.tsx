@@ -131,17 +131,25 @@ class LeaseContainer extends React.Component<
     const { leases } = this.state
     return (
       <>
-        <div
-          className={css`
-            padding: 1em;
-            display: grid;
-            grid-gap: 1em;
-            grid-template-columns: 1fr 1fr;
-          `}>
-          {propertyId && <PropertyDetail propertyId={propertyId} />}
-          {unitId && <UnitDetail propertyId={propertyId} unitId={unitId} />}
-          {tenantId && <TenantDetail tenantId={tenantId} />}
-        </div>
+        <Container>
+          <Row>
+            <Col>
+              <div
+                className={css`
+                  padding: 1em 0;
+                  display: grid;
+                  grid-gap: 1em;
+                  grid-template-columns: 1fr 1fr;
+                `}>
+                {propertyId && <PropertyDetail propertyId={propertyId} />}
+                {unitId && (
+                  <UnitDetail propertyId={propertyId} unitId={unitId} />
+                )}
+                {tenantId && <TenantDetail tenantId={tenantId} />}
+              </div>
+            </Col>
+          </Row>
+        </Container>
         <Container className={leaseContainerStyles}>
           <h5
             className={css`
@@ -191,30 +199,26 @@ class LeaseContainer extends React.Component<
                 className={tabContentStyles}
                 activeTab={this.state.activeTab}>
                 <TabPane tabId={LeaseActiveFilter.ACTIVE}>
-                  <Container>
-                    <Row>
-                      <Col>
-                        <LeasesView
-                          leases={leases}
-                          showProperties={!Boolean(propertyId)}
-                          showUnits={!Boolean(unitId)}
-                        />
-                      </Col>
-                    </Row>
-                  </Container>
+                  <Row>
+                    <Col>
+                      <LeasesView
+                        leases={leases}
+                        showProperties={!Boolean(propertyId)}
+                        showUnits={!Boolean(unitId)}
+                      />
+                    </Col>
+                  </Row>
                 </TabPane>
                 <TabPane tabId={LeaseActiveFilter.INACTIVE}>
-                  <Container>
-                    <Row>
-                      <Col>
-                        <LeasesView
-                          leases={leases}
-                          showProperties={!Boolean(propertyId)}
-                          showUnits={!Boolean(unitId)}
-                        />
-                      </Col>
-                    </Row>
-                  </Container>
+                  <Row>
+                    <Col>
+                      <LeasesView
+                        leases={leases}
+                        showProperties={!Boolean(propertyId)}
+                        showUnits={!Boolean(unitId)}
+                      />
+                    </Col>
+                  </Row>
                 </TabPane>
               </TabContent>
             </Col>
