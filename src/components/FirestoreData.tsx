@@ -1,4 +1,4 @@
-import { firestore, FirestoreTypes as fs } from '@lib/firebase'
+import { firestore, FirestoreTypes as fs } from '../lib/firebase'
 import React from 'react'
 
 interface CollectionProps<T extends Doc> {

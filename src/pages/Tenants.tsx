@@ -1,12 +1,13 @@
 import React, { SFC } from 'react'
-import { Collection } from '@comp/FirestoreData'
+import { Collection } from '../components/FirestoreData'
 import { Link, Router } from '@reach/router'
 import Component from '@reactions/component'
 import { ListGroup, ListGroupItem, Badge } from 'reactstrap'
-import { isPartiallyActive } from '@lib/index'
-import LeaseContainer from '@comp/LeaseContainer'
-import { auth } from '@lib/firebase'
+import { isPartiallyActive } from '../lib/index'
+import LeaseContainer from '../components/LeaseContainer'
+import { auth } from '../lib/firebase'
 import { css, cx } from 'react-emotion'
+import NewTenantForm from '../components/NewTenantForm'
 
 class TenantsCollection extends Collection<Tenant> {}
 
@@ -24,11 +25,19 @@ const Tenants: SFC<RouteProps> = () => {
         }
         return (
           <div className={tenantsGridStyles}>
+            <Router className={leaseSectionStyles}>
+              <LeaseContainer path="/*" />
+              <LeaseContainer path=":tenantId/*" />
+            </Router>
             <div className={tenantsListSectionStyles}>
               <Component
                 initialState={{ modal: false }}
                 toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                render={({ setState, props: { toggleCallback } }: any) => (
+                render={({
+                  setState,
+                  state: { modal },
+                  props: { toggleCallback },
+                }: any) => (
                   <>
                     <h6 className={listHeaderStyles}>
                       Tenants{' '}
@@ -37,6 +46,14 @@ const Tenants: SFC<RouteProps> = () => {
                         onClick={() => setState(toggleCallback)}>
                         New
                       </Badge>
+                      <NewTenantForm
+                        isModalOpen={modal}
+                        toggleModal={() =>
+                          setState(({ modal: m }: any) => ({
+                            modal: !m,
+                          }))
+                        }
+                      />
                     </h6>
                   </>
                 )}
@@ -67,12 +84,6 @@ const Tenants: SFC<RouteProps> = () => {
                 })}
               </ListGroup>
             </div>
-            <div className={leaseSectionStyles}>
-              <Router>
-                <LeaseContainer path="/*" />
-                <LeaseContainer path=":tenantId/*" />
-              </Router>
-            </div>
           </div>
         )
       }}
@@ -84,7 +95,7 @@ const tenantsGridStyles = css({
   gridTemplateAreas: `
     "tenants lease"
   ;`,
-  gridTemplateColumns: 'minmax(0, 250px) 1fr',
+  gridTemplateColumns: '250px 1fr',
   gridTemplateRows: 'calc(100vh - var(--header-height))',
 })
 const tenantsListSectionStyles = css({
@@ -103,8 +114,12 @@ const leaseSectionStyles = css`
   display: grid;
   display: flex;
   flex-direction: column;
-  overflow-y: scroll;
   label: LeaseGridArea;
+  padding-bottom: 1rem;
+  overflow: hidden;
+  &:first-child {
+    overflow-y: scroll;
+  }
 `
 
 const listHeaderStyles = cx(

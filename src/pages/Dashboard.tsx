@@ -1,5 +1,5 @@
 import React, { SFC } from 'react'
-import { Collection } from '@comp/FirestoreData'
+import { Collection } from '../components/FirestoreData'
 import { Link, Router } from '@reach/router'
 import Component from '@reactions/component'
 import {
@@ -12,11 +12,11 @@ import {
   CardTitle,
   CardSubtitle,
 } from 'reactstrap'
-import { collator, isPartiallyActive } from '@lib/index'
-import NewUnitForm from '@comp/NewUnitForm'
-import LeaseContainer from '@comp/LeaseContainer'
-import { Document } from '@comp/FirestoreData'
-import { auth } from '@lib/firebase'
+import { collator, isPartiallyActive } from '../lib/index'
+import NewUnitForm from '../components/NewUnitForm'
+import LeaseContainer from '../components/LeaseContainer'
+import { Document } from '../components/FirestoreData'
+import { auth } from '../lib/firebase'
 import { css, cx } from 'react-emotion'
 
 class PropertiesCollection extends Collection<Property> {}

@@ -1,6 +1,15 @@
 import React from 'react'
 import { css } from 'react-emotion'
-import { auth } from '@lib/firebase'
+import {
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  FormText,
+  Card,
+} from 'reactstrap'
+import { auth } from '../lib/firebase'
 
 interface LoginState {
   error?: string
@@ -27,25 +36,27 @@ class Login extends React.Component<{}, LoginState> {
     return (
       <div className={loginStyle}>
         <h3>Login</h3>
-        <div>
-          {error && <div className="error">{error}</div>}
-          <form
+        <Card className="form-wrap">
+          <Form
             onSubmit={this.handleSubmit}
             method="post"
             onFocus={this.clearError}>
-            <div className="item">
-              <label htmlFor="email">Email</label>
-              <input id="email" name="email" type="email" required />
-            </div>
-            <div className="item">
-              <label htmlFor="password">Password</label>
-              <input id="password" name="password" type="password" required />
-            </div>
-            <div className="item">
-              <button>Log In</button>
-            </div>
-          </form>
-        </div>
+            {error && (
+              <FormGroup>
+                <FormText color="danger">{error}</FormText>
+              </FormGroup>
+            )}
+            <FormGroup>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" required />
+            </FormGroup>
+            <FormGroup>
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" name="password" type="password" required />
+            </FormGroup>
+            <Button block>Log In</Button>
+          </Form>
+        </Card>
       </div>
     )
   }
@@ -53,11 +64,13 @@ class Login extends React.Component<{}, LoginState> {
 
 const loginStyle = css`
   margin: 1.5em auto;
-  .error {
-    color: red;
+  max-width: 300px;
+  .form-wrap,
+  button {
+    margin-top: 1.5rem;
   }
   form {
-    min-width: 300px;
+    padding: 1.5rem;
   }
 `
 

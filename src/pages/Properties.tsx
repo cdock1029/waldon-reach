@@ -1,5 +1,5 @@
 import React, { SFC } from 'react'
-import { Collection } from '@comp/FirestoreData'
+import { Collection } from '../components/FirestoreData'
 import { Link, Router } from '@reach/router'
 import Component from '@reactions/component'
 import {
@@ -10,10 +10,10 @@ import {
   CardText,
   CardTitle,
 } from 'reactstrap'
-import { collator, isPartiallyActive } from '@lib/index'
-import NewUnitForm from '@comp/NewUnitForm'
-import LeaseContainer from '@comp/LeaseContainer'
-import { auth } from '@lib/firebase'
+import { collator, isPartiallyActive } from '../lib/index'
+import NewUnitForm from '../components/NewUnitForm'
+import LeaseContainer from '../components/LeaseContainer'
+import { auth } from '../lib/firebase'
 import { css, cx } from 'react-emotion'
 
 class PropertiesCollection extends Collection<Property> {}
@@ -109,11 +109,6 @@ const Properties: SFC<RouteProps> = () => {
               <LeaseContainer path="/*" />
               <LeaseContainer path=":propertyId/*" />
               <LeaseContainer path=":propertyId/units/:unitId/*" />
-              {/* <PropertyDetail path=":propertyId">
-                <UnitDetail path="units/:unitId">
-                  <LeaseContainer path="/" />
-                </UnitDetail>
-              </PropertyDetail> */}
             </Router>
             <div className={propertiesListSectionStyles}>
               <Component
@@ -160,15 +155,15 @@ const Properties: SFC<RouteProps> = () => {
 }
 const propertiesGridStyles = css({
   display: 'grid',
-  height: 'calc(100vh - var(--header-height))',
+  /* height: 'calc(100vh - var(--header-height))', */
   gridTemplateAreas: `
     "props lease"
     "units lease"
   ;`,
-  gridTemplateColumns: 'minmax(0, 250px) 1fr',
+  gridTemplateColumns: '250px 1fr',
   gridTemplateRows: `
-    minmax(calc(2 * (100vh - var(--header-height))/5), 1fr)
-    minmax(calc(3 * (100vh - var(--header-height))/5), 1fr)
+    calc(2 * (100vh - var(--header-height))/5)
+    calc(3 * (100vh - var(--header-height))/5)
   `,
   label: 'PropertiesParentGrid',
 })
@@ -177,6 +172,7 @@ const unitsListSectionStyles = css({
   gridArea: 'units',
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'flex-start',
   paddingBottom: '1em',
   label: 'UnitsGridArea',
 })
@@ -184,6 +180,7 @@ const propertiesListSectionStyles = css({
   gridArea: 'props',
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'flex-start',
   borderBottom: '1px solid rgba(0,0,0,0.1)',
   label: 'PropsGridArea',
 })
@@ -193,8 +190,8 @@ const leaseSectionStyles = css`
   display: grid;
   display: flex;
   flex-direction: column;
-  padding-bottom: 1rem;
   label: LeaseGridArea;
+  padding-bottom: 1rem;
   overflow: hidden;
   &:first-child {
     overflow-y: scroll;

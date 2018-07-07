@@ -15,11 +15,11 @@ import {
   Col,
   CardSubtitle,
 } from 'reactstrap'
-import { auth, firestore, FirestoreTypes as fs } from '@lib/firebase'
+import { auth, firestore, FirestoreTypes as fs } from '../lib/firebase'
 import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
-import { Document } from '@comp/FirestoreData'
-import { CurrencyAddDecimals } from '@lib/index'
+import { Document } from '../components/FirestoreData'
+import { CurrencyAddDecimals } from '../lib/index'
 import { Link } from '@reach/router'
 
 const enum LeaseActiveFilter {
@@ -400,9 +400,14 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
         <Card className={detailCardStyles}>
           <CardBody>
             <CardText>Tenant</CardText>
-            <CardSubtitle>
-              {tenant && `${tenant.firstName} ${tenant.lastName}`}
-            </CardSubtitle>
+            {tenant && (
+              <>
+                <CardSubtitle>
+                  <div>{`${tenant.firstName} ${tenant.lastName}`}</div>
+                </CardSubtitle>
+                {tenant.email && <div>{tenant.email}</div>}
+              </>
+            )}
           </CardBody>
         </Card>
       )}

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Formik } from 'formik'
-import { newDoc, auth } from '@lib/firebase'
+import { newDoc, auth } from '../lib/firebase'
 import {
   Form,
   FormGroup,

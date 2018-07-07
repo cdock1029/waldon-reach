@@ -42,7 +42,8 @@ async function main() {
 /* tslint:disable-next-line:no-unused-expression */
 injectGlobal`
   :root {
-    --header-height: 56px;
+    /* --header-height: 56px; */
+    --header-height: 3.5rem;
   }
   html {
     box-sizing: border-box;
