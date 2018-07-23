@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Router, Link } from '@reach/router'
 import { Router as StaticRouter, Switch, Route } from 'react-static'
 import Routes from 'react-static-routes'
-import Loadable from 'react-loadable'
+import universal from 'react-universal-component'
 import { hot } from 'react-hot-loader'
 import {
   Collapse,
@@ -20,27 +20,11 @@ import { isPartiallyActive } from '../lib/index'
 import { auth } from '../lib/firebase'
 import { css } from 'react-emotion'
 
-const Loading = () => <h1>Loading...</h1>
-const Dashboard = Loadable({
-  loader: () => import('../pagesClient/Dashboard'),
-  loading: Loading,
-})
-const Properties = Loadable({
-  loader: () => import('../pagesClient/Properties'),
-  loading: Loading,
-})
-const Tenants = Loadable({
-  loader: () => import('../pagesClient/Tenants'),
-  loading: Loading,
-})
-const Lease = Loadable({
-  loader: () => import('../pagesClient/Lease'),
-  loading: Loading,
-})
-const Login = Loadable({
-  loader: () => import('../pages/login'),
-  loading: Loading,
-})
+const Dashboard: any = universal(import('../pagesClient/Dashboard'))
+const Properties: any = universal(import('../pagesClient/Properties'))
+const Tenants: any = universal(import('../pagesClient/Tenants'))
+const Lease: any = universal(import('../pagesClient/Lease'))
+const Login: any = universal(import('../pages/login'))
 // import Notes from '../pagesClient/NOTES.mdx'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
