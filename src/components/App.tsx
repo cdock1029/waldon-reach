@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Router, Link } from '@reach/router'
 import { Router as StaticRouter, Switch, Route } from 'react-static'
-import Routes from 'react-static-routes'
+// import Routes from 'react-static-routes'
 import universal from 'react-universal-component'
 import { hot } from 'react-hot-loader'
 import {
@@ -19,12 +19,12 @@ import {
 import { isPartiallyActive } from '../lib/index'
 import { auth } from '../lib/firebase'
 import { css } from 'react-emotion'
+import Login from '../pages/index'
 
 const Dashboard: any = universal(import('../pagesClient/Dashboard'))
 const Properties: any = universal(import('../pagesClient/Properties'))
 const Tenants: any = universal(import('../pagesClient/Tenants'))
 const Lease: any = universal(import('../pagesClient/Lease'))
-const Login: any = universal(import('../pages/login'))
 // import Notes from '../pagesClient/NOTES.mdx'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
@@ -145,7 +145,7 @@ class App extends React.Component {
     const { hasLoaded, user } = this.state
     console.log('render App')
     if (!hasLoaded) {
-      return <h1>Loading.....</h1>
+      return null
     }
     return user !== null ? (
       <div className={appStyle}>
@@ -162,16 +162,7 @@ class App extends React.Component {
     ) : (
       <StaticRouter>
         <div>
-          <Switch>
-            <Routes />
-            <Route
-              render={props => {
-                const Fuck: any = Login
-                console.log('dynamic route hit.')
-                return <Fuck {...props} />
-              }}
-            />
-          </Switch>
+          <Route path="/" component={Login} />
         </div>
       </StaticRouter>
     )

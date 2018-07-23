@@ -1,13 +1,11 @@
 import path from 'path'
-import dotenv from 'dotenv'
 import React from 'react'
-dotenv.config()
 
 // Paths Aliases defined through tsconfig.json
 // const typescriptWebpackPaths = require('./webpack.config.js')
 
 export default {
-  plugins: ['react-static-plugin-typescript', 'react-static-plugin-sass'],
+  plugins: ['react-static-plugin-sass', 'react-static-plugin-typescript'],
   entry: path.join(__dirname, 'src', 'index.tsx'),
   extensions: ['.js', '.jsx', '.ts', '.tsx'],
   getSiteData: () => ({

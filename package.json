@@ -5,10 +5,8 @@
   "scripts": {
     "start": "react-static start",
     "build": "react-static build",
-    "stage": "react-static build --stage",
-    "serve": "serve dist",
-    "deploy": "now && now alias",
-    "test": "react-app-rewired test --env=jsdom"
+    "stage": "react-static build --staging",
+    "serve": "serve dist"
   },
   "dependencies": {
     "@mdx-js/tag": "^0.14.1",
@@ -28,7 +26,6 @@
     "react-hot-loader": "^4.3.3",
     "react-static": "^6.0.0-beta.16",
     "react-table": "^6.8.6",
-    "react-universal-component": "^3.0.0",
     "reactstrap": "^6.3.0",
     "sass-loader": "^7.0.3",
     "src": "^1.1.2",
