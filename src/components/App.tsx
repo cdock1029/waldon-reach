@@ -16,11 +16,11 @@ import { isPartiallyActive } from '../lib/index'
 import { auth } from '../lib/firebase'
 import { css } from 'react-emotion'
 
-import Dashboard from '../pages/Dashboard'
-import Properties from '../pages/Properties'
-import Tenants from '../pages/Tenants'
-import Lease from '../pages/Lease'
-import Notes from '../pages/NOTES.mdx'
+import Dashboard from '../pagesClient/Dashboard'
+import Properties from '../pagesClient/Properties'
+import Tenants from '../pagesClient/Tenants'
+import Lease from '../pagesClient/Lease'
+import Notes from '../pagesClient/NOTES.mdx'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 class Header extends React.Component<{}, { isOpen: boolean }> {
@@ -74,7 +74,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
                 Properties
               </NavLink>
             </NavItem>
-            <NavItem>
+            {/* <NavItem>
               <NavLink
                 tag={props => (
                   <Link
@@ -85,7 +85,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
                 to="notes">
                 Notes
               </NavLink>
-            </NavItem>
+            </NavItem> */}
           </Nav>
           <Nav className="ml-auto" navbar>
             <NavItem>
@@ -134,7 +134,6 @@ class App extends React.Component {
           <Properties path="properties/*" />
           <Tenants path="tenants/*" />
           <Lease path="lease/*" />
-          <Notes path="notes" />
           <NotFound default />
         </Router>
       </div>

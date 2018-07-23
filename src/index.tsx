@@ -2,7 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { auth, firestore } from './lib/firebase'
 import { injectGlobal } from 'react-emotion'
-// import registerServiceWorker from './registerServiceWorker'
+
+import App from './components/App'
+import Login from './pages/login'
+
 const root = document.getElementById('root')
 
 const renderApp = () => {
@@ -10,9 +13,11 @@ const renderApp = () => {
   ReactDOM.render(<App />, root)
 }
 const renderLogin = () => {
-  const Login = require('./pages/Login').default
+  const Login = require('./pages/login').default
   ReactDOM.render(<Login />, root)
 }
+
+export default Login
 
 // TODO handle multiple tabs error..
 async function main() {
@@ -39,8 +44,9 @@ async function main() {
   }
 }
 
-/* tslint:disable-next-line:no-unused-expression */
-injectGlobal`
+if (typeof document !== 'undefined') {
+  /* tslint:disable-next-line:no-unused-expression */
+  injectGlobal`
   :root {
     /* --header-height: 56px; */
     --header-height: 3.5rem;
@@ -66,6 +72,7 @@ injectGlobal`
   }
 `
 
-main()
+  main()
+}
 
 // registerServiceWorker()
