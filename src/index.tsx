@@ -3,14 +3,13 @@ import ReactDOM from 'react-dom'
 import { firestore } from './lib/firebase'
 
 import App from './components/App'
-import Login from './pages/login'
 import './app.scss'
 
 const renderApp = () => {
   ReactDOM.render(<App />, document.getElementById('root'))
 }
 
-export default Login
+export default App
 
 // TODO handle multiple tabs error..
 async function main() {
