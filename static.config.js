@@ -30,23 +30,6 @@ export default {
       <Body>{children}</Body>
     </Html>
   ),
-  // getRoutes: async () => {
-  //   return [
-  //     {
-  //       path: '/blog',
-  //       getData: () => ({
-  //         posts,
-  //       }),
-  //       children: posts.map(post => ({
-  //         path: `/post/${post.id}`,
-  //         component: 'src/containers/Post',
-  //         getData: () => ({
-  //           post,
-  //         }),
-  //       })),
-  //     },
-  //   ]
-  // },
   // webpack: config => {
   //   config.resolve.alias = typescriptWebpackPaths.resolve.alias
   //   return config

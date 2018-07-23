@@ -1,6 +1,9 @@
 import * as React from 'react'
 import { Router, Link } from '@reach/router'
+import { Router as StaticRouter } from 'react-static'
+import Routes from 'react-static-routes'
 import Loadable from 'react-loadable'
+import { hot } from 'react-hot-loader'
 import {
   Collapse,
   NavbarToggler,
@@ -173,7 +176,11 @@ class App extends React.Component {
         </Router>
       </div>
     ) : (
-      <Login />
+      <StaticRouter>
+        <div>
+          <Routes />
+        </div>
+      </StaticRouter>
     )
   }
 }
@@ -186,4 +193,4 @@ const appStyle = css`
   }
 `
 
-export default App
+export default hot(module)(App)

@@ -5,14 +5,17 @@ import { firestore } from './lib/firebase'
 import App from './components/App'
 import './app.scss'
 
-const renderApp = () => {
-  ReactDOM.render(<App />, document.getElementById('root'))
-}
-
 export default App
 
 // TODO handle multiple tabs error..
 async function main() {
+  const renderMethod = (module as any).hot
+    ? ReactDOM.render
+    : ReactDOM.hydrate || ReactDOM.render
+  const render = (Comp: React.ReactType) => {
+    renderMethod(<Comp />, document.getElementById('root'))
+  }
+
   try {
     await firestore.enablePersistence()
     console.log('persistence enabled..')
@@ -23,7 +26,12 @@ async function main() {
       console.log({ e1: e })
     }
   } finally {
-    renderApp()
+    render(App)
+    if ((module as any).hot) {
+      ;(module as any).hot.accept('./components/App', () =>
+        render(require('./components/App').default),
+      )
+    }
   }
 }
 
