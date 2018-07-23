@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Router, Link } from '@reach/router'
-import { Router as StaticRouter } from 'react-static'
+import { Router as StaticRouter, Switch, Route } from 'react-static'
 import Routes from 'react-static-routes'
 import Loadable from 'react-loadable'
 import { hot } from 'react-hot-loader'
@@ -178,7 +178,16 @@ class App extends React.Component {
     ) : (
       <StaticRouter>
         <div>
-          <Routes />
+          <Switch>
+            <Routes />
+            <Route
+              render={props => {
+                const Fuck: any = Login
+                console.log('dynamic route hit.')
+                return <Fuck {...props} />
+              }}
+            />
+          </Switch>
         </div>
       </StaticRouter>
     )
