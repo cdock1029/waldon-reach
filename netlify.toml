@@ -1,4 +1,10 @@
 [[redirects]]
+  from = "https://waldon.netlify.com/*"
+  to = "https://waldon.app/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
