@@ -1,20 +1,13 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { auth, firestore } from './lib/firebase'
-import { injectGlobal } from 'react-emotion'
+import { firestore } from './lib/firebase'
 
 import App from './components/App'
 import Login from './pages/login'
-
-const root = document.getElementById('root')
+import './app.scss'
 
 const renderApp = () => {
-  const App = require('./components/App').default
-  ReactDOM.render(<App />, root)
-}
-const renderLogin = () => {
-  const Login = require('./pages/login').default
-  ReactDOM.render(<Login />, root)
+  ReactDOM.render(<App />, document.getElementById('root'))
 }
 
 export default Login
@@ -31,48 +24,10 @@ async function main() {
       console.log({ e1: e })
     }
   } finally {
-    auth.onAuthStateChanged(async user => {
-      if (user) {
-        await auth
-          .updateCompany()
-          .then(() => renderApp())
-          .catch(e => console.log({ e2: `${e} todo: register company` }))
-      } else {
-        renderLogin()
-      }
-    })
+    renderApp()
   }
 }
 
 if (typeof document !== 'undefined') {
-  /* tslint:disable-next-line:no-unused-expression */
-  injectGlobal`
-  :root {
-    /* --header-height: 56px; */
-    --header-height: 3.5rem;
-  }
-  html {
-    box-sizing: border-box;
-  }
-
-  *,
-  *:before,
-  *:after {
-    box-sizing: inherit;
-  }
-  html, body, #root {
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  div,
-  span {
-    position: relative;
-  }
-`
-
   main()
 }
-
-// registerServiceWorker()

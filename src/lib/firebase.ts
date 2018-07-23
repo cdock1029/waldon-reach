@@ -38,6 +38,9 @@ class ActiveCompany {
       }
       this.company = result.claims.activeCompany
       return Promise.resolve()
+    } else {
+      this.company = ''
+      return Promise.resolve()
     }
   }
   get value() {

@@ -1,0 +1,32 @@
+$theme-colors: (
+  'primary': indigo,
+);
+
+@import '../node_modules/bootstrap/scss/bootstrap';
+
+:root {
+  /* --header-height: 56px; */
+  --header-height: 3.5rem;
+  --pimary: var(--purple);
+}
+html {
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+html,
+body,
+#root {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+div,
+span {
+  position: relative;
+}

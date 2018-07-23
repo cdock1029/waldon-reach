@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Router, Link } from '@reach/router'
+import Loadable from 'react-loadable'
 import {
   Collapse,
   NavbarToggler,
@@ -16,11 +17,28 @@ import { isPartiallyActive } from '../lib/index'
 import { auth } from '../lib/firebase'
 import { css } from 'react-emotion'
 
-import Dashboard from '../pagesClient/Dashboard'
-import Properties from '../pagesClient/Properties'
-import Tenants from '../pagesClient/Tenants'
-import Lease from '../pagesClient/Lease'
-import Notes from '../pagesClient/NOTES.mdx'
+const Loading = () => <h1>Loading...</h1>
+const Dashboard = Loadable({
+  loader: () => import('../pagesClient/Dashboard'),
+  loading: Loading,
+})
+const Properties = Loadable({
+  loader: () => import('../pagesClient/Properties'),
+  loading: Loading,
+})
+const Tenants = Loadable({
+  loader: () => import('../pagesClient/Tenants'),
+  loading: Loading,
+})
+const Lease = Loadable({
+  loader: () => import('../pagesClient/Lease'),
+  loading: Loading,
+})
+const Login = Loadable({
+  loader: () => import('../pages/login'),
+  loading: Loading,
+})
+// import Notes from '../pagesClient/NOTES.mdx'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 class Header extends React.Component<{}, { isOpen: boolean }> {
@@ -123,9 +141,26 @@ const homeStyle = css`
 `
 
 class App extends React.Component {
+  state = {
+    user: null,
+    hasLoaded: false,
+  }
+  componentDidMount() {
+    auth.onAuthStateChanged(async user => {
+      await auth.updateCompany()
+      this.setState(() => ({
+        user,
+        hasLoaded: true,
+      }))
+    })
+  }
   render() {
+    const { hasLoaded, user } = this.state
     console.log('render App')
-    return (
+    if (!hasLoaded) {
+      return <h1>Loading.....</h1>
+    }
+    return user !== null ? (
       <div className={appStyle}>
         <Header />
         <Router className="router">
@@ -137,6 +172,8 @@ class App extends React.Component {
           <NotFound default />
         </Router>
       </div>
+    ) : (
+      <Login />
     )
   }
 }
