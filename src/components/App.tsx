@@ -19,12 +19,16 @@ import {
 import { isPartiallyActive } from '../lib/index'
 import { auth } from '../lib/firebase'
 import { css } from 'react-emotion'
-import Login from '../pages/index'
+import Dashboard from '../pages/dashboard'
+import Properties from '../pages/properties'
+import Tenants from '../pages/tenants'
+import Lease from '../pages/lease'
+// import Login from '../pages/index'
 
-const Dashboard: any = universal(import('../pagesClient/Dashboard'))
-const Properties: any = universal(import('../pagesClient/Properties'))
-const Tenants: any = universal(import('../pagesClient/Tenants'))
-const Lease: any = universal(import('../pagesClient/Lease'))
+// const Dashboard: any = universal(import('../pagesClient/Dashboard'))
+// const Properties: any = universal(import('../pagesClient/Properties'))
+// const Tenants: any = universal(import('../pagesClient/Tenants'))
+// const Lease: any = universal(import('../pagesClient/Lease'))
 // import Notes from '../pagesClient/NOTES.mdx'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
@@ -144,26 +148,35 @@ class App extends React.Component {
   render() {
     const { hasLoaded, user } = this.state
     console.log('render App')
-    if (!hasLoaded) {
-      return null
-    }
-    return user !== null ? (
-      <div className={appStyle}>
-        <Header />
-        <Router className="router">
+    // if (!hasLoaded) {
+    //   return null
+    // }
+    return true ? (
+      <StaticRouter>
+        <div className={appStyle}>
+          <Header />
+
+          <div className="router">
+            <Switch>
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/properties" component={Properties} />
+              <Route path="/tenants" component={Tenants} />
+              <Route path="/lease" component={Lease} />
+            </Switch>
+          </div>
+          {/* <Router className="router">
           <Home path="/" />
           <Dashboard path="dashboard/*" />
           <Properties path="properties/*" />
           <Tenants path="tenants/*" />
           <Lease path="lease/*" />
           <NotFound default />
-        </Router>
-      </div>
+        </Router> */}
+        </div>
+      </StaticRouter>
     ) : (
       <StaticRouter>
-        <div>
-          <Route path="/" component={Login} />
-        </div>
+        <div className="router">{/* <Routes /> */}</div>
       </StaticRouter>
     )
   }

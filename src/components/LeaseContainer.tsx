@@ -52,9 +52,6 @@ class LeaseContainer extends React.Component<
   constructor(props: LeaseContainerProps) {
     super(props)
     this.state = this.defaultState
-    const activeCompany = auth.activeCompany
-    const companyRef = firestore.doc(`companies/${activeCompany}`)
-    this.leasesRef = companyRef.collection('leases')
   }
   toggleTab(tab: LeaseActiveFilter) {
     if (this.state.activeTab !== tab) {
@@ -84,20 +81,26 @@ class LeaseContainer extends React.Component<
     }
   }
   setupQuery = () => {
-    const { propertyId, unitId, tenantId } = this.props
-    const { activeTab } = this.state
-    let query: fs.Query = this.leasesRef.where('status', '==', activeTab)
+    if (process.env.REACT_STATIC_ENV !== 'node' && auth.currentUser) {
+      const { propertyId, unitId, tenantId } = this.props
+      const { activeTab } = this.state
+      const activeCompany = auth.activeCompany
+      const leasesRef = firestore
+        .doc(`companies/${activeCompany}`)
+        .collection('leases')
+      let query: fs.Query = leasesRef.where('status', '==', activeTab)
 
-    if (propertyId) {
-      query = query.where(`properties.${propertyId}.exists`, '==', true)
-      if (unitId) {
-        query = query.where(`units.${unitId}.exists`, '==', true)
+      if (propertyId) {
+        query = query.where(`properties.${propertyId}.exists`, '==', true)
+        if (unitId) {
+          query = query.where(`units.${unitId}.exists`, '==', true)
+        }
       }
+      if (tenantId) {
+        query = query.where(`tenants.${tenantId}.exists`, '==', true)
+      }
+      this.unsub = query.onSnapshot(this.handleLeasesSnap)
     }
-    if (tenantId) {
-      query = query.where(`tenants.${tenantId}.exists`, '==', true)
-    }
-    this.unsub = query.onSnapshot(this.handleLeasesSnap)
   }
   unsubQuery = () => {
     if (this.unsub) {

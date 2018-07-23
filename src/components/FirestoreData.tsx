@@ -1,4 +1,4 @@
-import { firestore, FirestoreTypes as fs } from '../lib/firebase'
+import { firestore, FirestoreTypes as fs, auth } from '../lib/firebase'
 import React from 'react'
 
 interface CollectionProps<T extends Doc> {
@@ -52,12 +52,14 @@ export class Collection<T extends Doc> extends React.Component<
     this.detachListener()
   }
   attachListener = () => {
-    const { path, orderBy } = this.props
-    let collectionRef: fs.Query = firestore.collection(path)
-    if (orderBy) {
-      collectionRef = collectionRef.orderBy(orderBy.field, orderBy.direction)
+    if (process.env.REACT_STATIC_ENV !== 'node' && auth.currentUser) {
+      const { path, orderBy } = this.props
+      let collectionRef: fs.Query = firestore.collection(path)
+      if (orderBy) {
+        collectionRef = collectionRef.orderBy(orderBy.field, orderBy.direction)
+      }
+      this.unsub = collectionRef.onSnapshot(this.handleSnap)
     }
-    this.unsub = collectionRef.onSnapshot(this.handleSnap)
   }
   detachListener = () => {
     if (this.unsub) {
@@ -97,9 +99,11 @@ export class Document<T extends Doc> extends React.Component<
     this.detachListener()
   }
   attachListener = () => {
-    const { path } = this.props
-    const documentRef = firestore.doc(path)
-    this.unsub = documentRef.onSnapshot(this.handleSnap)
+    if (process.env.REACT_STATIC_ENV !== 'node' && auth.currentUser) {
+      const { path } = this.props
+      const documentRef = firestore.doc(path)
+      this.unsub = documentRef.onSnapshot(this.handleSnap)
+    }
   }
   detachListener = () => {
     if (this.unsub) {
