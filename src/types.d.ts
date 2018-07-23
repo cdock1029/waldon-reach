@@ -1,6 +1,11 @@
 declare module '@reach/router'
 declare module '@reactions/component'
 
+declare module '*.mdx' {
+  let MDXComponent: (props: any) => JSX.Element
+  export default MDXComponent
+}
+
 interface RouteProps {
   path?: string
   default?: boolean

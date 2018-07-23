@@ -1,0 +1,3 @@
+{
+  "plugins": [["emotion", { "sourceMap": true, "autoLabel": true }]]
+}

@@ -11,12 +11,7 @@ import {
   Form,
   FormGroup,
   Input,
-  Dropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
 } from 'reactstrap'
-import Component from '@reactions/component'
 import { isPartiallyActive } from '../lib/index'
 import { auth } from '../lib/firebase'
 import { css } from 'react-emotion'
@@ -25,6 +20,7 @@ import Dashboard from '../pages/Dashboard'
 import Properties from '../pages/Properties'
 import Tenants from '../pages/Tenants'
 import Lease from '../pages/Lease'
+import Notes from '../pages/NOTES.mdx'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 class Header extends React.Component<{}, { isOpen: boolean }> {
@@ -78,6 +74,18 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
                 Properties
               </NavLink>
             </NavItem>
+            <NavItem>
+              <NavLink
+                tag={props => (
+                  <Link
+                    getProps={isPartiallyActive(props.className)}
+                    {...props}
+                  />
+                )}
+                to="notes">
+                Notes
+              </NavLink>
+            </NavItem>
           </Nav>
           <Nav className="ml-auto" navbar>
             <NavItem>
@@ -126,6 +134,7 @@ class App extends React.Component {
           <Properties path="properties/*" />
           <Tenants path="tenants/*" />
           <Lease path="lease/*" />
+          <Notes path="notes" />
           <NotFound default />
         </Router>
       </div>
@@ -136,7 +145,8 @@ const appStyle = css`
   label: App;
   height: 100vh;
   .router {
-    margin-top: 56px;
+    padding-top: 56px;
+    height: 100%;
   }
 `
 
