@@ -24,3 +24,7 @@ export const CurrencyAddDecimals = (num: number) => {
     currency: 'USD',
   })
 }
+
+export function notBuilding() {
+  return typeof document !== 'undefined'
+}

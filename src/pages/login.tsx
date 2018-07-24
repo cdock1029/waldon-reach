@@ -14,7 +14,7 @@ import {
   ModalFooter,
 } from 'reactstrap'
 import { AuthConsumer as Auth } from '../components/Auth'
-import { auth } from '../lib/firebase'
+import { notBuilding } from '../lib'
 
 interface LoginState {
   error?: string
@@ -45,8 +45,8 @@ class Login extends React.Component<{}, LoginState> {
     return (
       <Auth>
         {auth => {
-          const doShowModal =
-            !auth.user && process.env.REACT_STATIC_ENV !== 'node'
+          // show modal if not building and user is not logged in
+          const doShowModal = notBuilding() && !auth.user
           return (
             <Modal isOpen={doShowModal} toggle={() => {}}>
               <ModalHeader toggle={() => {}}>Modal title</ModalHeader>
