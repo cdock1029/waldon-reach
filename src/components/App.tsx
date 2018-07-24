@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Router, Link } from '@reach/router'
-import { Router as StaticRouter, Switch, Route } from 'react-static'
+import { Router } from '@reach/router'
+import { Router as StaticRouter, Switch, Route, Link } from 'react-static'
 import { AuthProvider, AuthConsumer as Auth } from './Auth'
 import { hot } from 'react-hot-loader'
 import {
@@ -53,41 +53,15 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
         <Collapse isOpen={this.state.isOpen} navbar>
           <Nav navbar>
             <NavItem>
-              <NavLink
-                tag={props => (
-                  <Link
-                    getProps={isPartiallyActive(props.className)}
-                    {...props}
-                  />
-                )}
-                to="tenants">
+              <NavLink tag={Link} activeClassName="active" to="/tenants">
                 Tenants
               </NavLink>
             </NavItem>
             <NavItem>
-              <NavLink
-                tag={props => (
-                  <Link
-                    getProps={isPartiallyActive(props.className)}
-                    {...props}
-                  />
-                )}
-                to="properties">
+              <NavLink tag={Link} activeClassName="active" to="/properties">
                 Properties
               </NavLink>
             </NavItem>
-            {/* <NavItem>
-              <NavLink
-                tag={props => (
-                  <Link
-                    getProps={isPartiallyActive(props.className)}
-                    {...props}
-                  />
-                )}
-                to="notes">
-                Notes
-              </NavLink>
-            </NavItem> */}
           </Nav>
           <Nav className="ml-auto" navbar>
             <NavItem>
@@ -131,7 +105,7 @@ const headerStyle = css`
 class App extends React.Component {
   render() {
     return (
-      <AuthProvider firebase={firebase}>
+      <AuthProvider firebase={firebase} claims={['activeCompany']}>
         <StaticRouter>
           <AppContainer>
             <Login />

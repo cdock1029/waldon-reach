@@ -6,7 +6,7 @@ interface AuthProviderProps {
   children: JSX.Element | JSX.Element[]
 }
 
-interface AuthProviderState {
+export interface AuthProviderState {
   user: firebase.User | null
   claims: {
     [key: string]: string | undefined
@@ -47,9 +47,6 @@ export class AuthProvider extends React.Component<
       signIn: (email, password) =>
         auth.signInWithEmailAndPassword(email, password),
     }
-  }
-  componentDidMount() {
-    const auth = this.props.firebase.auth()
     this.unsub = auth.onAuthStateChanged(this.handleAuthChange)
   }
   componentWillUnmount() {
@@ -60,7 +57,7 @@ export class AuthProvider extends React.Component<
     if (user && this.props.claims!.length) {
       const tokenResult = await user.getIdTokenResult()
       claims = this.props.claims!.reduce((acc, claim) => {
-        acc[claim] = tokenResult[claim]
+        acc[claim] = tokenResult.claims[claim]
         return acc
       }, claims)
     }

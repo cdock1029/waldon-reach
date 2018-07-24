@@ -15,7 +15,9 @@ import {
   Col,
   CardSubtitle,
 } from 'reactstrap'
-import { auth, firestore, FirestoreTypes as fs } from '../lib/firebase'
+import { firestore, FirestoreTypes as fs } from '../lib/firebase'
+import { AuthConsumer as Auth, AuthProviderState } from '../components/Auth'
+import { notBuilding } from '../lib'
 import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
 import { Document } from '../components/FirestoreData'
@@ -31,6 +33,7 @@ interface LeaseContainerProps extends RouteProps {
   propertyId?: string
   unitId?: string
   tenantId?: string
+  auth: AuthProviderState
 }
 interface LeaseContainerState {
   leases: Lease[]
@@ -81,10 +84,10 @@ class LeaseContainer extends React.Component<
     }
   }
   setupQuery = () => {
-    if (process.env.REACT_STATIC_ENV !== 'node' && auth.currentUser) {
+    if (notBuilding() && this.props.auth.user) {
       const { propertyId, unitId, tenantId } = this.props
       const { activeTab } = this.state
-      const activeCompany = auth.activeCompany
+      const activeCompany = this.props.auth.claims.activeCompany
       const leasesRef = firestore
         .doc(`companies/${activeCompany}`)
         .collection('leases')
@@ -130,8 +133,8 @@ class LeaseContainer extends React.Component<
   }
   render() {
     const { propertyId, unitId, tenantId } = this.props
-    // console.table([{ ...this.props }])
     const { leases } = this.state
+    console.log('render LeaseContainer', { propertyId, unitId, tenantId })
     return (
       <>
         <Container>
@@ -250,7 +253,7 @@ const tabNavLinkStyles = css`
 
 const AuthLeaseContainer: SFC<RouteProps> = props => (
   <div>
-    <LeaseContainer {...props} />
+    <Auth>{auth => <LeaseContainer {...props} auth={auth} />}</Auth>
   </div>
 )
 
@@ -350,20 +353,29 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
   children,
 }) => {
   return (
-    <>
-      <PropertyDoc
-        path={`companies/${auth.activeCompany}/properties/${propertyId}`}
-        render={property => (
-          <Card className={detailCardStyles}>
-            <CardBody>
-              <CardText>Property</CardText>
-              <CardTitle>{property && property.name}</CardTitle>
-            </CardBody>
-          </Card>
-        )}
-      />
-      {children}
-    </>
+    <Auth>
+      {auth => {
+        return (
+          <PropertyDoc
+            auth={auth}
+            path={`companies/${
+              auth.claims.activeCompany
+            }/properties/${propertyId}`}
+            render={property => (
+              <Card className={detailCardStyles}>
+                <CardBody>
+                  <CardText>Property</CardText>
+                  <CardTitle>{property && property.name}</CardTitle>
+                </CardBody>
+              </Card>
+            )}
+          />
+        )
+        {
+          children
+        }
+      }}
+    </Auth>
   )
 }
 
@@ -376,45 +388,59 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
   unitId,
 }) => {
   return (
-    <UnitDoc
-      path={`companies/${
-        auth.activeCompany
-      }/properties/${propertyId}/units/${unitId}`}
-      render={unit =>
-        unit ? (
-          <Card className={detailCardStyles}>
-            <CardBody>
-              <CardText>Unit</CardText>
-              <CardSubtitle>{unit.address}</CardSubtitle>
-            </CardBody>
-          </Card>
-        ) : null
-      }
-    />
+    <Auth>
+      {auth => {
+        return (
+          <UnitDoc
+            auth={auth}
+            path={`companies/${
+              auth.claims.activeCompany
+            }/properties/${propertyId}/units/${unitId}`}
+            render={unit =>
+              unit ? (
+                <Card className={detailCardStyles}>
+                  <CardBody>
+                    <CardText>Unit</CardText>
+                    <CardSubtitle>{unit.address}</CardSubtitle>
+                  </CardBody>
+                </Card>
+              ) : null
+            }
+          />
+        )
+      }}
+    </Auth>
   )
 }
 
 class TenantDoc extends Document<Tenant> {}
 const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
   return (
-    <TenantDoc
-      path={`companies/${auth.activeCompany}/tenants/${tenantId}`}
-      render={tenant => (
-        <Card className={detailCardStyles}>
-          <CardBody>
-            <CardText>Tenant</CardText>
-            {tenant && (
-              <>
-                <CardSubtitle>
-                  <div>{`${tenant.firstName} ${tenant.lastName}`}</div>
-                </CardSubtitle>
-                {tenant.email && <div>{tenant.email}</div>}
-              </>
+    <Auth>
+      {auth => {
+        return (
+          <TenantDoc
+            auth={auth}
+            path={`companies/${auth.claims.activeCompany}/tenants/${tenantId}`}
+            render={tenant => (
+              <Card className={detailCardStyles}>
+                <CardBody>
+                  <CardText>Tenant</CardText>
+                  {tenant && (
+                    <>
+                      <CardSubtitle>
+                        <div>{`${tenant.firstName} ${tenant.lastName}`}</div>
+                      </CardSubtitle>
+                      {tenant.email && <div>{tenant.email}</div>}
+                    </>
+                  )}
+                </CardBody>
+              </Card>
             )}
-          </CardBody>
-        </Card>
-      )}
-    />
+          />
+        )
+      }}
+    </Auth>
   )
 }
 
