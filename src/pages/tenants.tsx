@@ -21,7 +21,7 @@ const Tenants: SFC<RouteProps> = () => {
           <div className={tenantsGridStyles}>
             <div className={leaseSectionStyles}>
               <Switch>
-                <Route component={LeaseContainer} path="/tenants" />
+                <Route component={LeaseContainer} exact path="/tenants" />
                 <Route component={LeaseContainer} path="/tenants/:tenantId" />
               </Switch>
             </div>
@@ -67,12 +67,9 @@ const Tenants: SFC<RouteProps> = () => {
                       `}
                       action
                       key={t.id}
-                      to={t.id}
+                      to={`/tenants/${t.id}`}
                       tag={props => (
-                        <Link
-                          getProps={isPartiallyActive(props.className)}
-                          {...props}
-                        />
+                        <Link activeClassName="active" {...props} />
                       )}>
                       {`${t.lastName}, ${t.firstName}`}
                     </ListGroupItem>
