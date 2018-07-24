@@ -109,10 +109,11 @@ const Properties: SFC<RouteProps> = (props: any) => {
           <div className={propertiesGridStyles}>
             <div className={leaseSectionStyles}>
               <Switch>
-                <Route component={LeaseContainer} path="/properties" />
+                <Route component={LeaseContainer} path="/properties" exact />
                 <Route
                   component={LeaseContainer}
                   path="/properties/:propertyId"
+                  exact
                 />
                 <Route
                   component={LeaseContainer}

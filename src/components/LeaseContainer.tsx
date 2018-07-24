@@ -25,7 +25,7 @@ import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
 import { Document } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
-import { Link } from '@reach/router'
+import { Link } from 'react-static'
 
 const enum LeaseActiveFilter {
   ACTIVE = 'ACTIVE',
@@ -183,26 +183,16 @@ class LeaseContainer extends React.Component<
               <Nav tabs>
                 <NavItem>
                   <NavLink
-                    className={cx(
-                      {
-                        active:
-                          this.state.activeTab === LeaseActiveFilter.ACTIVE,
-                      },
-                      tabNavLinkStyles,
-                    )}
+                    active={this.state.activeTab === LeaseActiveFilter.ACTIVE}
+                    className={tabNavLinkStyles}
                     onClick={() => this.toggleTab(LeaseActiveFilter.ACTIVE)}>
                     Active
                   </NavLink>
                 </NavItem>
                 <NavItem>
                   <NavLink
-                    className={cx(
-                      {
-                        active:
-                          this.state.activeTab === LeaseActiveFilter.INACTIVE,
-                      },
-                      tabNavLinkStyles,
-                    )}
+                    active={this.state.activeTab === LeaseActiveFilter.INACTIVE}
+                    className={tabNavLinkStyles}
                     onClick={() => this.toggleTab(LeaseActiveFilter.INACTIVE)}>
                     Inactive
                   </NavLink>
@@ -258,12 +248,16 @@ const tabNavLinkStyles = css`
   cursor: pointer;
 `
 
-const AuthLeaseContainer: SFC<RouteProps & LeaseContainerProps> = props => {
-  const key = `${props.uri}$${props.propertyId}${props.unitId}${props.tenantId}`
+const AuthLeaseContainer: SFC<RouteProps & LeaseContainerProps> = (
+  props: any,
+) => {
+  // console.log({ props })
+  const { params } = props.match
+  // const key = `${props.uri}$${props.propertyId}${props.unitId}${props.tenantId}`
   // console.log('AuthLeaseContainer', { key, props })
   return (
     <div>
-      <LeaseContainer {...props} />
+      <LeaseContainer {...params} />
     </div>
   )
 }
