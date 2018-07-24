@@ -1,6 +1,6 @@
 import React, { SFC } from 'react'
 import { Collection } from '../components/FirestoreData'
-import { Link, Router } from '@reach/router'
+import { Route, Link, Switch } from 'react-static'
 import Component from '@reactions/component'
 import {
   ListGroup,
@@ -13,7 +13,6 @@ import {
 import { collator, isPartiallyActive } from '../lib/index'
 import NewUnitForm from '../components/NewUnitForm'
 import LeaseContainer from '../components/LeaseContainer'
-import { AuthConsumer as Auth } from '../components/Auth'
 import { css, cx } from 'react-emotion'
 
 class PropertiesCollection extends Collection<Property> {}
@@ -22,155 +21,144 @@ class UnitsCollection extends Collection<Unit> {}
 const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
   const propertyId = unitProps.propertyId!
   return (
-    <Auth>
-      {auth => {
+    <UnitsCollection
+      key={propertyId}
+      authPath={claims =>
+        `companies/${claims.activeCompany}/properties/${propertyId}/units`
+      }
+      transform={units =>
+        units.sort((a, b) => collator.compare(a.address, b.address))
+      }
+      render={(units, hasLoaded) => {
         return (
-          <UnitsCollection
-            auth={auth}
-            key={propertyId}
-            path={`companies/${
-              auth.claims.activeCompany
-            }/properties/${propertyId}/units`}
-            transform={units =>
-              units.sort((a, b) => collator.compare(a.address, b.address))
-            }
-            render={(units, hasLoaded) => {
-              return (
-                <>
-                  <Component
-                    initialState={{ modal: false }}
-                    render={({ setState, state: { modal } }: any) => (
-                      <h6 className={listHeaderStyles}>
-                        Units{' '}
-                        <Badge
-                          onClick={() =>
-                            setState(({ modal: m }: any) => ({
-                              modal: !m,
-                            }))
-                          }
-                          color="secondary">
-                          New
-                        </Badge>
-                        <NewUnitForm
-                          propertyId={propertyId}
-                          isModalOpen={modal}
-                          toggleModal={() =>
-                            setState(({ modal: m }: any) => ({
-                              modal: !m,
-                            }))
-                          }
-                        />
-                      </h6>
-                    )}
+          <>
+            <Component
+              initialState={{ modal: false }}
+              render={({ setState, state: { modal } }: any) => (
+                <h6 className={listHeaderStyles}>
+                  Units{' '}
+                  <Badge
+                    onClick={() =>
+                      setState(({ modal: m }: any) => ({
+                        modal: !m,
+                      }))
+                    }
+                    color="secondary">
+                    New
+                  </Badge>
+                  <NewUnitForm
+                    propertyId={propertyId}
+                    isModalOpen={modal}
+                    toggleModal={() =>
+                      setState(({ modal: m }: any) => ({
+                        modal: !m,
+                      }))
+                    }
                   />
-                  <ListGroup flush className={unitsListWrapStyles}>
-                    {units.length ? (
-                      units.map(u => {
+                </h6>
+              )}
+            />
+            <ListGroup flush className={unitsListWrapStyles}>
+              {units.length ? (
+                units.map(u => {
+                  return (
+                    <ListGroupItem
+                      action
+                      key={u.id}
+                      to={`units/${u.id}`}
+                      tag={props => {
                         return (
-                          <ListGroupItem
-                            action
-                            key={u.id}
-                            to={`units/${u.id}`}
-                            tag={props => {
-                              return (
-                                <Link
-                                  getProps={isPartiallyActive(props.className)}
-                                  {...props}
-                                />
-                              )
-                            }}>
-                            {u.address}
-                          </ListGroupItem>
+                          <Link
+                            getProps={isPartiallyActive(props.className)}
+                            {...props}
+                          />
                         )
-                      })
-                    ) : hasLoaded ? (
-                      <div className={css({ padding: '1em' })}>
-                        <Card body>
-                          <CardTitle>No units</CardTitle>
-                          <CardText>
-                            click <code>New</code> to create a new unit
-                          </CardText>
-                        </Card>
-                      </div>
-                    ) : null}
-                  </ListGroup>
-                </>
-              )
-            }}
-          />
+                      }}>
+                      {u.address}
+                    </ListGroupItem>
+                  )
+                })
+              ) : hasLoaded ? (
+                <div className={css({ padding: '1em' })}>
+                  <Card body>
+                    <CardTitle>No units</CardTitle>
+                    <CardText>
+                      click <code>New</code> to create a new unit
+                    </CardText>
+                  </Card>
+                </div>
+              ) : null}
+            </ListGroup>
+          </>
         )
       }}
-    </Auth>
+    />
   )
 }
 
 const Properties: SFC<RouteProps> = (props: any) => {
-  console.log('render properties')
+  console.log('render properties', { props })
   return (
-    <Auth>
-      {auth => {
+    <PropertiesCollection
+      path="/*"
+      authPath={claims => `companies/${claims.activeCompany}/properties`}
+      orderBy={{ field: 'name', direction: 'asc' }}
+      render={properties => {
+        console.log('render properties collection')
         return (
-          <PropertiesCollection
-            auth={auth}
-            path={`companies/${auth.claims.activeCompany}/properties`}
-            orderBy={{ field: 'name', direction: 'asc' }}
-            render={properties => {
-              return (
-                <div className={propertiesGridStyles}>
-                  <Router basepath="/properties" className={leaseSectionStyles}>
-                    <LeaseContainer path="/*" />
-                    <LeaseContainer path=":propertyId/*" />
-                    <LeaseContainer path=":propertyId/units/:unitId/*" />
-                  </Router>
-                  <div className={propertiesListSectionStyles}>
-                    <Component
-                      initialState={{ modal: false }}
-                      toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                      render={({
-                        setState,
-                        props: { toggleCallback },
-                      }: any) => (
-                        <>
-                          <h6 className={listHeaderStyles}>
-                            Properties{' '}
-                            <Badge
-                              color="secondary"
-                              onClick={() => setState(toggleCallback)}>
-                              New
-                            </Badge>
-                          </h6>
-                        </>
-                      )}
-                    />
-                    <ListGroup className={propertiesListWrapStyles} flush>
-                      {properties.map(p => {
-                        return (
-                          <ListGroupItem
-                            action
-                            key={p.id}
-                            to={p.id}
-                            tag={props => {
-                              const fn: any = isPartiallyActive(props.className)
-                              return <Link getProps={fn} {...props} />
-                            }}>
-                            {p.name}
-                          </ListGroupItem>
-                        )
-                      })}
-                    </ListGroup>
-                  </div>
-                  <Router
-                    basepath="/properties"
-                    className={unitsListSectionStyles}>
-                    <Units path=":propertyId/*" />
-                  </Router>
-                </div>
-              )
-            }}
-          />
+          <div className={propertiesGridStyles}>
+            <div className={leaseSectionStyles}>
+              <Switch>
+                <Route component={LeaseContainer} path="/properties" />
+                <Route
+                  component={LeaseContainer}
+                  path="/properties/:propertyId"
+                />
+                <Route
+                  component={LeaseContainer}
+                  path="/properties/:propertyId/units/:unitId"
+                />
+              </Switch>
+            </div>
+            <div className={propertiesListSectionStyles}>
+              <Component
+                initialState={{ modal: false }}
+                toggleCallback={({ modal }: any) => ({ modal: !modal })}
+                render={({ setState, props: { toggleCallback } }: any) => (
+                  <>
+                    <h6 className={listHeaderStyles}>
+                      Properties{' '}
+                      <Badge
+                        color="secondary"
+                        onClick={() => setState(toggleCallback)}>
+                        New
+                      </Badge>
+                    </h6>
+                  </>
+                )}
+              />
+              <ListGroup className={propertiesListWrapStyles} flush>
+                {properties.map(p => {
+                  return (
+                    <ListGroupItem
+                      action
+                      key={p.id}
+                      to={`/properties/${p.id}`}
+                      tag={Link}
+                      activeClassName="active">
+                      {p.name}
+                    </ListGroupItem>
+                  )
+                })}
+              </ListGroup>
+            </div>
+            <div className={unitsListSectionStyles}>
+              <Route component={Units} path="/properties/:propertyId" />
+            </div>
+          </div>
         )
       }}
-    </Auth>
+    />
   )
 }
 const propertiesGridStyles = css({

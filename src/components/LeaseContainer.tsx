@@ -15,8 +15,11 @@ import {
   Col,
   CardSubtitle,
 } from 'reactstrap'
-import { firestore, FirestoreTypes as fs } from '../lib/firebase'
-import { AuthConsumer as Auth, AuthProviderState } from '../components/Auth'
+import {
+  firestore,
+  FirestoreTypes as fs,
+  onAuthStateChangedWithClaims,
+} from '../lib/firebase'
 import { notBuilding } from '../lib'
 import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
@@ -33,7 +36,6 @@ interface LeaseContainerProps extends RouteProps {
   propertyId?: string
   unitId?: string
   tenantId?: string
-  auth: AuthProviderState
 }
 interface LeaseContainerState {
   leases: Lease[]
@@ -46,7 +48,7 @@ class LeaseContainer extends React.Component<
   LeaseContainerState
 > {
   leasesRef: fs.CollectionReference
-  unsub: () => void
+  unsub: Array<firebase.Unsubscribe> = []
   defaultState: LeaseContainerState = {
     leases: [],
     activeTab: LeaseActiveFilter.ACTIVE, // or 'inactive
@@ -84,30 +86,35 @@ class LeaseContainer extends React.Component<
     }
   }
   setupQuery = () => {
-    if (notBuilding() && this.props.auth.user) {
+    if (notBuilding()) {
       const { propertyId, unitId, tenantId } = this.props
       const { activeTab } = this.state
-      const activeCompany = this.props.auth.claims.activeCompany
-      const leasesRef = firestore
-        .doc(`companies/${activeCompany}`)
-        .collection('leases')
-      let query: fs.Query = leasesRef.where('status', '==', activeTab)
 
-      if (propertyId) {
-        query = query.where(`properties.${propertyId}.exists`, '==', true)
-        if (unitId) {
-          query = query.where(`units.${unitId}.exists`, '==', true)
-        }
-      }
-      if (tenantId) {
-        query = query.where(`tenants.${tenantId}.exists`, '==', true)
-      }
-      this.unsub = query.onSnapshot(this.handleLeasesSnap)
+      this.unsub.push(
+        onAuthStateChangedWithClaims(['activeCompany'], auth => {
+          const activeCompany = auth.claims.activeCompany
+          const leasesRef = firestore
+            .doc(`companies/${activeCompany}`)
+            .collection('leases')
+          let query: fs.Query = leasesRef.where('status', '==', activeTab)
+
+          if (propertyId) {
+            query = query.where(`properties.${propertyId}.exists`, '==', true)
+            if (unitId) {
+              query = query.where(`units.${unitId}.exists`, '==', true)
+            }
+          }
+          if (tenantId) {
+            query = query.where(`tenants.${tenantId}.exists`, '==', true)
+          }
+          this.unsub.push(query.onSnapshot(this.handleLeasesSnap))
+        }),
+      )
     }
   }
   unsubQuery = () => {
-    if (this.unsub) {
-      this.unsub()
+    if (this.unsub.length) {
+      this.unsub.forEach(u => u())
     }
   }
   componentWillUnmount() {
@@ -119,22 +126,22 @@ class LeaseContainer extends React.Component<
     )
     this.setState(() => ({ leases, loading: false }))
   }
-  shouldComponentUpdate(nP: LeaseContainerProps, nS: LeaseContainerState) {
-    const { propertyId, unitId, tenantId } = this.props
-    const { activeTab, leases, loading } = this.state
-    return (
-      nP.propertyId !== propertyId ||
-      nP.unitId !== unitId ||
-      nP.tenantId !== tenantId ||
-      nS.activeTab !== activeTab ||
-      nS.leases !== leases ||
-      nS.loading !== loading
-    )
-  }
+  // shouldComponentUpdate(nP: LeaseContainerProps, nS: LeaseContainerState) {
+  //   const { propertyId, unitId, tenantId } = this.props
+  //   const { activeTab, leases, loading } = this.state
+  //   return (
+  //     nP.propertyId !== propertyId ||
+  //     nP.unitId !== unitId ||
+  //     nP.tenantId !== tenantId ||
+  //     nS.activeTab !== activeTab ||
+  //     nS.leases !== leases ||
+  //     nS.loading !== loading
+  //   )
+  // }
   render() {
     const { propertyId, unitId, tenantId } = this.props
     const { leases } = this.state
-    console.log('render LeaseContainer', { propertyId, unitId, tenantId })
+    console.log('leaseContainer', { propertyId, unitId, tenantId })
     return (
       <>
         <Container>
@@ -251,11 +258,15 @@ const tabNavLinkStyles = css`
   cursor: pointer;
 `
 
-const AuthLeaseContainer: SFC<RouteProps> = props => (
-  <div>
-    <Auth>{auth => <LeaseContainer {...props} auth={auth} />}</Auth>
-  </div>
-)
+const AuthLeaseContainer: SFC<RouteProps & LeaseContainerProps> = props => {
+  const key = `${props.uri}$${props.propertyId}${props.unitId}${props.tenantId}`
+  // console.log('AuthLeaseContainer', { key, props })
+  return (
+    <div>
+      <LeaseContainer {...props} />
+    </div>
+  )
+}
 
 export default AuthLeaseContainer
 
@@ -353,29 +364,22 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
   children,
 }) => {
   return (
-    <Auth>
-      {auth => {
-        return (
-          <PropertyDoc
-            auth={auth}
-            path={`companies/${
-              auth.claims.activeCompany
-            }/properties/${propertyId}`}
-            render={property => (
-              <Card className={detailCardStyles}>
-                <CardBody>
-                  <CardText>Property</CardText>
-                  <CardTitle>{property && property.name}</CardTitle>
-                </CardBody>
-              </Card>
-            )}
-          />
-        )
-        {
-          children
+    <>
+      <PropertyDoc
+        authPath={claims =>
+          `companies/${claims.activeCompany}/properties/${propertyId}`
         }
-      }}
-    </Auth>
+        render={property => (
+          <Card className={detailCardStyles}>
+            <CardBody>
+              <CardText>Property</CardText>
+              <CardTitle>{property && property.name}</CardTitle>
+            </CardBody>
+          </Card>
+        )}
+      />
+      {children}
+    </>
   )
 }
 
@@ -388,59 +392,49 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
   unitId,
 }) => {
   return (
-    <Auth>
-      {auth => {
-        return (
-          <UnitDoc
-            auth={auth}
-            path={`companies/${
-              auth.claims.activeCompany
-            }/properties/${propertyId}/units/${unitId}`}
-            render={unit =>
-              unit ? (
-                <Card className={detailCardStyles}>
-                  <CardBody>
-                    <CardText>Unit</CardText>
-                    <CardSubtitle>{unit.address}</CardSubtitle>
-                  </CardBody>
-                </Card>
-              ) : null
-            }
-          />
-        )
-      }}
-    </Auth>
+    <UnitDoc
+      authPath={claims =>
+        `companies/${
+          claims.activeCompany
+        }/properties/${propertyId}/units/${unitId}`
+      }
+      render={unit =>
+        unit ? (
+          <Card className={detailCardStyles}>
+            <CardBody>
+              <CardText>Unit</CardText>
+              <CardSubtitle>{unit.address}</CardSubtitle>
+            </CardBody>
+          </Card>
+        ) : null
+      }
+    />
   )
 }
 
 class TenantDoc extends Document<Tenant> {}
 const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
   return (
-    <Auth>
-      {auth => {
-        return (
-          <TenantDoc
-            auth={auth}
-            path={`companies/${auth.claims.activeCompany}/tenants/${tenantId}`}
-            render={tenant => (
-              <Card className={detailCardStyles}>
-                <CardBody>
-                  <CardText>Tenant</CardText>
-                  {tenant && (
-                    <>
-                      <CardSubtitle>
-                        <div>{`${tenant.firstName} ${tenant.lastName}`}</div>
-                      </CardSubtitle>
-                      {tenant.email && <div>{tenant.email}</div>}
-                    </>
-                  )}
-                </CardBody>
-              </Card>
+    <TenantDoc
+      authPath={claims =>
+        `companies/${claims.activeCompany}/tenants/${tenantId}`
+      }
+      render={tenant => (
+        <Card className={detailCardStyles}>
+          <CardBody>
+            <CardText>Tenant</CardText>
+            {tenant && (
+              <>
+                <CardSubtitle>
+                  <div>{`${tenant.firstName} ${tenant.lastName}`}</div>
+                </CardSubtitle>
+                {tenant.email && <div>{tenant.email}</div>}
+              </>
             )}
-          />
-        )
-      }}
-    </Auth>
+          </CardBody>
+        </Card>
+      )}
+    />
   )
 }
 

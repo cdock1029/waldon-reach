@@ -61,6 +61,29 @@ type Auth = firebase.auth.Auth & {
 }
 export const auth: Auth = new Proxy(firebase.auth(), handler)
 export const firestore = firebase.firestore()
+
+export interface AuthWithClaims {
+  user: firebase.User | null
+  claims: { [key: string]: string | undefined }
+}
+export function onAuthStateChangedWithClaims(
+  claimsKeys: string[],
+  callback: (
+    result: { user: firebase.User | null; claims: { [key: string]: string } },
+  ) => any,
+) {
+  return auth.onAuthStateChanged(async user => {
+    let claims = {}
+    if (user) {
+      const token = await user.getIdTokenResult()
+      claims = claimsKeys.reduce((acc, claim) => {
+        acc[claim] = token.claims[claim]
+        return acc
+      }, claims)
+    }
+    callback({ user, claims })
+  })
+}
 // export const updateCompany = () => activeCompany.updateCompanyOnAuth()
 
 export { firestore as FirestoreTypes } from 'firebase/app'

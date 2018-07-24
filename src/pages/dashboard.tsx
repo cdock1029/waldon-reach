@@ -17,6 +17,7 @@ import NewUnitForm from '../components/NewUnitForm'
 import LeaseContainer from '../components/LeaseContainer'
 import { Document } from '../components/FirestoreData'
 import { AuthConsumer as Auth } from '../components/Auth'
+import { auth } from '../lib/firebase'
 import { css, cx } from 'react-emotion'
 
 class PropertiesCollection extends Collection<Property> {}
@@ -39,34 +40,29 @@ const Dashboard: SFC<RouteProps> = () => (
   </Router>
 )
 const DashIndex: SFC<RouteProps> = () => {
+  const user = auth.currentUser
   return (
-    <Auth>
-      {({ user }) => (
-        <div className={css({ padding: '1em' })}>
-          <h5>Dashboard</h5>
-          <hr />
-          <div>
-            {user && (
-              <ul>
-                <li>
-                  User: {user.displayName ? user.displayName : user.email}
-                </li>
-              </ul>
-            )}
-          </div>
-          <hr />
-          <div>
-            <Link to="../">{'< '}Back Home</Link>
-          </div>
-          <div>
-            <Link to="properties">Properties</Link>
-          </div>
-          <div>
-            <Link to="tenants">Tenants</Link>
-          </div>
-        </div>
-      )}
-    </Auth>
+    <div className={css({ padding: '1em' })}>
+      <h5>Dashboard</h5>
+      <hr />
+      <div>
+        {user && (
+          <ul>
+            <li>User: {user.displayName ? user.displayName : user.email}</li>
+          </ul>
+        )}
+      </div>
+      <hr />
+      <div>
+        <Link to="../">{'< '}Back Home</Link>
+      </div>
+      <div>
+        <Link to="properties">Properties</Link>
+      </div>
+      <div>
+        <Link to="tenants">Tenants</Link>
+      </div>
+    </div>
   )
 }
 
@@ -83,29 +79,22 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
     }),
   )
   return (
-    <Auth>
-      {auth => {
-        return (
-          <>
-            <PropertyDoc
-              auth={auth}
-              path={`companies/${
-                auth.claims.activeCompany
-              }/properties/${propertyId}`}
-              render={property => (
-                <Card className={css({ gridArea: 'property', padding: '1em' })}>
-                  <CardBody>
-                    <CardText>Property</CardText>
-                    <CardTitle>{property && property.name}</CardTitle>
-                  </CardBody>
-                </Card>
-              )}
-            />
-            {routes}
-          </>
-        )
-      }}
-    </Auth>
+    <>
+      <PropertyDoc
+        authPath={claims =>
+          `companies/${claims.activeCompany}/properties/${propertyId}`
+        }
+        render={property => (
+          <Card className={css({ gridArea: 'property', padding: '1em' })}>
+            <CardBody>
+              <CardText>Property</CardText>
+              <CardTitle>{property && property.name}</CardTitle>
+            </CardBody>
+          </Card>
+        )}
+      />
+      {routes}
+    </>
   )
 }
 
@@ -119,139 +108,126 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
   children,
 }) => {
   return (
-    <Auth>
-      {auth => (
-        <>
-          <UnitDoc
-            auth={auth}
-            path={`companies/${
-              auth.claims.activeCompany
-            }/properties/${propertyId}/units/${unitId}`}
-            render={unit =>
-              unit ? (
-                <div className={css({ padding: '1em' })}>
-                  <Card>
-                    <CardBody>
-                      <CardText>Unit</CardText>
-                      <CardSubtitle>{unit.address}</CardSubtitle>
-                    </CardBody>
-                  </Card>
-                </div>
-              ) : null
-            }
-          />
-          {React.Children.map(children, child =>
-            React.cloneElement(child as React.ReactElement<any>, {
-              key: `${propertyId}${unitId}`,
-            }),
-          )}
-        </>
+    <>
+      <UnitDoc
+        authPath={claims =>
+          `companies/${
+            claims.activeCompany
+          }/properties/${propertyId}/units/${unitId}`
+        }
+        render={unit =>
+          unit ? (
+            <div className={css({ padding: '1em' })}>
+              <Card>
+                <CardBody>
+                  <CardText>Unit</CardText>
+                  <CardSubtitle>{unit.address}</CardSubtitle>
+                </CardBody>
+              </Card>
+            </div>
+          ) : null
+        }
+      />
+      {React.Children.map(children, child =>
+        React.cloneElement(child as React.ReactElement<any>, {
+          key: `${propertyId}${unitId}`,
+        }),
       )}
-    </Auth>
+    </>
   )
 }
 
 const TenantDetail: SFC<RouteProps & { tenantId?: string }> = props => {
   return (
-    <Auth>
-      {auth => (
-        <>
-          <TenantDoc
-            auth={auth}
-            path={`companies/${auth.claims.activeCompany}/tenants/${
-              props.tenantId
-            }`}
-            render={tenant => (
-              <div className={css({ padding: '1em' })}>
-                <Card>
-                  <CardBody>
-                    <CardSubtitle>
-                      {tenant && `${tenant.firstName} ${tenant.lastName}`}
-                    </CardSubtitle>
-                    <CardText>Tenant</CardText>
-                  </CardBody>
-                </Card>
-              </div>
-            )}
-          />
-          {React.Children.map(props.children, child =>
-            React.cloneElement(child as React.ReactElement<any>, {
-              key: props.tenantId,
-            }),
-          )}
-        </>
+    <>
+      <TenantDoc
+        authPath={claims =>
+          `companies/${claims.activeCompany}/tenants/${props.tenantId}`
+        }
+        render={tenant => (
+          <div className={css({ padding: '1em' })}>
+            <Card>
+              <CardBody>
+                <CardSubtitle>
+                  {tenant && `${tenant.firstName} ${tenant.lastName}`}
+                </CardSubtitle>
+                <CardText>Tenant</CardText>
+              </CardBody>
+            </Card>
+          </div>
+        )}
+      />
+      {React.Children.map(props.children, child =>
+        React.cloneElement(child as React.ReactElement<any>, {
+          key: props.tenantId,
+        }),
       )}
-    </Auth>
+    </>
   )
 }
 
 const Tenants: SFC<RouteProps> = ({ children }) => {
   return (
-    <Auth>
-      {auth => (
-        <TenantsCollection
-          auth={auth}
-          path={`companies/${auth.claims.activeCompany}/tenants`}
-          orderBy={{ field: 'lastName', direction: 'asc' }}
-          render={(tenants, hasLoaded) => {
-            if (!hasLoaded) {
-              return null
-            }
-            if (!tenants.length) {
-              return <h3>TODO no tenants</h3>
-            }
-            return (
-              <div className={tenantsGridStyles}>
-                <div className={tenantsListSectionStyles}>
-                  <Component
-                    initialState={{ modal: false }}
-                    toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                    render={({ setState, props: { toggleCallback } }: any) => (
-                      <>
-                        <h6 className={listHeaderStyles}>
-                          Tenants{' '}
-                          <Badge
-                            color="secondary"
-                            onClick={() => setState(toggleCallback)}>
-                            New
-                          </Badge>
-                        </h6>
-                      </>
-                    )}
-                  />
-                  <ListGroup className={tenantListWrapStyles} flush>
-                    {tenants.map(t => {
-                      return (
-                        <ListGroupItem
-                          className={css`
-                            &.list-group-item.list-group-item-action.active {
-                              color: #fff;
-                              background-color: #0c5460;
-                              border-color: #0c5460;
-                            }
-                          `}
-                          action
-                          key={t.id}
-                          to={t.id}
-                          tag={props => (
-                            <Link
-                              getProps={isPartiallyActive(props.className)}
-                              {...props}
-                            />
-                          )}>
-                          {`${t.lastName}, ${t.firstName}`}
-                        </ListGroupItem>
-                      )
-                    })}
-                  </ListGroup>
-                </div>
-                <div className={leaseSectionStyles}>{children}</div>
-              </div>
-            )
-          }}
-        />
-      )}
-    </Auth>
+    <TenantsCollection
+      authPath={claims => `companies/${claims.activeCompany}/tenants`}
+      orderBy={{ field: 'lastName', direction: 'asc' }}
+      render={(tenants, hasLoaded) => {
+        if (!hasLoaded) {
+          return null
+        }
+        if (!tenants.length) {
+          return <h3>TODO no tenants</h3>
+        }
+        return (
+          <div className={tenantsGridStyles}>
+            <div className={tenantsListSectionStyles}>
+              <Component
+                initialState={{ modal: false }}
+                toggleCallback={({ modal }: any) => ({ modal: !modal })}
+                render={({ setState, props: { toggleCallback } }: any) => (
+                  <>
+                    <h6 className={listHeaderStyles}>
+                      Tenants{' '}
+                      <Badge
+                        color="secondary"
+                        onClick={() => setState(toggleCallback)}>
+                        New
+                      </Badge>
+                    </h6>
+                  </>
+                )}
+              />
+              <ListGroup className={tenantListWrapStyles} flush>
+                {tenants.map(t => {
+                  return (
+                    <ListGroupItem
+                      className={css`
+                        &.list-group-item.list-group-item-action.active {
+                          color: #fff;
+                          background-color: #0c5460;
+                          border-color: #0c5460;
+                        }
+                      `}
+                      action
+                      key={t.id}
+                      to={t.id}
+                      tag={props => (
+                        <Link
+                          getProps={isPartiallyActive(props.className)}
+                          {...props}
+                        />
+                      )}>
+                      {`${t.lastName}, ${t.firstName}`}
+                    </ListGroupItem>
+                  )
+                })}
+              </ListGroup>
+            </div>
+            <div className={leaseSectionStyles}>{children}</div>
+          </div>
+        )
+      }}
+    />
   )
 }
 const tenantsGridStyles = css({
@@ -276,156 +252,135 @@ const tenantListWrapStyles = css`
 const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
   const propertyId = unitProps.propertyId!
   return (
-    <Auth>
-      {auth => {
+    <UnitsCollection
+      key={propertyId}
+      authPath={claims =>
+        `companies/${claims.activeCompany}/properties/${propertyId}/units`
+      }
+      transform={units =>
+        units.sort((a, b) => collator.compare(a.address, b.address))
+      }
+      render={(units, hasLoaded) => {
         return (
-          <UnitsCollection
-            auth={auth}
-            key={propertyId}
-            path={`companies/${
-              auth.claims.activeCompany
-            }/properties/${propertyId}/units`}
-            transform={units =>
-              units.sort((a, b) => collator.compare(a.address, b.address))
-            }
-            render={(units, hasLoaded) => {
-              return (
-                <>
-                  <Component
-                    initialState={{ modal: false }}
-                    toggleCallback={({ modal }: any) => ({
-                      modal: !modal,
-                    })}
-                    render={({
-                      setState,
-                      props: { toggleCallback },
-                      state,
-                    }: any) => (
-                      <h6 className={listHeaderStyles}>
-                        Units{' '}
-                        <Badge
-                          onClick={() => setState(toggleCallback)}
-                          color="secondary">
-                          New
-                        </Badge>
-                        <NewUnitForm
-                          propertyId={propertyId}
-                          isModalOpen={state.modal}
-                          toggleModal={() => setState(toggleCallback)}
-                        />
-                      </h6>
-                    )}
+          <>
+            <Component
+              initialState={{ modal: false }}
+              toggleCallback={({ modal }: any) => ({
+                modal: !modal,
+              })}
+              render={({ setState, props: { toggleCallback }, state }: any) => (
+                <h6 className={listHeaderStyles}>
+                  Units{' '}
+                  <Badge
+                    onClick={() => setState(toggleCallback)}
+                    color="secondary">
+                    New
+                  </Badge>
+                  <NewUnitForm
+                    propertyId={propertyId}
+                    isModalOpen={state.modal}
+                    toggleModal={() => setState(toggleCallback)}
                   />
-                  <ListGroup flush className={unitsListWrapStyles}>
-                    {units.length ? (
-                      units.map(u => {
+                </h6>
+              )}
+            />
+            <ListGroup flush className={unitsListWrapStyles}>
+              {units.length ? (
+                units.map(u => {
+                  return (
+                    <ListGroupItem
+                      action
+                      key={u.id}
+                      to={`units/${u.id}`}
+                      tag={props => {
                         return (
-                          <ListGroupItem
-                            action
-                            key={u.id}
-                            to={`units/${u.id}`}
-                            tag={props => {
-                              return (
-                                <Link
-                                  getProps={isPartiallyActive(props.className)}
-                                  {...props}
-                                />
-                              )
-                            }}>
-                            {u.address}
-                          </ListGroupItem>
+                          <Link
+                            getProps={isPartiallyActive(props.className)}
+                            {...props}
+                          />
                         )
-                      })
-                    ) : hasLoaded ? (
-                      <div className={css({ padding: '1em' })}>
-                        <Card body>
-                          <CardTitle>No units</CardTitle>
-                          <CardText>
-                            click <code>New</code> to create a new unit
-                          </CardText>
-                        </Card>
-                      </div>
-                    ) : null}
-                  </ListGroup>
-                </>
-              )
-            }}
-          />
+                      }}>
+                      {u.address}
+                    </ListGroupItem>
+                  )
+                })
+              ) : hasLoaded ? (
+                <div className={css({ padding: '1em' })}>
+                  <Card body>
+                    <CardTitle>No units</CardTitle>
+                    <CardText>
+                      click <code>New</code> to create a new unit
+                    </CardText>
+                  </Card>
+                </div>
+              ) : null}
+            </ListGroup>
+          </>
         )
       }}
-    </Auth>
+    />
   )
 }
 
 const Properties: SFC<RouteProps> = () => {
   return (
-    <Auth>
-      {auth => {
+    <PropertiesCollection
+      authPath={claims => `companies/${claims.activeCompany}/properties`}
+      orderBy={{ field: 'name', direction: 'asc' }}
+      render={properties => {
         return (
-          <PropertiesCollection
-            auth={auth}
-            path={`companies/${auth.claims.activeCompany}/properties`}
-            orderBy={{ field: 'name', direction: 'asc' }}
-            render={properties => {
-              return (
-                <div className={propertiesGridStyles}>
-                  <Router className={leaseSectionStyles}>
-                    <LeaseContainer path="/*" />
-                    <LeaseContainer path="/:propertyId/*" />
-                    <LeaseContainer path="/:propertyId/units/:unitId/*" />
-                    {/* <PropertyDetail path=":propertyId">
+          <div className={propertiesGridStyles}>
+            <Router className={leaseSectionStyles}>
+              <LeaseContainer path="/*" />
+              <LeaseContainer path="/:propertyId/*" />
+              <LeaseContainer path="/:propertyId/units/:unitId/*" />
+              {/* <PropertyDetail path=":propertyId">
                 <UnitDetail path="units/:unitId">
                   <LeaseContainer path="/" />
                 </UnitDetail>
               </PropertyDetail> */}
-                  </Router>
-                  <div className={propertiesListSectionStyles}>
-                    <Component
-                      initialState={{ modal: false }}
-                      toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                      render={({
-                        setState,
-                        props: { toggleCallback },
-                      }: any) => (
-                        <>
-                          <h6 className={listHeaderStyles}>
-                            Properties{' '}
-                            <Badge
-                              color="secondary"
-                              onClick={() => setState(toggleCallback)}>
-                              New
-                            </Badge>
-                          </h6>
-                        </>
-                      )}
-                    />
-                    <ListGroup className={propertiesListWrapStyles} flush>
-                      {properties.map(p => {
-                        return (
-                          <ListGroupItem
-                            action
-                            key={p.id}
-                            to={p.id}
-                            tag={props => {
-                              const fn: any = isPartiallyActive(props.className)
-                              return <Link getProps={fn} {...props} />
-                            }}>
-                            {p.name}
-                          </ListGroupItem>
-                        )
-                      })}
-                    </ListGroup>
-                  </div>
-                  <Router className={unitsListSectionStyles}>
-                    <Units path=":propertyId/*" />
-                  </Router>
-                </div>
-              )
-            }}
-          />
+            </Router>
+            <div className={propertiesListSectionStyles}>
+              <Component
+                initialState={{ modal: false }}
+                toggleCallback={({ modal }: any) => ({ modal: !modal })}
+                render={({ setState, props: { toggleCallback } }: any) => (
+                  <>
+                    <h6 className={listHeaderStyles}>
+                      Properties{' '}
+                      <Badge
+                        color="secondary"
+                        onClick={() => setState(toggleCallback)}>
+                        New
+                      </Badge>
+                    </h6>
+                  </>
+                )}
+              />
+              <ListGroup className={propertiesListWrapStyles} flush>
+                {properties.map(p => {
+                  return (
+                    <ListGroupItem
+                      action
+                      key={p.id}
+                      to={p.id}
+                      tag={props => {
+                        const fn: any = isPartiallyActive(props.className)
+                        return <Link getProps={fn} {...props} />
+                      }}>
+                      {p.name}
+                    </ListGroupItem>
+                  )
+                })}
+              </ListGroup>
+            </div>
+            <Router className={unitsListSectionStyles}>
+              <Units path=":propertyId/*" />
+            </Router>
+          </div>
         )
       }}
-    </Auth>
+    />
   )
 }
 const propertiesGridStyles = css({

@@ -9,6 +9,7 @@ declare module '*.mdx' {
 interface RouteProps {
   path?: string
   default?: boolean
+  uri?: string
 }
 
 interface Doc {

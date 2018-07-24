@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Router } from '@reach/router'
 import { Router as StaticRouter, Switch, Route, Link } from 'react-static'
 import { AuthProvider, AuthConsumer as Auth } from './Auth'
 import { hot } from 'react-hot-loader'
@@ -53,12 +52,20 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
         <Collapse isOpen={this.state.isOpen} navbar>
           <Nav navbar>
             <NavItem>
-              <NavLink tag={Link} activeClassName="active" to="/tenants">
+              <NavLink
+                tag={Link}
+                activeClassName="active"
+                to="/tenants"
+                prefetch={true}>
                 Tenants
               </NavLink>
             </NavItem>
             <NavItem>
-              <NavLink tag={Link} activeClassName="active" to="/properties">
+              <NavLink
+                tag={Link}
+                activeClassName="active"
+                to="/properties"
+                prefetch={true}>
                 Properties
               </NavLink>
             </NavItem>
