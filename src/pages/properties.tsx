@@ -18,8 +18,8 @@ import { css, cx } from 'react-emotion'
 class PropertiesCollection extends Collection<Property> {}
 class UnitsCollection extends Collection<Unit> {}
 
-const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
-  const propertyId = unitProps.propertyId!
+const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
+  const propertyId = props.match.params.propertyId!
   return (
     <UnitsCollection
       key={propertyId}
@@ -65,7 +65,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = unitProps => {
                     <ListGroupItem
                       action
                       key={u.id}
-                      to={`units/${u.id}`}
+                      to={`/properties/${propertyId}/units/${u.id}`}
                       tag={props => {
                         return (
                           <Link

@@ -251,10 +251,7 @@ const tabNavLinkStyles = css`
 const AuthLeaseContainer: SFC<RouteProps & LeaseContainerProps> = (
   props: any,
 ) => {
-  // console.log({ props })
   const { params } = props.match
-  // const key = `${props.uri}$${props.propertyId}${props.unitId}${props.tenantId}`
-  // console.log('AuthLeaseContainer', { key, props })
   return (
     <div>
       <LeaseContainer {...params} />
