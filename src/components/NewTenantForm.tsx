@@ -52,7 +52,7 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
               toggleModal()
               resetForm()
             })
-            .catch(e => {
+            .catch((e: Error) => {
               setSubmitting(false)
               setStatus({firebaseError: e.message})
             })

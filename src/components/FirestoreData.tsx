@@ -38,8 +38,6 @@ export class Collection<T extends Doc> extends React.Component<
   }
   private unsub: () => void
   componentDidMount() {
-    // console.log({ props: this.props })
-    // console.log('cDM collection')
     this.attachListener()
   }
   componentDidUpdate(prevProps: CollectionProps<T>) {

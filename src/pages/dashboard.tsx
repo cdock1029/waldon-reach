@@ -39,16 +39,17 @@ const Dashboard: SFC<RouteProps> = () => (
   </Router>
 )
 const DashIndex: SFC<RouteProps> = () => {
-  const user = auth.currentUser!
-  const name = user.displayName ? user.displayName : user.email
+  const user = auth.currentUser
   return (
     <div className={css({ padding: '1em' })}>
       <h5>Dashboard</h5>
       <hr />
       <div>
-        <ul>
-          <li>User: {name}</li>
-        </ul>
+        {user && (
+          <ul>
+            <li>User: {user.displayName ? user.displayName : user.email}</li>
+          </ul>
+        )}
       </div>
       <hr />
       <div>

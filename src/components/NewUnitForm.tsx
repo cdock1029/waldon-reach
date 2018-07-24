@@ -39,7 +39,7 @@ class NewUnitForm extends React.Component<Props> {
               toggleModal()
               resetForm()
             })
-            .catch(e => {
+            .catch((e: Error) => {
               setSubmitting(false)
               setErrors({ address: e.message })
             })

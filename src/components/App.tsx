@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { Router, Link } from '@reach/router'
 import { Router as StaticRouter, Switch, Route } from 'react-static'
-// import Routes from 'react-static-routes'
-import universal from 'react-universal-component'
+import { AuthProvider, AuthConsumer as Auth } from './Auth'
 import { hot } from 'react-hot-loader'
 import {
   Collapse,
@@ -17,19 +16,13 @@ import {
   Input,
 } from 'reactstrap'
 import { isPartiallyActive } from '../lib/index'
-import { auth } from '../lib/firebase'
-import { css } from 'react-emotion'
+import { app as firebase } from '../lib/firebase'
+import styled, { css } from 'react-emotion'
 import Dashboard from '../pages/dashboard'
 import Properties from '../pages/properties'
 import Tenants from '../pages/tenants'
 import Lease from '../pages/lease'
-// import Login from '../pages/index'
-
-// const Dashboard: any = universal(import('../pagesClient/Dashboard'))
-// const Properties: any = universal(import('../pagesClient/Properties'))
-// const Tenants: any = universal(import('../pagesClient/Tenants'))
-// const Lease: any = universal(import('../pagesClient/Lease'))
-// import Notes from '../pagesClient/NOTES.mdx'
+import Login from '../pages/login'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 class Header extends React.Component<{}, { isOpen: boolean }> {
@@ -98,14 +91,18 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
           </Nav>
           <Nav className="ml-auto" navbar>
             <NavItem>
-              <NavLink
-                href="#"
-                onClick={(e: any) => {
-                  e.preventDefault()
-                  auth.signOut()
-                }}>
-                Sign Out
-              </NavLink>
+              <Auth>
+                {auth => (
+                  <NavLink
+                    href="#"
+                    onClick={(e: any) => {
+                      e.preventDefault()
+                      auth.signOut()
+                    }}>
+                    Sign Out
+                  </NavLink>
+                )}
+              </Auth>
             </NavItem>
           </Nav>
         </Collapse>
@@ -119,75 +116,46 @@ const headerStyle = css`
   label: Header;
 `
 
-const Home: React.SFC<any> = () => (
-  <div className={homeStyle}>
-    <h4>Home page</h4>
-    <br />
-    <Link to="dashboard">Dashboard</Link>
-  </div>
-)
-const homeStyle = css`
-  padding: 1em;
-  label: Home;
-`
+// const Home: React.SFC<any> = () => (
+//   <div className={homeStyle}>
+//     <h4>Home page</h4>
+//     <br />
+//     <Link to="dashboard">Dashboard</Link>
+//   </div>
+// )
+// const homeStyle = css`
+//   padding: 1em;
+//   label: Home;
+// `
 
 class App extends React.Component {
-  state = {
-    user: null,
-    hasLoaded: false,
-  }
-  componentDidMount() {
-    auth.onAuthStateChanged(async user => {
-      await auth.updateCompany()
-      this.setState(() => ({
-        user,
-        hasLoaded: true,
-      }))
-    })
-  }
   render() {
-    const { hasLoaded, user } = this.state
-    console.log('render App')
-    // if (!hasLoaded) {
-    //   return null
-    // }
-    return true ? (
-      <StaticRouter>
-        <div className={appStyle}>
-          <Header />
-
-          <div className="router">
-            <Switch>
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/properties" component={Properties} />
-              <Route path="/tenants" component={Tenants} />
-              <Route path="/lease" component={Lease} />
-            </Switch>
-          </div>
-          {/* <Router className="router">
-          <Home path="/" />
-          <Dashboard path="dashboard/*" />
-          <Properties path="properties/*" />
-          <Tenants path="tenants/*" />
-          <Lease path="lease/*" />
-          <NotFound default />
-        </Router> */}
-        </div>
-      </StaticRouter>
-    ) : (
-      <StaticRouter>
-        <div className="router">{/* <Routes /> */}</div>
-      </StaticRouter>
+    return (
+      <AuthProvider firebase={firebase}>
+        <StaticRouter>
+          <AppContainer>
+            <Login />
+            <Header />
+            <Main>
+              <Switch>
+                <Route path="/dashboard" component={Dashboard} />
+                <Route path="/properties" component={Properties} />
+                <Route path="/tenants" component={Tenants} />
+                <Route path="/lease" component={Lease} />
+              </Switch>
+            </Main>
+          </AppContainer>
+        </StaticRouter>
+      </AuthProvider>
     )
   }
 }
-const appStyle = css`
-  label: App;
+const AppContainer = styled.div`
   height: 100vh;
-  .router {
-    padding-top: 56px;
-    height: 100%;
-  }
+`
+const Main = styled.main`
+  padding-top: 56px;
+  height: 100%;
 `
 
 export default hot(module)(App)
