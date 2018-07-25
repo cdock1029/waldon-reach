@@ -32,7 +32,7 @@ const enum LeaseActiveFilter {
   INACTIVE = 'INACTIVE',
 }
 
-interface LeaseContainerProps extends RouteProps {
+export interface LeaseContainerProps extends RouteProps {
   propertyId?: string
   unitId?: string
   tenantId?: string
@@ -126,18 +126,6 @@ class LeaseContainer extends React.Component<
     )
     this.setState(() => ({ leases, loading: false }))
   }
-  // shouldComponentUpdate(nP: LeaseContainerProps, nS: LeaseContainerState) {
-  //   const { propertyId, unitId, tenantId } = this.props
-  //   const { activeTab, leases, loading } = this.state
-  //   return (
-  //     nP.propertyId !== propertyId ||
-  //     nP.unitId !== unitId ||
-  //     nP.tenantId !== tenantId ||
-  //     nS.activeTab !== activeTab ||
-  //     nS.leases !== leases ||
-  //     nS.loading !== loading
-  //   )
-  // }
   render() {
     const { propertyId, unitId, tenantId } = this.props
     const { leases } = this.state
@@ -248,18 +236,14 @@ const tabNavLinkStyles = css`
   cursor: pointer;
 `
 
-const AuthLeaseContainer: SFC<RouteProps & LeaseContainerProps> = (
-  props: any,
-) => {
-  const { params } = props.match
-  return (
-    <div>
-      <LeaseContainer {...params} />
-    </div>
-  )
-}
+// const AuthLeaseContainer: SFC<RouteProps & LeaseContainerProps> = (
+//   props: any,
+// ) => {
+//   const { params } = props.match
+//   return <LeaseContainer {...params} />
+// }
 
-export default AuthLeaseContainer
+export default LeaseContainer
 
 interface LeasesProps {
   leases: Lease[]
@@ -384,6 +368,7 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
 }) => {
   return (
     <UnitDoc
+      key={`${propertyId}${unitId}`}
       authPath={claims =>
         `companies/${
           claims.activeCompany

@@ -12,13 +12,13 @@ import {
 } from 'reactstrap'
 import { collator, isPartiallyActive } from '../lib/index'
 import NewUnitForm from '../components/NewUnitForm'
-import LeaseContainer from '../components/LeaseContainer'
+// import LeaseContainer, {LeaseContainerProps} from '../components/LeaseContainer'
 import { css, cx } from 'react-emotion'
 
 class PropertiesCollection extends Collection<Property> {}
 class UnitsCollection extends Collection<Unit> {}
 
-const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
+const Units: SFC<RouteProps> = (props: any) => {
   const propertyId = props.match.params.propertyId!
   return (
     <UnitsCollection
@@ -89,101 +89,52 @@ const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
   )
 }
 
-const Properties: SFC<RouteProps> = (props: any) => {
-  console.log('render properties', { props })
+export const Dashboard: SFC<
+  RouteProps & { leaseContainer: any; sidebarItems: any[] }
+> = props => {
+  const { leaseContainer, sidebarItems } = props
+  // const properties = [{ name: 'A property', id: 'id' }]
   return (
-    <PropertiesCollection
-      path="/*"
-      authPath={claims => `companies/${claims.activeCompany}/properties`}
-      orderBy={{ field: 'name', direction: 'asc' }}
-      render={properties => {
-        console.log('render properties collection')
-        return (
-          <div className={propertiesGridStyles}>
-            <div className={leaseSectionStyles}>
-              <Switch>
-                <Route component={LeaseContainer} path="/properties" exact />
-                <Route
-                  component={LeaseContainer}
-                  path="/properties/:propertyId"
-                  exact
-                />
-                <Route
-                  component={LeaseContainer}
-                  path="/properties/:propertyId/units/:unitId"
-                />
-              </Switch>
+    <div className={dashboardGridStyles}>
+      <div className={leaseSectionStyles}>{leaseContainer}</div>
+      <div className={sidebarSectionStyles}>
+        {sidebarItems.map((item: any, i) => {
+          return (
+            <div key={i} className={sidebarItemStyles}>
+              {item}
             </div>
-            <div className={propertiesListSectionStyles}>
-              <Component
-                initialState={{ modal: false }}
-                toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                render={({ setState, props: { toggleCallback } }: any) => (
-                  <>
-                    <h6 className={listHeaderStyles}>
-                      Properties{' '}
-                      <Badge
-                        color="secondary"
-                        onClick={() => setState(toggleCallback)}>
-                        New
-                      </Badge>
-                    </h6>
-                  </>
-                )}
-              />
-              <ListGroup className={propertiesListWrapStyles} flush>
-                {properties.map(p => {
-                  return (
-                    <ListGroupItem
-                      action
-                      key={p.id}
-                      to={`/properties/${p.id}`}
-                      tag={Link}>
-                      {p.name}
-                    </ListGroupItem>
-                  )
-                })}
-              </ListGroup>
-            </div>
-            <div className={unitsListSectionStyles}>
-              <Route component={Units} path="/properties/:propertyId" />
-            </div>
-          </div>
-        )
-      }}
-    />
+          )
+        })}
+      </div>
+    </div>
   )
 }
-const propertiesGridStyles = css({
+const dashboardGridStyles = css({
   display: 'grid',
   /* height: 'calc(100vh - var(--header-height))', */
   gridTemplateAreas: `
-    "props lease"
-    "units lease"
-  ;`,
-  gridTemplateColumns: '250px 1fr',
-  gridTemplateRows: `
-    calc(2 * (100vh - var(--header-height))/5)
-    calc(3 * (100vh - var(--header-height))/5)
+    "sidebar lease"
   `,
-  label: 'PropertiesParentGrid',
+  gridTemplateColumns: '250px 1fr',
+  gridTemplateRows: 'calc(100vh - var(--header-height))',
+  label: 'DashboardGrid',
 })
 
-const unitsListSectionStyles = css({
-  gridArea: 'units',
+const sidebarSectionStyles = css({
+  gridArea: 'sidebar',
   display: 'flex',
   flexDirection: 'column',
   justifyContent: 'flex-start',
   paddingBottom: '1em',
-  label: 'UnitsGridArea',
+  label: 'SidebarGridArea',
 })
-const propertiesListSectionStyles = css({
-  gridArea: 'props',
+const sidebarItemStyles = css({
   display: 'flex',
+  flexBasis: 'auto',
   flexDirection: 'column',
   justifyContent: 'flex-start',
   borderBottom: '1px solid rgba(0,0,0,0.1)',
-  label: 'PropsGridArea',
+  label: 'SidebarItem',
 })
 
 const leaseSectionStyles = css`
@@ -230,4 +181,11 @@ const listHeaderStyles = cx(
   `,
 )
 
-export default Properties
+export default () => {
+  return (
+    <Dashboard
+      sidebarItems={[<div>item 1</div>, <div>item 2</div>]}
+      leaseContainer={<h1>lease container</h1>}
+    />
+  )
+}

@@ -17,11 +17,11 @@ import {
 import { isPartiallyActive } from '../lib/index'
 import { app as firebase } from '../lib/firebase'
 import styled, { css } from 'react-emotion'
-import Dashboard from '../pages/dashboard'
 import Properties from '../pages/properties'
 import Tenants from '../pages/tenants'
 import Lease from '../pages/lease'
 import Login from '../pages/login'
+import Dashboard from '../components/dashboard'
 
 const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 class Header extends React.Component<{}, { isOpen: boolean }> {
@@ -52,21 +52,18 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
         <Collapse isOpen={this.state.isOpen} navbar>
           <Nav navbar>
             <NavItem>
-              <NavLink
-                tag={Link}
-                activeClassName="active"
-                to="/tenants"
-                prefetch={true}>
+              <NavLink tag={Link} to="/tenants">
                 Tenants
               </NavLink>
             </NavItem>
             <NavItem>
-              <NavLink
-                tag={Link}
-                activeClassName="active"
-                to="/properties"
-                prefetch={true}>
+              <NavLink tag={Link} to="/properties">
                 Properties
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink tag={Link} to="/dash" prefetch={false}>
+                Dashboard
               </NavLink>
             </NavItem>
           </Nav>
@@ -119,10 +116,11 @@ class App extends React.Component {
             <Header />
             <Main>
               <Switch>
-                <Route path="/dashboard" component={Dashboard} />
+                {/* <Route path="/dashboard" component={Dashboard} /> */}
                 <Route path="/properties" component={Properties} />
                 <Route path="/tenants" component={Tenants} />
                 <Route path="/lease" component={Lease} />
+                <Route path="/dash" component={Dashboard} />
               </Switch>
             </Main>
           </AppContainer>

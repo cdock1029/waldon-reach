@@ -122,6 +122,7 @@ export class Document<T extends Doc> extends React.Component<
     }
   }
   componentWillUnmount() {
+    console.log('Doc comp will UNMOUNT')
     this.detachListener()
   }
   attachListener = () => {
