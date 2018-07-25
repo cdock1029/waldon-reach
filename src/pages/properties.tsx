@@ -9,10 +9,12 @@ import {
   Card,
   CardText,
   CardTitle,
+  Modal,
 } from 'reactstrap'
-import { collator, isPartiallyActive } from '../lib/index'
+import { collator } from '../lib/index'
 import NewUnitForm from '../components/NewUnitForm'
 import LeaseContainer from '../components/LeaseContainer'
+import { Dashboard } from '../components/dashboard'
 import { css, cx } from 'react-emotion'
 
 class PropertiesCollection extends Collection<Property> {}
@@ -23,55 +25,36 @@ const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
   return (
     <UnitsCollection
       key={propertyId}
-      authPath={claims =>
-        `companies/${claims.activeCompany}/properties/${propertyId}/units`
-      }
+      authPath={`properties/${propertyId}/units`}
       transform={units =>
         units.sort((a, b) => collator.compare(a.address, b.address))
       }
       render={(units, hasLoaded) => {
         return (
           <>
-            <Component
-              initialState={{ modal: false }}
-              render={({ setState, state: { modal } }: any) => (
-                <h6 className={listHeaderStyles}>
-                  Units{' '}
-                  <Badge
-                    onClick={() =>
-                      setState(({ modal: m }: any) => ({
-                        modal: !m,
-                      }))
-                    }
-                    color="secondary">
-                    New
-                  </Badge>
-                  <NewUnitForm
-                    propertyId={propertyId}
-                    isModalOpen={modal}
-                    toggleModal={() =>
-                      setState(({ modal: m }: any) => ({
-                        modal: !m,
-                      }))
-                    }
-                  />
-                </h6>
+            <ListHeader label="Units">
+              {(modal, toggle) => (
+                <NewUnitForm
+                  propertyId={propertyId}
+                  isModalOpen={modal}
+                  toggleModal={toggle}
+                />
               )}
-            />
+            </ListHeader>
+
             <ListGroup flush className={unitsListWrapStyles}>
-              {units.length ? (
-                units.map(u => {
-                  return (
-                    <ListGroupItem
-                      action
-                      key={u.id}
-                      to={`/properties/${propertyId}/units/${u.id}`}
-                      tag={Link}>
-                      {u.address}
-                    </ListGroupItem>
-                  )
-                })
-              ) : hasLoaded ? (
+              {units.map(u => {
+                return (
+                  <ListGroupItem
+                    action
+                    key={u.id}
+                    to={`/properties/${propertyId}/units/${u.id}`}
+                    tag={Link}>
+                    {u.address}
+                  </ListGroupItem>
+                )
+              })}
+              {hasLoaded && !units.length ? (
                 <div className={css({ padding: '1em' })}>
                   <Card body>
                     <CardTitle>No units</CardTitle>
@@ -93,111 +76,71 @@ const Properties: SFC<RouteProps> = (props: any) => {
   console.log('render properties', { props })
   return (
     <PropertiesCollection
-      path="/*"
-      authPath={claims => `companies/${claims.activeCompany}/properties`}
+      authPath="properties"
       orderBy={{ field: 'name', direction: 'asc' }}
       render={properties => {
         console.log('render properties collection')
         return (
-          <div className={propertiesGridStyles}>
-            <div className={leaseSectionStyles}>
+          <Dashboard
+            leaseContainer={
               <Switch>
                 <Route component={LeaseContainer} path="/properties" exact />
                 <Route
-                  component={LeaseContainer}
+                  render={({
+                    match: {
+                      params: { propertyId },
+                    },
+                  }: any) => <LeaseContainer propertyId={propertyId} />}
                   path="/properties/:propertyId"
                   exact
                 />
                 <Route
-                  component={LeaseContainer}
+                  render={({
+                    match: {
+                      params: { propertyId, unitId },
+                    },
+                  }) => (
+                    <LeaseContainer propertyId={propertyId} unitId={unitId} />
+                  )}
                   path="/properties/:propertyId/units/:unitId"
                 />
               </Switch>
-            </div>
-            <div className={propertiesListSectionStyles}>
-              <Component
-                initialState={{ modal: false }}
-                toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                render={({ setState, props: { toggleCallback } }: any) => (
-                  <>
-                    <h6 className={listHeaderStyles}>
-                      Properties{' '}
-                      <Badge
-                        color="secondary"
-                        onClick={() => setState(toggleCallback)}>
-                        New
-                      </Badge>
-                    </h6>
-                  </>
-                )}
-              />
-              <ListGroup className={propertiesListWrapStyles} flush>
-                {properties.map(p => {
-                  return (
-                    <ListGroupItem
-                      action
-                      key={p.id}
-                      to={`/properties/${p.id}`}
-                      tag={Link}>
-                      {p.name}
-                    </ListGroupItem>
-                  )
-                })}
-              </ListGroup>
-            </div>
-            <div className={unitsListSectionStyles}>
-              <Route component={Units} path="/properties/:propertyId" />
-            </div>
-          </div>
+            }
+            sidebarItems={[
+              <React.Fragment key="propertiesList">
+                <ListHeader label="Properties">
+                  {(modal, toggle) => (
+                    <Modal isModalOpen={modal} toggle={toggle}>
+                      Hello world
+                    </Modal>
+                  )}
+                </ListHeader>
+                <ListGroup className={propertiesListWrapStyles} flush>
+                  {properties.map(p => {
+                    return (
+                      <ListGroupItem
+                        action
+                        key={p.id}
+                        to={`/properties/${p.id}`}
+                        tag={Link}>
+                        {p.name}
+                      </ListGroupItem>
+                    )
+                  })}
+                </ListGroup>
+              </React.Fragment>,
+              <Route
+                key="unitsList"
+                component={Units}
+                path="/properties/:propertyId"
+              />,
+            ]}
+          />
         )
       }}
     />
   )
 }
-const propertiesGridStyles = css({
-  display: 'grid',
-  /* height: 'calc(100vh - var(--header-height))', */
-  gridTemplateAreas: `
-    "props lease"
-    "units lease"
-  ;`,
-  gridTemplateColumns: '250px 1fr',
-  gridTemplateRows: `
-    calc(2 * (100vh - var(--header-height))/5)
-    calc(3 * (100vh - var(--header-height))/5)
-  `,
-  label: 'PropertiesParentGrid',
-})
-
-const unitsListSectionStyles = css({
-  gridArea: 'units',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  paddingBottom: '1em',
-  label: 'UnitsGridArea',
-})
-const propertiesListSectionStyles = css({
-  gridArea: 'props',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  borderBottom: '1px solid rgba(0,0,0,0.1)',
-  label: 'PropsGridArea',
-})
-
-const leaseSectionStyles = css`
-  grid-area: lease;
-  display: grid;
-  display: flex;
-  flex-direction: column;
-  label: LeaseGridArea;
-  padding-bottom: 1rem;
-  overflow: hidden;
-  &:first-child {
-    overflow-y: scroll;
-  }
-`
 
 const propertiesListWrapStyles = css`
   flex: 1;
@@ -222,12 +165,40 @@ const listHeaderStyles = cx(
   css`
     padding: 0.5em;
     margin: 0;
-    display: flex;
-    justify-content: space-between;
+    display: block;
     .badge {
       cursor: pointer;
+      float: right;
     }
   `,
 )
+
+const ListHeader: React.SFC<{
+  label: string
+  children: (modal: any, toggle: () => any) => any
+}> = ({ children, label }) => {
+  return (
+    <Component
+      initialState={{ modal: false }}
+      render={({ setState, state: { modal } }: any) => (
+        <h6 className={listHeaderStyles}>
+          {label + ' '}
+          <Badge
+            onClick={() =>
+              setState(({ modal: m }: any) => ({
+                modal: !m,
+              }))
+            }
+            color="secondary">
+            New
+          </Badge>
+          {children(modal, () =>
+            setState(({ modal }: any) => ({ modal: !modal })),
+          )}
+        </h6>
+      )}
+    />
+  )
+}
 
 export default Properties

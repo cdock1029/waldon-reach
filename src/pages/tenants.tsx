@@ -11,11 +11,10 @@ import { Link, Switch, Route } from 'react-static'
 
 class TenantsCollection extends Collection<Tenant> {}
 
-const getAuthPath = (claims: any) => `companies/${claims.activeCompany}/tenants`
 const Tenants: SFC<RouteProps> = () => {
   return (
     <TenantsCollection
-      authPath={getAuthPath}
+      authPath="tenants"
       orderBy={{ field: 'lastName', direction: 'asc' }}
       render={tenants => {
         return (
@@ -23,63 +22,18 @@ const Tenants: SFC<RouteProps> = () => {
             leaseContainer={
               <Switch>
                 <Route component={LeaseContainer} exact path="/tenants" />
-                <Route component={LeaseContainer} path="/tenants/:tenantId" />
+                <Route
+                  render={({
+                    match: {
+                      params: { tenantId },
+                    },
+                  }: any) => <LeaseContainer tenantId={tenantId} />}
+                  path="/tenants/:tenantId"
+                />
               </Switch>
             }
             sidebarItems={[
               <React.Fragment key="tenantsList">
-                <Component
-                  initialState={{ modal: false }}
-                  toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                  render={({
-                    setState,
-                    state: { modal },
-                    props: { toggleCallback },
-                  }: any) => (
-                    <>
-                      <h6 className={listHeaderStyles}>
-                        Tenants{' '}
-                        <Badge
-                          color="secondary"
-                          onClick={() => setState(toggleCallback)}>
-                          New
-                        </Badge>
-                        <NewTenantForm
-                          isModalOpen={modal}
-                          toggleModal={() =>
-                            setState(({ modal: m }: any) => ({
-                              modal: !m,
-                            }))
-                          }
-                        />
-                      </h6>
-                    </>
-                  )}
-                />
-                <ListGroup className={tenantListWrapStyles} flush>
-                  {tenants.map(t => {
-                    return (
-                      <ListGroupItem
-                        className={css`
-                          &.list-group-item.list-group-item-action.active {
-                            color: #fff;
-                            background-color: #0c5460;
-                            border-color: #0c5460;
-                          }
-                        `}
-                        action
-                        key={t.id}
-                        to={`/tenants/${t.id}`}
-                        tag={props => (
-                          <Link activeClassName="active" {...props} />
-                        )}>
-                        {`${t.lastName}, ${t.firstName}`}
-                      </ListGroupItem>
-                    )
-                  })}
-                </ListGroup>
-              </React.Fragment>,
-              <React.Fragment key="tenantsList2">
                 <Component
                   initialState={{ modal: false }}
                   toggleCallback={({ modal }: any) => ({ modal: !modal })}

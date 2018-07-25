@@ -23,9 +23,7 @@ const Units: SFC<RouteProps> = (props: any) => {
   return (
     <UnitsCollection
       key={propertyId}
-      authPath={claims =>
-        `companies/${claims.activeCompany}/properties/${propertyId}/units`
-      }
+      authPath={`properties/${propertyId}/units`}
       transform={units =>
         units.sort((a, b) => collator.compare(a.address, b.address))
       }
@@ -111,7 +109,6 @@ export const Dashboard: SFC<
 }
 const dashboardGridStyles = css({
   display: 'grid',
-  /* height: 'calc(100vh - var(--header-height))', */
   gridTemplateAreas: `
     "sidebar lease"
   `,
@@ -130,7 +127,7 @@ const sidebarSectionStyles = css({
 })
 const sidebarItemStyles = css({
   display: 'flex',
-  flexBasis: 'auto',
+  flex: 1,
   flexDirection: 'column',
   justifyContent: 'flex-start',
   borderBottom: '1px solid rgba(0,0,0,0.1)',
@@ -140,9 +137,9 @@ const sidebarItemStyles = css({
 const leaseSectionStyles = css`
   grid-area: lease;
   display: grid;
-  display: flex;
-  flex-direction: column;
-  label: LeaseGridArea;
+  grid-template-areas: 'leasesHeader' 'leasesTable';
+  grid-template-rows: minmax(min-content, auto) 1fr;
+  /* grid-gap: 1em; */
   padding-bottom: 1rem;
   overflow: hidden;
   &:first-child {

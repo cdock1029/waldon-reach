@@ -132,26 +132,12 @@ class LeaseContainer extends React.Component<
     console.log('leaseContainer', { propertyId, unitId, tenantId })
     return (
       <>
-        <Container>
-          <Row>
-            <Col>
-              <div
-                className={css`
-                  padding: 1em 0;
-                  display: grid;
-                  grid-gap: 1em;
-                  grid-template-columns: 1fr 1fr;
-                `}>
-                {propertyId && <PropertyDetail propertyId={propertyId} />}
-                {unitId && (
-                  <UnitDetail propertyId={propertyId} unitId={unitId} />
-                )}
-                {tenantId && <TenantDetail tenantId={tenantId} />}
-              </div>
-            </Col>
-          </Row>
-        </Container>
-        <Container className={leaseContainerStyles}>
+        <div className={leaseHeaderStyles}>
+          {propertyId && <PropertyDetail propertyId={propertyId} />}
+          {unitId && <UnitDetail propertyId={propertyId} unitId={unitId} />}
+          {tenantId && <TenantDetail tenantId={tenantId} />}
+        </div>
+        <div className={leaseContainerStyles}>
           <h5
             className={css`
               display: flex;
@@ -214,36 +200,11 @@ class LeaseContainer extends React.Component<
               </TabContent>
             </Col>
           </Row>
-        </Container>
+        </div>
       </>
     )
   }
 }
-const leaseContainerStyles = css`
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  label: LeaseContainer;
-  .lease-item {
-    border: 1px solid #000;
-    padding: 1em;
-  }
-`
-const tabContentStyles = css`
-  padding-top: 1em;
-`
-const tabNavLinkStyles = css`
-  cursor: pointer;
-`
-
-// const AuthLeaseContainer: SFC<RouteProps & LeaseContainerProps> = (
-//   props: any,
-// ) => {
-//   const { params } = props.match
-//   return <LeaseContainer {...params} />
-// }
-
-export default LeaseContainer
 
 interface LeasesProps {
   leases: Lease[]
@@ -341,9 +302,7 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
   return (
     <>
       <PropertyDoc
-        authPath={claims =>
-          `companies/${claims.activeCompany}/properties/${propertyId}`
-        }
+        authPath={`properties/${propertyId}`}
         render={property => (
           <Card className={detailCardStyles}>
             <CardBody>
@@ -368,12 +327,7 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
 }) => {
   return (
     <UnitDoc
-      key={`${propertyId}${unitId}`}
-      authPath={claims =>
-        `companies/${
-          claims.activeCompany
-        }/properties/${propertyId}/units/${unitId}`
-      }
+      authPath={`properties/${propertyId}/units/${unitId}`}
       render={unit =>
         unit ? (
           <Card className={detailCardStyles}>
@@ -392,9 +346,7 @@ class TenantDoc extends Document<Tenant> {}
 const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
   return (
     <TenantDoc
-      authPath={claims =>
-        `companies/${claims.activeCompany}/tenants/${tenantId}`
-      }
+      authPath={`tenants/${tenantId}`}
       render={tenant => (
         <Card className={detailCardStyles}>
           <CardBody>
@@ -414,10 +366,37 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
   )
 }
 
-const detailCardStyles = css`
-  height: 100%;
-`
 const StringStack = styled('pre')`
   margin: 0;
   font-family: var(--font-family-sans-serif);
 `
+const leaseHeaderStyles = css`
+  grid-area: leasesHeader;
+  /* account for tenant deatils, name email etc.. */
+  min-height: 152px;
+  display: grid;
+  padding: 1em;
+  grid-gap: 1em;
+  grid-template-columns: 1fr 1fr;
+`
+const detailCardStyles = css`
+  height: 100%;
+`
+
+const leaseContainerStyles = css`
+  grid-area: leasesTable;
+  display: block;
+  padding: 0 1em;
+  .lease-item {
+    border: 1px solid #000;
+    padding: 1em;
+  }
+`
+const tabContentStyles = css`
+  padding-top: 1em;
+`
+const tabNavLinkStyles = css`
+  cursor: pointer;
+`
+
+export default LeaseContainer

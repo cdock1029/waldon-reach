@@ -8,7 +8,7 @@ import { AuthProviderState } from '../components/Auth'
 import React from 'react'
 
 interface CollectionProps<T extends Doc> {
-  authPath: (claims: { [key: string]: string }) => string
+  authPath: string
   initialData?: T[]
   render: (data: T[], hasLoaded: boolean) => any
   transform?: (data: T[]) => T[]
@@ -39,10 +39,7 @@ export class Collection<T extends Doc> extends React.Component<
     this.attachListener()
   }
   componentDidUpdate(prevProps: CollectionProps<T>) {
-    const path = this.props.authPath({})
-    const prevPath = prevProps.authPath({})
-    console.log({ path, prevPath })
-    if (path !== prevPath) {
+    if (prevProps.authPath !== this.props.authPath) {
       this.detachListener()
       this.attachListener()
     }
@@ -57,8 +54,9 @@ export class Collection<T extends Doc> extends React.Component<
       this.unsub.push(
         onAuthStateChangedWithClaims(['activeCompany'], auth => {
           if (auth.user) {
+            const { activeCompany } = auth.claims
             let collectionRef: firebase.firestore.Query = firestore.collection(
-              authPath!(auth.claims),
+              `companies/${activeCompany}/${authPath}`,
             )
             if (orderBy) {
               collectionRef = collectionRef.orderBy(
@@ -92,7 +90,7 @@ export class Collection<T extends Doc> extends React.Component<
 }
 
 interface DocumentProps<T extends Doc> {
-  authPath: (claims: { [key: string]: string }) => string
+  authPath: string
   initialData?: T
   render: (data?: T) => any
   transform?: (data: T) => T
@@ -113,10 +111,7 @@ export class Document<T extends Doc> extends React.Component<
   }
   unsub: Array<firebase.Unsubscribe> = []
   componentDidUpdate(prevProps: DocumentProps<T>) {
-    const path = this.props.authPath({})
-    const prevPath = prevProps.authPath({})
-    console.log({ path, prevPath })
-    if (path !== prevPath) {
+    if (prevProps.authPath !== this.props.authPath) {
       this.detachListener()
       this.attachListener()
     }
@@ -131,7 +126,10 @@ export class Document<T extends Doc> extends React.Component<
       this.unsub.push(
         onAuthStateChangedWithClaims(['activeCompany'], auth => {
           if (auth.user) {
-            const documentRef = firestore.doc(authPath(auth.claims))
+            const { activeCompany } = auth.claims
+            const documentRef = firestore.doc(
+              `companies/${activeCompany}/${authPath}`,
+            )
             this.unsub.push(documentRef.onSnapshot(this.handleSnap))
           }
         }),
