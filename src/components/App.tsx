@@ -21,8 +21,8 @@ import Tenants from '../pages/tenants'
 import Lease from '../pages/lease'
 import Login from '../pages/login'
 import Dashboard from '../components/dashboard'
+import Home from '../pages'
 
-const NotFound: React.SFC<{ default?: boolean }> = () => <h1>Not found</h1>
 class Header extends React.Component<{}, { isOpen: boolean }> {
   state = {
     isOpen: false,
@@ -32,7 +32,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
     console.log('render Header')
     return (
       <Navbar className={headerStyle} color="dark" dark expand="md" fixed="top">
-        <NavbarBrand to="/" tag={props => <Link {...props}>Home</Link>} />
+        <NavbarBrand to="/" tag={Link} />
         <Nav className="mr-auto" navbar>
           <Form inline>
             <FormGroup className="mx-sm-2 mb-0">
@@ -115,11 +115,11 @@ class App extends React.Component {
             <Header />
             <Main>
               <Switch>
-                {/* <Route path="/dashboard" component={Dashboard} /> */}
+                <Route path="/dash" component={Dashboard} />
+                <Route path="/" exact component={Home} />
                 <Route path="/properties" component={Properties} />
                 <Route path="/tenants" component={Tenants} />
                 <Route path="/lease" component={Lease} />
-                <Route path="/dash" component={Dashboard} />
               </Switch>
             </Main>
           </AppContainer>

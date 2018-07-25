@@ -48,6 +48,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
                     action
                     key={u.id}
                     to={`/properties/${propertyId}/units/${u.id}`}
+                    prefetch={false}
                     tag={Link}>
                     {u.address}
                   </ListGroupItem>

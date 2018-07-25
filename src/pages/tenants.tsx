@@ -8,7 +8,7 @@ import { Dashboard } from '../components/dashboard'
 import { Link, Switch, Route } from 'react-static'
 import { ListHeader } from '../components/ListHeader'
 
-class TenantsCollection extends Collection<Tenant> { }
+class TenantsCollection extends Collection<Tenant> {}
 
 const Tenants: SFC<RouteProps> = () => {
   return (
@@ -53,7 +53,11 @@ const Tenants: SFC<RouteProps> = () => {
                         key={t.id}
                         to={`/tenants/${t.id}`}
                         tag={props => (
-                          <Link activeClassName="active" {...props} />
+                          <Link
+                            activeClassName="active"
+                            {...props}
+                            prefetch={false}
+                          />
                         )}>
                         {`${t.lastName}, ${t.firstName}`}
                       </ListGroupItem>
