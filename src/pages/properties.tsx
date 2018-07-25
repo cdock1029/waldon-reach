@@ -1,7 +1,7 @@
 import React, { SFC } from 'react'
 import { Collection } from '../components/FirestoreData'
 import { Route, Link, Switch } from 'react-static'
-import Component from '@reactions/component'
+import { ListHeader } from '../components/ListHeader'
 import {
   ListGroup,
   ListGroupItem,
@@ -31,7 +31,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
       }
       render={(units, hasLoaded) => {
         return (
-          <>
+          <React.Fragment>
             <ListHeader label="Units">
               {(modal, toggle) => (
                 <NewUnitForm
@@ -65,7 +65,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
                 </div>
               ) : null}
             </ListGroup>
-          </>
+          </React.Fragment>
         )
       }}
     />
@@ -73,7 +73,6 @@ const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
 }
 
 const Properties: SFC<RouteProps> = (props: any) => {
-  console.log('render properties', { props })
   return (
     <PropertiesCollection
       authPath="properties"
@@ -160,45 +159,5 @@ const unitsListWrapStyles = css`
     border-color: #155724;
   }
 `
-const listHeaderStyles = cx(
-  'bg-light',
-  css`
-    padding: 0.5em;
-    margin: 0;
-    display: block;
-    .badge {
-      cursor: pointer;
-      float: right;
-    }
-  `,
-)
-
-const ListHeader: React.SFC<{
-  label: string
-  children: (modal: any, toggle: () => any) => any
-}> = ({ children, label }) => {
-  return (
-    <Component
-      initialState={{ modal: false }}
-      render={({ setState, state: { modal } }: any) => (
-        <h6 className={listHeaderStyles}>
-          {label + ' '}
-          <Badge
-            onClick={() =>
-              setState(({ modal: m }: any) => ({
-                modal: !m,
-              }))
-            }
-            color="secondary">
-            New
-          </Badge>
-          {children(modal, () =>
-            setState(({ modal }: any) => ({ modal: !modal })),
-          )}
-        </h6>
-      )}
-    />
-  )
-}
 
 export default Properties

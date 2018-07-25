@@ -2,12 +2,12 @@ import React, { SFC } from 'react'
 import { Collection } from '../components/FirestoreData'
 import Component from '@reactions/component'
 import { ListGroup, ListGroupItem, Badge } from 'reactstrap'
-import { isPartiallyActive } from '../lib/index'
 import LeaseContainer from '../components/LeaseContainer'
 import { css, cx } from 'react-emotion'
 import NewTenantForm from '../components/NewTenantForm'
 import { Dashboard } from '../components/dashboard'
 import { Link, Switch, Route } from 'react-static'
+import { ListHeader } from '../components/ListHeader'
 
 class TenantsCollection extends Collection<Tenant> {}
 
@@ -34,34 +34,11 @@ const Tenants: SFC<RouteProps> = () => {
             }
             sidebarItems={[
               <React.Fragment key="tenantsList">
-                <Component
-                  initialState={{ modal: false }}
-                  toggleCallback={({ modal }: any) => ({ modal: !modal })}
-                  render={({
-                    setState,
-                    state: { modal },
-                    props: { toggleCallback },
-                  }: any) => (
-                    <>
-                      <h6 className={listHeaderStyles}>
-                        Tenants{' '}
-                        <Badge
-                          color="secondary"
-                          onClick={() => setState(toggleCallback)}>
-                          New
-                        </Badge>
-                        <NewTenantForm
-                          isModalOpen={modal}
-                          toggleModal={() =>
-                            setState(({ modal: m }: any) => ({
-                              modal: !m,
-                            }))
-                          }
-                        />
-                      </h6>
-                    </>
+                <ListHeader label="Tenants">
+                  {(modal, toggle) => (
+                    <NewTenantForm isModalOpen={modal} toggleModal={toggle} />
                   )}
-                />
+                </ListHeader>
                 <ListGroup className={tenantListWrapStyles} flush>
                   {tenants.map(t => {
                     return (
