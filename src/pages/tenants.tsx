@@ -1,15 +1,14 @@
 import React, { SFC } from 'react'
 import { Collection } from '../components/FirestoreData'
-import Component from '@reactions/component'
-import { ListGroup, ListGroupItem, Badge } from 'reactstrap'
+import { ListGroup, ListGroupItem } from 'reactstrap'
 import LeaseContainer from '../components/LeaseContainer'
-import { css, cx } from 'react-emotion'
+import { css } from 'react-emotion'
 import NewTenantForm from '../components/NewTenantForm'
 import { Dashboard } from '../components/dashboard'
 import { Link, Switch, Route } from 'react-static'
 import { ListHeader } from '../components/ListHeader'
 
-class TenantsCollection extends Collection<Tenant> {}
+class TenantsCollection extends Collection<Tenant> { }
 
 const Tenants: SFC<RouteProps> = () => {
   return (
@@ -73,18 +72,5 @@ const tenantListWrapStyles = css`
   flex: 1;
   overflow-y: scroll;
 `
-
-const listHeaderStyles = cx(
-  'bg-light',
-  css`
-    padding: 0.5em;
-    margin: 0;
-    display: flex;
-    justify-content: space-between;
-    .badge {
-      cursor: pointer;
-    }
-  `,
-)
 
 export default Tenants

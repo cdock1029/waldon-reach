@@ -14,7 +14,6 @@ import {
   FormGroup,
   Input,
 } from 'reactstrap'
-import { isPartiallyActive } from '../lib/index'
 import { app as firebase } from '../lib/firebase'
 import styled, { css } from 'react-emotion'
 import Properties from '../pages/properties'

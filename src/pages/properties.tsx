@@ -5,7 +5,6 @@ import { ListHeader } from '../components/ListHeader'
 import {
   ListGroup,
   ListGroupItem,
-  Badge,
   Card,
   CardText,
   CardTitle,
@@ -15,7 +14,7 @@ import { collator } from '../lib/index'
 import NewUnitForm from '../components/NewUnitForm'
 import LeaseContainer from '../components/LeaseContainer'
 import { Dashboard } from '../components/dashboard'
-import { css, cx } from 'react-emotion'
+import { css } from 'react-emotion'
 
 class PropertiesCollection extends Collection<Property> {}
 class UnitsCollection extends Collection<Unit> {}
