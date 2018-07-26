@@ -1,7 +1,6 @@
 import * as React from 'react'
-import { Router as StaticRouter, Switch, Route, Link } from 'react-static'
+import { BrowserRouter, Switch, Route, NavLink as Link } from 'react-router-dom'
 import { AuthProvider, AuthConsumer as Auth } from './Auth'
-import { hot } from 'react-hot-loader'
 import {
   Collapse,
   NavbarToggler,
@@ -109,7 +108,7 @@ class App extends React.Component {
   render() {
     return (
       <AuthProvider firebase={firebase} claims={['activeCompany']}>
-        <StaticRouter>
+        <BrowserRouter>
           <AppContainer>
             <Login />
             <Header />
@@ -123,7 +122,7 @@ class App extends React.Component {
               </Switch>
             </Main>
           </AppContainer>
-        </StaticRouter>
+        </BrowserRouter>
       </AuthProvider>
     )
   }
@@ -136,4 +135,5 @@ const Main = styled.main`
   height: 100%;
 `
 
-export default hot(module)(App)
+// export default hot(module)(App)
+export default App

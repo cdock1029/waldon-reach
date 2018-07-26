@@ -52,9 +52,11 @@ export class Collection<T extends Doc> extends React.Component<
     if (notBuilding()) {
       const { orderBy, authPath } = this.props
       this.unsub.push(
-        onAuthStateChangedWithClaims(['activeCompany'], auth => {
-          if (auth.user) {
-            const { activeCompany } = auth.claims
+        onAuthStateChangedWithClaims(['activeCompany'], ({ user, claims }) => {
+          if (!user) {
+            this.setState(({ data }) => (data.length ? { data: [] } : null))
+          } else {
+            const { activeCompany } = claims
             let collectionRef: firebase.firestore.Query = firestore.collection(
               `companies/${activeCompany}/${authPath}`,
             )
@@ -124,13 +126,15 @@ export class Document<T extends Doc> extends React.Component<
     if (notBuilding()) {
       const { authPath } = this.props
       this.unsub.push(
-        onAuthStateChangedWithClaims(['activeCompany'], auth => {
-          if (auth.user) {
-            const { activeCompany } = auth.claims
+        onAuthStateChangedWithClaims(['activeCompany'], ({ user, claims }) => {
+          if (user) {
+            const { activeCompany } = claims
             const documentRef = firestore.doc(
               `companies/${activeCompany}/${authPath}`,
             )
             this.unsub.push(documentRef.onSnapshot(this.handleSnap))
+          } else {
+            this.setState(({ data }) => (data ? { data: undefined } : null))
           }
         }),
       )

@@ -1,6 +1,5 @@
-import React, { SFC } from 'react'
+import React, { SFC, Fragment } from 'react'
 import {
-  Container,
   CardBody,
   Badge,
   TabContent,
@@ -21,11 +20,11 @@ import {
   onAuthStateChangedWithClaims,
 } from '../lib/firebase'
 import { notBuilding } from '../lib'
-import styled, { css, cx } from 'react-emotion'
+import styled, { css } from 'react-emotion'
 import ReactTable from 'react-table'
 import { Document } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
-import { Link } from 'react-static'
+import { NavLink as Link } from 'react-router-dom'
 
 const enum LeaseActiveFilter {
   ACTIVE = 'ACTIVE',
@@ -91,23 +90,29 @@ class LeaseContainer extends React.Component<
       const { activeTab } = this.state
 
       this.unsub.push(
-        onAuthStateChangedWithClaims(['activeCompany'], auth => {
-          const activeCompany = auth.claims.activeCompany
-          const leasesRef = firestore
-            .doc(`companies/${activeCompany}`)
-            .collection('leases')
-          let query: fs.Query = leasesRef.where('status', '==', activeTab)
+        onAuthStateChangedWithClaims(['activeCompany'], ({ user, claims }) => {
+          if (!user) {
+            this.setState(
+              ({ leases }) => (leases.length ? { leases: [] } : null),
+            )
+          } else {
+            const activeCompany = claims.activeCompany
+            const leasesRef = firestore
+              .doc(`companies/${activeCompany}`)
+              .collection('leases')
+            let query: fs.Query = leasesRef.where('status', '==', activeTab)
 
-          if (propertyId) {
-            query = query.where(`properties.${propertyId}.exists`, '==', true)
-            if (unitId) {
-              query = query.where(`units.${unitId}.exists`, '==', true)
+            if (propertyId) {
+              query = query.where(`properties.${propertyId}.exists`, '==', true)
+              if (unitId) {
+                query = query.where(`units.${unitId}.exists`, '==', true)
+              }
             }
+            if (tenantId) {
+              query = query.where(`tenants.${tenantId}.exists`, '==', true)
+            }
+            this.unsub.push(query.onSnapshot(this.handleLeasesSnap))
           }
-          if (tenantId) {
-            query = query.where(`tenants.${tenantId}.exists`, '==', true)
-          }
-          this.unsub.push(query.onSnapshot(this.handleLeasesSnap))
         }),
       )
     }
@@ -131,7 +136,7 @@ class LeaseContainer extends React.Component<
     const { leases } = this.state
     console.log('leaseContainer', { propertyId, unitId, tenantId })
     return (
-      <>
+      <Fragment>
         <div className={leaseHeaderStyles}>
           {propertyId && <PropertyDetail propertyId={propertyId} />}
           {unitId && <UnitDetail propertyId={propertyId} unitId={unitId} />}
@@ -201,7 +206,7 @@ class LeaseContainer extends React.Component<
             </Col>
           </Row>
         </div>
-      </>
+      </Fragment>
     )
   }
 }
@@ -300,7 +305,7 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
   children,
 }) => {
   return (
-    <>
+    <Fragment>
       <PropertyDoc
         authPath={`properties/${propertyId}`}
         render={property => (
@@ -313,7 +318,7 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
         )}
       />
       {children}
-    </>
+    </Fragment>
   )
 }
 
@@ -352,12 +357,12 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
           <CardBody>
             <CardText>Tenant</CardText>
             {tenant && (
-              <>
+              <Fragment>
                 <CardSubtitle>
                   <div>{`${tenant.firstName} ${tenant.lastName}`}</div>
                 </CardSubtitle>
                 {tenant.email && <div>{tenant.email}</div>}
-              </>
+              </Fragment>
             )}
           </CardBody>
         </Card>

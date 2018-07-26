@@ -5,7 +5,7 @@ import LeaseContainer from '../components/LeaseContainer'
 import { css } from 'react-emotion'
 import NewTenantForm from '../components/NewTenantForm'
 import { Dashboard } from '../components/dashboard'
-import { Link, Switch, Route } from 'react-static'
+import { NavLink as Link, Switch, Route } from 'react-router-dom'
 import { ListHeader } from '../components/ListHeader'
 
 class TenantsCollection extends Collection<Tenant> {}

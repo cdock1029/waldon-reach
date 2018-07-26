@@ -7,13 +7,13 @@ import './app.scss'
 
 export default App
 
-// TODO handle multiple tabs error..
 async function main() {
-  const renderMethod = (module as any).hot
-    ? ReactDOM.render
-    : ReactDOM.hydrate || ReactDOM.render
+  // const renderMethod = (module as any).hot
+  //   ? ReactDOM.render
+  //   : ReactDOM.hydrate || ReactDOM.render
   const render = (Comp: React.ReactType) => {
-    renderMethod(<Comp />, document.getElementById('root'))
+    // renderMethod(<Comp />, document.getElementById('root'))
+    ReactDOM.render(<Comp />, document.getElementById('root'))
   }
 
   try {
@@ -27,14 +27,14 @@ async function main() {
     }
   } finally {
     render(App)
-    if ((module as any).hot) {
-      ;(module as any).hot.accept('./components/App', () =>
-        render(require('./components/App').default),
-      )
-    }
+    // if ((module as any).hot) {
+    //   ;(module as any).hot.accept('./components/App', () =>
+    //     render(require('./components/App').default),
+    //   )
+    // }
   }
 }
 
-if (typeof document !== 'undefined') {
-  main()
-}
+// if (typeof document !== 'undefined') {
+main()
+// }

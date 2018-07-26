@@ -1,6 +1,6 @@
 import React, { SFC } from 'react'
 import { Collection } from '../components/FirestoreData'
-import { Route, Link, Switch } from 'react-static'
+import { Route, NavLink as Link, Switch } from 'react-router-dom'
 import { ListHeader } from '../components/ListHeader'
 import {
   ListGroup,
