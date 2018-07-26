@@ -18,7 +18,7 @@ async function main() {
 
   try {
     await firestore.enablePersistence()
-    console.log('persistence enabled..')
+    // console.log('persistence enabled..')
   } catch (e) {
     if (
       !e.message.includes('Firestore has already been started and persistence')

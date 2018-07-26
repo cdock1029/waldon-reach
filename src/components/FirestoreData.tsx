@@ -1,10 +1,5 @@
-import {
-  firestore,
-  onAuthStateChangedWithClaims,
-  AuthWithClaims,
-} from '../lib/firebase'
+import { firestore, onAuthStateChangedWithClaims, auth } from '../lib/firebase'
 import { notBuilding } from '../lib'
-import { AuthProviderState } from '../components/Auth'
 import React from 'react'
 
 interface CollectionProps<T extends Doc> {
@@ -34,48 +29,51 @@ export class Collection<T extends Doc> extends React.Component<
     data: this.props.initialData!,
     hasLoaded: false,
   }
-  unsub: Array<firebase.Unsubscribe> = []
+  unsubAuth: firebase.Unsubscribe = () => {}
+  unsubData: firebase.Unsubscribe = () => {}
   componentDidMount() {
-    this.attachListener()
+    this.setupAuth()
+  }
+  componentWillUnmount() {
+    this.unsubData()
+    this.unsubAuth()
   }
   componentDidUpdate(prevProps: CollectionProps<T>) {
     if (prevProps.authPath !== this.props.authPath) {
-      this.detachListener()
-      this.attachListener()
+      this.unsubData()
+      this.setupData()
+      /*this.setState(
+        () => ({ data: [], hasLoaded: false }),
+        () => {
+          this.setupData()
+        },
+      )*/
     }
   }
-  componentWillUnmount() {
-    this.detachListener()
+  setupAuth = () => {
+    this.unsubAuth = auth.onAuthStateChanged(user => {
+      this.unsubData()
+      this.setupData()
+      /* if (!user) {
+        this.setState(({ data }) => (data.length ? { data: [] } : null))
+      } else {
+        this.setupData()
+      }*/
+    })
   }
-  attachListener = () => {
-    console.log('attachListener')
-    if (notBuilding()) {
-      const { orderBy, authPath } = this.props
-      this.unsub.push(
-        onAuthStateChangedWithClaims(['activeCompany'], ({ user, claims }) => {
-          if (!user) {
-            this.setState(({ data }) => (data.length ? { data: [] } : null))
-          } else {
-            const { activeCompany } = claims
-            let collectionRef: firebase.firestore.Query = firestore.collection(
-              `companies/${activeCompany}/${authPath}`,
-            )
-            if (orderBy) {
-              collectionRef = collectionRef.orderBy(
-                orderBy.field,
-                orderBy.direction,
-              )
-            }
-            this.unsub.push(collectionRef.onSnapshot(this.handleSnap))
-          }
-        }),
+  setupData = async () => {
+    if (!auth.currentUser) {
+      this.setState(({ data }) => (data.length ? { data: [] } : null))
+    } else {
+      const { authPath, orderBy } = this.props
+      const activeCompany = await auth.activeCompany()
+      let collectionRef: firebase.firestore.Query = firestore.collection(
+        `companies/${activeCompany}/${authPath}`,
       )
-    }
-  }
-  detachListener = () => {
-    console.log('DETACH Listener')
-    if (this.unsub.length) {
-      this.unsub.forEach(u => u())
+      if (orderBy) {
+        collectionRef = collectionRef.orderBy(orderBy.field, orderBy.direction)
+      }
+      this.unsubData = collectionRef.onSnapshot(this.handleSnap)
     }
   }
   handleSnap = (snap: firebase.firestore.QuerySnapshot) => {
@@ -109,40 +107,50 @@ export class Document<T extends Doc> extends React.Component<
     this.state = {
       data: props.initialData,
     }
-    this.attachListener()
   }
-  unsub: Array<firebase.Unsubscribe> = []
-  componentDidUpdate(prevProps: DocumentProps<T>) {
-    if (prevProps.authPath !== this.props.authPath) {
-      this.detachListener()
-      this.attachListener()
-    }
+  unsubAuth: firebase.Unsubscribe = () => {}
+  unsubData: firebase.Unsubscribe = () => {}
+  componentDidMount() {
+    this.setupAuth()
   }
   componentWillUnmount() {
-    console.log('Doc comp will UNMOUNT')
-    this.detachListener()
+    this.unsubData()
+    this.unsubAuth()
   }
-  attachListener = () => {
-    if (notBuilding()) {
-      const { authPath } = this.props
-      this.unsub.push(
-        onAuthStateChangedWithClaims(['activeCompany'], ({ user, claims }) => {
-          if (user) {
-            const { activeCompany } = claims
-            const documentRef = firestore.doc(
-              `companies/${activeCompany}/${authPath}`,
-            )
-            this.unsub.push(documentRef.onSnapshot(this.handleSnap))
-          } else {
-            this.setState(({ data }) => (data ? { data: undefined } : null))
-          }
-        }),
-      )
+  componentDidUpdate(prevProps: DocumentProps<T>) {
+    if (prevProps.authPath !== this.props.authPath) {
+      this.unsubData()
+      this.setupData()
+      /* this.setState(
+        () => ({ data: undefined, hasLoaded: false }),
+        () => {
+          this.setupData()
+        },
+      )*/
     }
   }
-  detachListener = () => {
-    if (this.unsub.length) {
-      this.unsub.forEach(u => u())
+  setupAuth = () => {
+    this.unsubAuth = auth.onAuthStateChanged(user => {
+      console.log('auth changed.', { user })
+      this.unsubData()
+      this.setupData()
+      /* if (!user) {
+        this.setState(({ data }) => (data ? { data: undefined } : null))
+      } else {
+        this.setupData()
+      }*/
+    })
+  }
+  setupData = async () => {
+    console.log('setting up data', { currentUser: auth.currentUser })
+    if (!auth.currentUser) {
+      this.setState(({ data }) => (data ? { data: undefined } : null))
+    } else {
+      const activeCompany = await auth.activeCompany()
+      const documentRef = firestore.doc(
+        `companies/${activeCompany}/${this.props.authPath}`,
+      )
+      this.unsubData = documentRef.onSnapshot(this.handleSnap)
     }
   }
   handleSnap = (snap: firebase.firestore.DocumentSnapshot) => {

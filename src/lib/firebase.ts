@@ -10,62 +10,57 @@ export const app = firebase.apps.length
   : firebase.initializeApp(config)
 firebase.firestore().settings({ timestampsInSnapshots: true })
 
-export const newDoc = (
+export const newDoc = async (
   collectionPath: string,
   data: firebase.firestore.DocumentData,
 ) => {
-  return firebase
-    .firestore()
-    .collection(collectionPath)
-    .doc()
-    .set(data)
+  if (auth.currentUser) {
+    const result = await auth.currentUser.getIdTokenResult()
+    return firebase
+      .firestore()
+      .collection(`companies/${result.claims.activeCompany}/${collectionPath}`)
+      .doc()
+      .set(data)
+  }
 }
 
-class ActiveCompany {
-  private company: string
-  updateCompanyOnAuth = async () => {
-    const user = firebase.auth().currentUser
-    if (user) {
-      const result = await user.getIdTokenResult()
-      if (!result.claims.activeCompany) {
-        // if (true) {
-        return Promise.reject('Unauthorized user')
-      }
-      this.company = result.claims.activeCompany
-      return Promise.resolve()
-    } else {
-      this.company = ''
-      return Promise.resolve()
-    }
+// class ActiveCompany {
+//   constructor() {
+//     firebase.auth().onAuthStateChanged(async user => {
+//       if (user) {
+//         const result = await user.getIdTokenResult()
+//         this.company = result.claims.activeCompany
+//       } else {
+//         this.company = undefined
+//       }
+//     })
+//   }
+//   get value() {
+//     return this.company
+//   }
+// }
+const activeCompany = async () => {
+  if (!auth.currentUser) {
+    return undefined
   }
-  get value() {
-    return this.company
-  }
+  const token = await auth.currentUser.getIdTokenResult()
+  return token.claims.activeCompany
 }
-const activeCompany = new ActiveCompany()
 const handler = {
   get(target: any, prop: string) {
     if (prop === 'activeCompany') {
-      return activeCompany.value
-    }
-    if (prop === 'updateCompany') {
-      return activeCompany.updateCompanyOnAuth
+      return activeCompany
     }
     return target[prop]
   },
 }
 
 type Auth = firebase.auth.Auth & {
-  activeCompany: string
-  updateCompany: () => Promise<void>
+  activeCompany(): Promise<string | undefined>
 }
 export const auth: Auth = new Proxy(firebase.auth(), handler)
 export const firestore = firebase.firestore()
 
-export interface AuthWithClaims {
-  user: firebase.User | null
-  claims: { [key: string]: string | undefined }
-}
 export function onAuthStateChangedWithClaims(
   claimsKeys: string[],
   callback: (

@@ -28,7 +28,6 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   }
   toggle = () => this.setState(({ isOpen }) => ({ isOpen: !isOpen }))
   render() {
-    console.log('render Header')
     return (
       <Navbar className={headerStyle} color="dark" dark expand="md" fixed="top">
         <NavbarBrand to="/" tag={Link} />

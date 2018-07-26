@@ -14,12 +14,7 @@ import {
   Col,
   CardSubtitle,
 } from 'reactstrap'
-import {
-  firestore,
-  FirestoreTypes as fs,
-  onAuthStateChangedWithClaims,
-} from '../lib/firebase'
-import { notBuilding } from '../lib'
+import { firestore, FirestoreTypes as fs, auth } from '../lib/firebase'
 import styled, { css } from 'react-emotion'
 import ReactTable from 'react-table'
 import { Document } from '../components/FirestoreData'
@@ -47,7 +42,8 @@ class LeaseContainer extends React.Component<
   LeaseContainerState
 > {
   leasesRef: fs.CollectionReference
-  unsub: Array<firebase.Unsubscribe> = []
+  unsubAuth: firebase.Unsubscribe = () => {}
+  unsubData: firebase.Unsubscribe = () => {}
   defaultState: LeaseContainerState = {
     leases: [],
     activeTab: LeaseActiveFilter.ACTIVE, // or 'inactive
@@ -63,68 +59,67 @@ class LeaseContainer extends React.Component<
     }
   }
   componentDidMount() {
-    this.setupQuery()
+    this.setupAuth()
+  }
+  componentWillUnmount() {
+    this.unsubData()
+    this.unsubAuth()
   }
   componentDidUpdate(
     { propertyId, unitId, tenantId }: LeaseContainerProps,
     { activeTab }: LeaseContainerState,
   ) {
+    console.log('LC: component Did update', { props: this.props })
     if (
       propertyId !== this.props.propertyId ||
       unitId !== this.props.unitId ||
       tenantId !== this.props.tenantId ||
       activeTab !== this.state.activeTab
     ) {
-      // TODO: this is getting messy. reloading query involves props & state..
-      this.setState(() => ({
-        ...this.defaultState,
-        activeTab: this.state.activeTab,
-      }))
-      this.unsubQuery()
-      this.setupQuery()
-    }
-  }
-  setupQuery = () => {
-    if (notBuilding()) {
-      const { propertyId, unitId, tenantId } = this.props
-      const { activeTab } = this.state
-
-      this.unsub.push(
-        onAuthStateChangedWithClaims(['activeCompany'], ({ user, claims }) => {
-          if (!user) {
-            this.setState(
-              ({ leases }) => (leases.length ? { leases: [] } : null),
-            )
-          } else {
-            const activeCompany = claims.activeCompany
-            const leasesRef = firestore
-              .doc(`companies/${activeCompany}`)
-              .collection('leases')
-            let query: fs.Query = leasesRef.where('status', '==', activeTab)
-
-            if (propertyId) {
-              query = query.where(`properties.${propertyId}.exists`, '==', true)
-              if (unitId) {
-                query = query.where(`units.${unitId}.exists`, '==', true)
-              }
-            }
-            if (tenantId) {
-              query = query.where(`tenants.${tenantId}.exists`, '==', true)
-            }
-            this.unsub.push(query.onSnapshot(this.handleLeasesSnap))
-          }
+      this.unsubData()
+      this.setState(
+        ({ activeTab }) => ({
+          ...this.defaultState,
+          activeTab,
         }),
+        () => {
+          this.setupData()
+        },
       )
     }
   }
-  unsubQuery = () => {
-    if (this.unsub.length) {
-      this.unsub.forEach(u => u())
+  setupAuth = () => {
+    this.unsubAuth = auth.onAuthStateChanged(user => {
+      // console.log('auth changed.', { user, company: auth.activeCompany })
+      this.unsubData()
+      this.setupData()
+    })
+  }
+  setupData = async () => {
+    if (!auth.currentUser) {
+      this.setState(({ leases }) => (leases.length ? { leases: [] } : null))
+    } else {
+      const { propertyId, unitId, tenantId } = this.props
+      const { activeTab } = this.state
+      const activeCompany = await auth.activeCompany()
+      const leasesRef = firestore.collection(
+        `companies/${activeCompany}/leases`,
+      )
+      let query: fs.Query = leasesRef.where('status', '==', activeTab)
+
+      if (propertyId) {
+        query = query.where(`properties.${propertyId}.exists`, '==', true)
+        if (unitId) {
+          query = query.where(`units.${unitId}.exists`, '==', true)
+        }
+      }
+      if (tenantId) {
+        query = query.where(`tenants.${tenantId}.exists`, '==', true)
+      }
+      this.unsubData = query.onSnapshot(this.handleLeasesSnap)
     }
   }
-  componentWillUnmount() {
-    this.unsubQuery()
-  }
+
   handleLeasesSnap = (snap: fs.QuerySnapshot) => {
     const leases: Lease[] = snap.docs.map(
       doc => ({ id: doc.id, ...doc.data() } as Lease),

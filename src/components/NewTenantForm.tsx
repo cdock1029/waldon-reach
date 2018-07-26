@@ -29,7 +29,6 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
   })
   render() {
     const { isModalOpen, toggleModal } = this.props
-    const activeCompany = auth.activeCompany
     return (
       <Formik
         initialValues={NewTenantForm.schema.cast(undefined) as Tenant}
@@ -42,7 +41,7 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
           //   setStatus({firebaseError: e.message || e})
           // })
 
-          newDoc(`companies/${activeCompany}/tenants`, {
+          newDoc(`/tenants`, {
             firstName,
             lastName,
             email,
@@ -71,7 +70,7 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
           status,
           setStatus
         }) => {
-          console.log({status})
+          // console.log({status})
           return (
             <Modal centered isOpen={isModalOpen} toggle={toggleModal}>
               <ModalHeader
