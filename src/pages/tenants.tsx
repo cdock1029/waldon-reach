@@ -53,11 +53,7 @@ const Tenants: SFC<RouteProps> = () => {
                         key={t.id}
                         to={`/tenants/${t.id}`}
                         tag={props => (
-                          <Link
-                            activeClassName="active"
-                            {...props}
-                            prefetch={false}
-                          />
+                          <Link activeClassName="active" {...props} />
                         )}>
                         {`${t.lastName}, ${t.firstName}`}
                       </ListGroupItem>

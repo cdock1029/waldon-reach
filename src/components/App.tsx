@@ -61,7 +61,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
               </NavLink>
             </NavItem>
             <NavItem>
-              <NavLink tag={Link} to="/dash" prefetch={false}>
+              <NavLink tag={Link} to="/dash">
                 Dashboard
               </NavLink>
             </NavItem>
