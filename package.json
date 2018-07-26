@@ -25,6 +25,7 @@
     "react-emotion": "^9.2.6",
     "react-firestore": "^0.8.1",
     "react-hot-loader": "^4.3.3",
+    "react-loadable": "^5.4.0",
     "react-router-dom": "^4.3.1",
     "react-static": "^6.0.0-beta.16",
     "react-static-plugin-emotion": "^1.0.6",

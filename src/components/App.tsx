@@ -14,12 +14,34 @@ import {
   Input,
 } from 'reactstrap'
 import styled, { css } from 'react-emotion'
-import Properties from '../pages/properties'
-import Tenants from '../pages/tenants'
-import Lease from '../pages/lease'
+import Loadable from 'react-loadable'
 import Login from '../pages/login'
-import Dashboard from '../components/dashboard'
-import Home from '../pages'
+
+const Loading = ({ pastDelay }: any) => (pastDelay ? <h1>Loading..</h1> : null)
+const loadDefaults = {
+  loading: Loading,
+  delay: 400,
+}
+const Properties = Loadable({
+  loader: () => import('../pages/properties'),
+  ...loadDefaults,
+})
+const Tenants = Loadable({
+  loader: () => import('../pages/tenants'),
+  ...loadDefaults,
+})
+const Lease = Loadable({
+  loader: () => import('../pages/lease'),
+  ...loadDefaults,
+})
+/* const Login = Loadable({
+  loader: () => import('../pages/login'),
+  ...loadDefaults,
+})*/
+const Home = Loadable({
+  loader: () => import('../pages'),
+  ...loadDefaults,
+})
 
 class Header extends React.Component<{}, { isOpen: boolean }> {
   state = {
@@ -29,7 +51,9 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   render() {
     return (
       <Navbar className={headerStyle} color="dark" dark expand="md" fixed="top">
-        <NavbarBrand to="/" tag={Link} />
+        <NavbarBrand to="/" tag={Link}>
+          WPM
+        </NavbarBrand>
         <Nav className="mr-auto" navbar>
           <Form inline>
             <FormGroup className="mx-sm-2 mb-0">
@@ -55,11 +79,6 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
             <NavItem>
               <NavLink tag={Link} to="/properties">
                 Properties
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink tag={Link} to="/dash">
-                Dashboard
               </NavLink>
             </NavItem>
           </Nav>
@@ -114,7 +133,6 @@ class App extends React.Component {
             <Header />
             <Main>
               <Switch>
-                <Route path="/dash" component={Dashboard} />
                 <Route path="/" exact component={Home} />
                 <Route path="/properties" component={Properties} />
                 <Route path="/tenants" component={Tenants} />

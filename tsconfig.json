@@ -7,6 +7,8 @@
     "allowSyntheticDefaultImports": true,
     "lib": ["dom", "es2017"],
     "skipLibCheck": true,
+    "outDir": "dist",
+    "rootDir": "src",
 
     "allowJs": true,
     "sourceMap": true,
@@ -17,5 +19,6 @@
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": false,
     "baseUrl": "."
-  }
+  },
+  "exclude": ["node_modules", "dist", ".cache", "tmp"]
 }
