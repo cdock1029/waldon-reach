@@ -13,7 +13,6 @@ import {
   FormGroup,
   Input,
 } from 'reactstrap'
-import { app as firebase } from '../lib/firebase'
 import styled, { css } from 'react-emotion'
 import Properties from '../pages/properties'
 import Tenants from '../pages/tenants'
@@ -67,16 +66,18 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
           <Nav className="ml-auto" navbar>
             <NavItem>
               <Auth>
-                {auth => (
-                  <NavLink
-                    href="#"
-                    onClick={(e: any) => {
-                      e.preventDefault()
-                      auth.signOut()
-                    }}>
-                    Sign Out
-                  </NavLink>
-                )}
+                {auth =>
+                  auth.user ? (
+                    <NavLink
+                      href="#"
+                      onClick={(e: any) => {
+                        e.preventDefault()
+                        auth.signOut()
+                      }}>
+                      Sign Out
+                    </NavLink>
+                  ) : null
+                }
               </Auth>
             </NavItem>
           </Nav>
@@ -106,7 +107,7 @@ const headerStyle = css`
 class App extends React.Component {
   render() {
     return (
-      <AuthProvider firebase={firebase} claims={['activeCompany']}>
+      <AuthProvider claims={['activeCompany']}>
         <BrowserRouter>
           <AppContainer>
             <Login />

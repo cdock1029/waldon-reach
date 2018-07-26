@@ -1,7 +1,8 @@
 import React from 'react'
+import { app } from '../lib/firebase'
 
 interface AuthProviderProps {
-  firebase: firebase.app.App
+  firebase?: firebase.app.App
   claims?: string[]
   children: JSX.Element | JSX.Element[]
 }
@@ -31,6 +32,7 @@ export class AuthProvider extends React.Component<
 > {
   unsub: firebase.Unsubscribe
   static defaultProps = {
+    firebase: app,
     claims: [],
   }
   constructor(props: AuthProviderProps) {
@@ -39,7 +41,7 @@ export class AuthProvider extends React.Component<
       acc[claim] = null
       return acc
     }, {})
-    const auth = this.props.firebase.auth()
+    const auth = this.props.firebase!.auth()
     this.state = {
       user: auth.currentUser,
       claims,

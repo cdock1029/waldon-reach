@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "start": "parcel index.html",
-    "build": "react-static build",
-    "stage": "react-static build --staging",
+    "build": "parcel build index.html",
+    "clean": "rm -rf .cache && rm -rf dist",
     "serve": "serve dist"
   },
   "dependencies": {

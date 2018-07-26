@@ -11,7 +11,6 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
-  ModalFooter,
 } from 'reactstrap'
 import { AuthConsumer as Auth } from '../components/Auth'
 import { notBuilding } from '../lib'
@@ -48,46 +47,50 @@ class Login extends React.Component<{}, LoginState> {
           // show modal if not building and user is not logged in
           const doShowModal = notBuilding() && !auth.user
           return (
-            <Modal isOpen={doShowModal} toggle={() => {}}>
-              <ModalHeader toggle={() => {}}>Modal title</ModalHeader>
+            <Modal
+              className={loginStyle}
+              isOpen={doShowModal}
+              toggle={() => {}}>
+              <ModalHeader>
+                <h4 className="title">Login</h4>
+              </ModalHeader>
               <ModalBody>
-                <div className={loginStyle}>
-                  <h3>Login</h3>
-                  <Card className="form-wrap">
-                    <Form
-                      onSubmit={e => this.handleSubmit(e, auth.signIn)}
-                      method="post"
-                      onFocus={this.clearError}>
-                      {error && (
-                        <FormGroup>
-                          <FormText color="danger">{error}</FormText>
-                        </FormGroup>
-                      )}
-                      <FormGroup>
-                        <Label htmlFor="email">Email</Label>
-                        <Input id="email" name="email" type="email" required />
-                      </FormGroup>
-                      <FormGroup>
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                          id="password"
-                          name="password"
-                          type="password"
-                          required
-                        />
-                      </FormGroup>
-                      <Button block>Log In</Button>
-                    </Form>
-                  </Card>
-                </div>
+                <Form
+                  onSubmit={e => this.handleSubmit(e, auth.signIn)}
+                  method="post"
+                  onFocus={this.clearError}>
+                  {error && (
+                    <FormGroup>
+                      <FormText color="danger">{error}</FormText>
+                    </FormGroup>
+                  )}
+                  <FormGroup>
+                    {/* <Label htmlFor="email">Email</Label> */}
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="Email"
+                      required
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    {/* <Label htmlFor="password">Password</Label> */}
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      placeholder="Password"
+                      required
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <Button block color="primary">
+                      Log In
+                    </Button>
+                  </FormGroup>
+                </Form>
               </ModalBody>
-              {/* <ModalFooter>
-                <Button
-                  color="primary"
-                  onClick={(e: any) => this.handleSubmit(e, auth.signIn)}>
-                  Sign In
-                </Button>{' '}
-              </ModalFooter> */}
             </Modal>
           )
         }}
@@ -97,14 +100,17 @@ class Login extends React.Component<{}, LoginState> {
 }
 
 const loginStyle = css`
-  margin: 1.5em auto;
-  max-width: 300px;
-  .form-wrap,
-  button {
-    margin-top: 1.5rem;
+  /* margin: 1.5em auto;
+  max-width: 300px; */
+  .title {
+    margin: 0;
+    line-height: 1.5;
   }
-  form {
-    padding: 1.5rem;
+  .modal-body {
+    padding: 2em 2.5em;
+    button {
+      margin-top: 1.5rem;
+    }
   }
 `
 
