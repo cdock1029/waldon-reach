@@ -1,22 +1,18 @@
-// import firebase from 'firebase/app'
-// import 'firebase/auth'
-// import 'firebase/firestore'
-import config from './firebaseConfig'
+import firebase, { firestore as Fs, auth as Au } from 'firebase/app'
+import 'firebase/auth'
+import 'firebase/firestore'
 
-declare const firebase: any
+import config from './firebaseConfig'
 
 export const app = firebase.apps.length
   ? firebase.app()
   : firebase.initializeApp(config)
-firebase.firestore().settings({ timestampsInSnapshots: true })
+app.firestore().settings({ timestampsInSnapshots: true })
 
-export const newDoc = async (
-  collectionPath: string,
-  data: firebase.firestore.DocumentData,
-) => {
+export const newDoc = async (collectionPath: string, data: Fs.DocumentData) => {
   if (auth.currentUser) {
     const result = await auth.currentUser.getIdTokenResult()
-    return firebase
+    return app
       .firestore()
       .collection(`companies/${result.claims.activeCompany}/${collectionPath}`)
       .doc()
@@ -24,21 +20,6 @@ export const newDoc = async (
   }
 }
 
-// class ActiveCompany {
-//   constructor() {
-//     firebase.auth().onAuthStateChanged(async user => {
-//       if (user) {
-//         const result = await user.getIdTokenResult()
-//         this.company = result.claims.activeCompany
-//       } else {
-//         this.company = undefined
-//       }
-//     })
-//   }
-//   get value() {
-//     return this.company
-//   }
-// }
 const activeCompany = async () => {
   if (!auth.currentUser) {
     return undefined
@@ -55,11 +36,12 @@ const handler = {
   },
 }
 
-type Auth = firebase.auth.Auth & {
+type Auth = Au.Auth & {
   activeCompany(): Promise<string | undefined>
 }
-export const auth: Auth = new Proxy(firebase.auth(), handler)
-export const firestore: firebase.firestore.Firestore = firebase.firestore()
+
+export const auth: Auth = new Proxy(app.auth(), handler)
+export const firestore = firebase.firestore()
 
 export function onAuthStateChangedWithClaims(
   claimsKeys: string[],
@@ -80,5 +62,7 @@ export function onAuthStateChangedWithClaims(
   })
 }
 // export const updateCompany = () => activeCompany.updateCompanyOnAuth()
+// export { firestore as Fs, auth as Auth } from 'firebase'
+// export { app as App } from 'firebase/app'
 
-export { firestore as FirestoreTypes } from 'firebase/app'
+// export { appTypes, authTypes, fsTypes }

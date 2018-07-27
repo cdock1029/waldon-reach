@@ -51,9 +51,7 @@ class Login extends React.Component<{}, LoginState> {
               className={loginStyle}
               isOpen={doShowModal}
               toggle={() => {}}>
-              <ModalHeader>
-                <h4 className="title">Login</h4>
-              </ModalHeader>
+              <ModalHeader className="title">Login</ModalHeader>
               <ModalBody>
                 <Form
                   onSubmit={e => this.handleSubmit(e, auth.signIn)}

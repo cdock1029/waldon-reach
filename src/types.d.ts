@@ -43,3 +43,5 @@ type WhereParam = [
   firebase.firestore.WhereFilterOp,
   any
 ]
+
+type Unsub = () => void

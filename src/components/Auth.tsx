@@ -1,22 +1,23 @@
 import React from 'react'
 import { app } from '../lib/firebase'
 
+type App = firebase.app.App
+type UserCredential = firebase.auth.UserCredential
+type User = firebase.User
+
 interface AuthProviderProps {
-  firebase?: firebase.app.App
+  firebase?: App
   claims?: string[]
   children: JSX.Element | JSX.Element[]
 }
 
 export interface AuthProviderState {
-  user: firebase.User | null
+  user: User | null
   claims: {
     [key: string]: string | undefined
   }
   signOut(): Promise<void>
-  signIn(
-    email: string,
-    password: string,
-  ): Promise<firebase.auth.UserCredential | void>
+  signIn(email: string, password: string): Promise<UserCredential | void>
 }
 
 const { Consumer, Provider } = React.createContext<AuthProviderState>({
@@ -30,7 +31,7 @@ export class AuthProvider extends React.Component<
   AuthProviderProps,
   AuthProviderState
 > {
-  unsub: firebase.Unsubscribe
+  unsub: Unsub
   static defaultProps = {
     firebase: app,
     claims: [],
@@ -41,7 +42,7 @@ export class AuthProvider extends React.Component<
       acc[claim] = null
       return acc
     }, {})
-    const auth = this.props.firebase!.auth()
+    const auth = this.props.firebase!.auth!()
     this.state = {
       user: auth.currentUser,
       claims,
@@ -54,7 +55,7 @@ export class AuthProvider extends React.Component<
   componentWillUnmount() {
     this.unsub()
   }
-  handleAuthChange = async (user: firebase.User) => {
+  handleAuthChange = async (user: User) => {
     let claims = {}
     if (user && this.props.claims!.length) {
       const tokenResult = await user.getIdTokenResult()

@@ -23,7 +23,10 @@ interface Props {
 }
 
 const unitValidationSchema = Yup.object().shape({
-  address: Yup.string().required(),
+  label: Yup.string()
+    .required()
+    .min(1)
+    .max(200),
 })
 class NewUnitForm extends React.Component<Props> {
   render() {

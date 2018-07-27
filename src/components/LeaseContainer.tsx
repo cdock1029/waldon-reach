@@ -19,7 +19,8 @@ import ReactTable from 'react-table'
 import { Document, Collection } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
 import { NavLink as Link } from 'react-router-dom'
-import { firestore, auth } from '../lib/firebase'
+
+type CollectionReference = firebase.firestore.CollectionReference
 
 class LeaseCollection extends Collection<Lease> {}
 
@@ -41,7 +42,7 @@ class LeaseContainer extends React.Component<
   LeaseContainerProps,
   LeaseContainerState
 > {
-  leasesRef: firebase.firestore.CollectionReference
+  leasesRef: CollectionReference
   state = {
     activeTab: LeaseActiveFilter.ACTIVE,
   }
