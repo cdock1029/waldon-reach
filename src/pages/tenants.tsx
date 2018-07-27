@@ -32,13 +32,16 @@ const Tenants: SFC<RouteProps> = () => {
               </Switch>
             }
             sidebarItems={[
-              <React.Fragment key="tenantsList">
+              <React.Fragment key="sidebarTopList">
                 <ListHeader label="Tenants">
                   {(modal, toggle) => (
                     <NewTenantForm isModalOpen={modal} toggleModal={toggle} />
                   )}
                 </ListHeader>
-                <ListGroup className={tenantListWrapStyles} flush>
+                <ListGroup
+                  key="sidebarTopListGroup"
+                  className={tenantListWrapStyles}
+                  flush>
                   {tenants.map(t => {
                     return (
                       <ListGroupItem

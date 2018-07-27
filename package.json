@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "start": "parcel index.html",
+    "prebuild": "npm run clean",
     "build": "parcel build index.html",
     "clean": "rm -rf .cache && rm -rf dist",
     "serve": "serve dist"

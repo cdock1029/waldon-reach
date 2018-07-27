@@ -19,10 +19,27 @@ interface Property extends Doc {
   name: string
 }
 interface Unit extends Doc {
-  address: string
+  label: string
 }
 interface Tenant extends Doc {
   firstName: string
   lastName: string
   email?: string
 }
+
+interface Lease extends Doc {
+  rent: number
+  balance: number
+  tenants: { [id: string]: { exists: boolean; name: string } }
+  units: { [id: string]: { exists: boolean; address: string } }
+  properties: { [id: string]: { exists: boolean; name: string } }
+  startDate?: string
+  endDate?: string
+  status: string
+}
+
+type WhereParam = [
+  string | firebase.firestore.FieldPath,
+  firebase.firestore.WhereFilterOp,
+  any
+]

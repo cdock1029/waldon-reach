@@ -14,12 +14,14 @@ import {
   Col,
   CardSubtitle,
 } from 'reactstrap'
-import { firestore, FirestoreTypes as fs, auth } from '../lib/firebase'
 import styled, { css } from 'react-emotion'
 import ReactTable from 'react-table'
-import { Document } from '../components/FirestoreData'
+import { Document, Collection } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
 import { NavLink as Link } from 'react-router-dom'
+import { firestore, auth } from '../lib/firebase'
+
+class LeaseCollection extends Collection<Lease> {}
 
 const enum LeaseActiveFilter {
   ACTIVE = 'ACTIVE',
@@ -32,104 +34,34 @@ export interface LeaseContainerProps extends RouteProps {
   tenantId?: string
 }
 interface LeaseContainerState {
-  leases: Lease[]
   activeTab: LeaseActiveFilter
-  loading: boolean
 }
 
 class LeaseContainer extends React.Component<
   LeaseContainerProps,
   LeaseContainerState
 > {
-  leasesRef: fs.CollectionReference
-  unsubAuth: firebase.Unsubscribe = () => {}
-  unsubData: firebase.Unsubscribe = () => {}
-  defaultState: LeaseContainerState = {
-    leases: [],
-    activeTab: LeaseActiveFilter.ACTIVE, // or 'inactive
-    loading: true,
-  }
-  constructor(props: LeaseContainerProps) {
-    super(props)
-    this.state = this.defaultState
+  leasesRef: firebase.firestore.CollectionReference
+  state = {
+    activeTab: LeaseActiveFilter.ACTIVE,
   }
   toggleTab(tab: LeaseActiveFilter) {
-    if (this.state.activeTab !== tab) {
-      this.setState(() => ({ activeTab: tab }))
-    }
-  }
-  componentDidMount() {
-    this.setupAuth()
-  }
-  componentWillUnmount() {
-    this.unsubData()
-    this.unsubAuth()
-  }
-  componentDidUpdate(
-    { propertyId, unitId, tenantId }: LeaseContainerProps,
-    { activeTab }: LeaseContainerState,
-  ) {
-    console.log('LC: component Did update', { props: this.props })
-    if (
-      propertyId !== this.props.propertyId ||
-      unitId !== this.props.unitId ||
-      tenantId !== this.props.tenantId ||
-      activeTab !== this.state.activeTab
-    ) {
-      this.unsubData()
-      this.setState(
-        ({ activeTab }) => ({
-          ...this.defaultState,
-          activeTab,
-        }),
-        () => {
-          this.setupData()
-        },
-      )
-    }
-  }
-  setupAuth = () => {
-    this.unsubAuth = auth.onAuthStateChanged(user => {
-      // console.log('auth changed.', { user, company: auth.activeCompany })
-      this.unsubData()
-      this.setupData()
-    })
-  }
-  setupData = async () => {
-    if (!auth.currentUser) {
-      this.setState(({ leases }) => (leases.length ? { leases: [] } : null))
-    } else {
-      const { propertyId, unitId, tenantId } = this.props
-      const { activeTab } = this.state
-      const activeCompany = await auth.activeCompany()
-      const leasesRef = firestore.collection(
-        `companies/${activeCompany}/leases`,
-      )
-      let query: fs.Query = leasesRef.where('status', '==', activeTab)
-
-      if (propertyId) {
-        query = query.where(`properties.${propertyId}.exists`, '==', true)
-        if (unitId) {
-          query = query.where(`units.${unitId}.exists`, '==', true)
-        }
-      }
-      if (tenantId) {
-        query = query.where(`tenants.${tenantId}.exists`, '==', true)
-      }
-      this.unsubData = query.onSnapshot(this.handleLeasesSnap)
-    }
-  }
-
-  handleLeasesSnap = (snap: fs.QuerySnapshot) => {
-    const leases: Lease[] = snap.docs.map(
-      doc => ({ id: doc.id, ...doc.data() } as Lease),
+    this.setState(
+      ({ activeTab }) => (tab !== activeTab ? { activeTab: tab } : null),
     )
-    this.setState(() => ({ leases, loading: false }))
   }
+
   render() {
+    // console.log('render LeaseContainer')
     const { propertyId, unitId, tenantId } = this.props
-    const { leases } = this.state
-    console.log('leaseContainer', { propertyId, unitId, tenantId })
+    const { activeTab } = this.state
+    const where: Array<WhereParam> = [['status', '==', activeTab]]
+    if (propertyId) {
+      where.push([`properties.${propertyId}.exists`, '==', true])
+      if (unitId) {
+        where.push([`units.${unitId}.exists`, '==', true])
+      }
+    } else if (tenantId) where.push([`tenants.${tenantId}.exists`, '==', true])
     return (
       <Fragment>
         <div className={leaseHeaderStyles}>
@@ -175,28 +107,44 @@ class LeaseContainer extends React.Component<
               <TabContent
                 className={tabContentStyles}
                 activeTab={this.state.activeTab}>
-                <TabPane tabId={LeaseActiveFilter.ACTIVE}>
-                  <Row>
-                    <Col>
-                      <LeasesView
-                        leases={leases}
-                        showProperties={!Boolean(propertyId)}
-                        showUnits={!Boolean(unitId)}
-                      />
-                    </Col>
-                  </Row>
-                </TabPane>
-                <TabPane tabId={LeaseActiveFilter.INACTIVE}>
-                  <Row>
-                    <Col>
-                      <LeasesView
-                        leases={leases}
-                        showProperties={!Boolean(propertyId)}
-                        showUnits={!Boolean(unitId)}
-                      />
-                    </Col>
-                  </Row>
-                </TabPane>
+                <LeaseCollection
+                  authPath="leases"
+                  where={where}
+                  render={(leases, hasLoaded) => {
+                    // console.log({ leases, hasLoaded })
+                    const tab = this.state.activeTab
+                    return (
+                      <Fragment>
+                        {tab === LeaseActiveFilter.ACTIVE && (
+                          <TabPane tabId={LeaseActiveFilter.ACTIVE}>
+                            <LeasesView
+                              key="active"
+                              tab="active"
+                              /* leases={hasLoaded ? leases : []} */
+                              leases={leases}
+                              showProperties={!Boolean(propertyId)}
+                              showUnits={!Boolean(unitId)}
+                              loading={!hasLoaded}
+                            />
+                          </TabPane>
+                        )}
+                        {tab === LeaseActiveFilter.INACTIVE && (
+                          <TabPane tabId={LeaseActiveFilter.INACTIVE}>
+                            <LeasesView
+                              key="inactive"
+                              tab="inactive"
+                              /* leases={hasLoaded ? leases : []}*/
+                              leases={leases}
+                              showProperties={!Boolean(propertyId)}
+                              showUnits={!Boolean(unitId)}
+                              loading={!hasLoaded}
+                            />
+                          </TabPane>
+                        )}
+                      </Fragment>
+                    )
+                  }}
+                />
               </TabContent>
             </Col>
           </Row>
@@ -212,11 +160,12 @@ interface LeasesProps {
   showProperties: boolean
   showUnits: boolean
 }
-const LeasesView: SFC<LeasesProps> = ({
+const LeasesView: SFC<LeasesProps & { tab?: string }> = ({
   leases,
   showProperties,
   showUnits,
   loading = false,
+  tab,
 }) => {
   const columns = [
     {
@@ -277,15 +226,20 @@ const LeasesView: SFC<LeasesProps> = ({
           .join(' | '),
     })
   }
+  // console.log('render Leases View', { tab })
+  // TODO: look into why loading "fade animation" only seems to run in certain situations.
+  // ... adds a flicker sometimes instead of smooth transition.
   return (
-    <ReactTable
-      loading={loading}
-      data={leases}
-      columns={columns}
-      defaultPageSize={15}
-      pageSizeOptions={[10, 15, 50, 100]}
-      className="-striped -highlight"
-    />
+    <div key="react-table" className="lease-table">
+      <ReactTable
+        loading={loading}
+        data={leases}
+        columns={columns}
+        defaultPageSize={15}
+        pageSizeOptions={[10, 15, 50, 100]}
+        className="-striped -highlight"
+      />
+    </div>
   )
 }
 
@@ -333,7 +287,26 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
           <Card className={detailCardStyles}>
             <CardBody>
               <CardText>Unit</CardText>
-              <CardSubtitle>{unit.address}</CardSubtitle>
+              <CardSubtitle>{unit.label}</CardSubtitle>
+              {/* {unit.label ? (
+                <p>label: {unit.label}</p>
+              ) : (
+                <button
+                  onClick={async () => {
+                    const ac = await auth.activeCompany()
+                    const unitRef = firestore.doc(
+                      `companies/${ac}/properties/${propertyId}/units/${unitId}`,
+                    )
+                    unitRef
+                      .update({ label: unit.address })
+                      .then(() => {
+                        console.log('updated..')
+                      })
+                      .catch((e: Error) => alert(`Error: ${e.message}`))
+                  }}>
+                  fix
+                </button>
+              )} */}
             </CardBody>
           </Card>
         ) : null
@@ -390,6 +363,9 @@ const leaseContainerStyles = css`
   .lease-item {
     border: 1px solid #000;
     padding: 1em;
+  }
+  .lease-table {
+    /* padding-left: 0; */
   }
 `
 const tabContentStyles = css`

@@ -59,7 +59,7 @@ type Auth = firebase.auth.Auth & {
   activeCompany(): Promise<string | undefined>
 }
 export const auth: Auth = new Proxy(firebase.auth(), handler)
-export const firestore = firebase.firestore()
+export const firestore: firebase.firestore.Firestore = firebase.firestore()
 
 export function onAuthStateChangedWithClaims(
   claimsKeys: string[],

@@ -1,5 +1,6 @@
 import React from 'react'
 import { Formik } from 'formik'
+import * as Yup from 'yup'
 import { newDoc, auth } from '../lib/firebase'
 import {
   Form,
@@ -20,6 +21,10 @@ interface Props {
   isModalOpen: boolean
   toggleModal: () => void
 }
+
+const unitValidationSchema = Yup.object().shape({
+  address: Yup.string().required(),
+})
 class NewUnitForm extends React.Component<Props> {
   render() {
     const { isModalOpen, toggleModal } = this.props

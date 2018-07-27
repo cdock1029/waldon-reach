@@ -26,7 +26,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
       key={propertyId}
       authPath={`properties/${propertyId}/units`}
       transform={units =>
-        units.sort((a, b) => collator.compare(a.address, b.address))
+        units.sort((a, b) => collator.compare(a.label, b.label))
       }
       render={(units, hasLoaded) => {
         return (
@@ -49,7 +49,7 @@ const Units: SFC<RouteProps & { propertyId?: string }> = (props: any) => {
                     key={u.id}
                     to={`/properties/${propertyId}/units/${u.id}`}
                     tag={Link}>
-                    {u.address}
+                    {u.label}
                   </ListGroupItem>
                 )
               })}
@@ -105,7 +105,7 @@ const Properties: SFC<RouteProps> = (props: any) => {
               </Switch>
             }
             sidebarItems={[
-              <React.Fragment key="propertiesList">
+              <React.Fragment key="sidebarTopList">
                 <ListHeader label="Properties">
                   {(modal, toggle) => (
                     <Modal isModalOpen={modal} toggle={toggle}>
@@ -113,7 +113,10 @@ const Properties: SFC<RouteProps> = (props: any) => {
                     </Modal>
                   )}
                 </ListHeader>
-                <ListGroup className={propertiesListWrapStyles} flush>
+                <ListGroup
+                  key="sidebarTopListGroup"
+                  className={propertiesListWrapStyles}
+                  flush>
                   {properties.map(p => {
                     return (
                       <ListGroupItem
