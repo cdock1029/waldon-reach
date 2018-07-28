@@ -13,7 +13,7 @@ import {
   FormGroup,
   Input,
 } from 'reactstrap'
-import styled, { css } from 'react-emotion'
+import styled from 'react-emotion'
 import Loadable from 'react-loadable'
 import Login from '../pages/login'
 
@@ -26,6 +26,10 @@ const Properties = Loadable({
   loader: () => import('../pages/properties'),
   ...loadDefaults,
 })
+const Dash = Loadable({
+  loader: () => import('../pages/dash'),
+  ...loadDefaults,
+})
 const Tenants = Loadable({
   loader: () => import('../pages/tenants'),
   ...loadDefaults,
@@ -34,12 +38,8 @@ const Lease = Loadable({
   loader: () => import('../pages/lease'),
   ...loadDefaults,
 })
-/* const Login = Loadable({
-  loader: () => import('../pages/login'),
-  ...loadDefaults,
-})*/
 const Home = Loadable({
-  loader: () => import('../pages'),
+  loader: () => import('../pages/index'),
   ...loadDefaults,
 })
 
@@ -50,7 +50,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   toggle = () => this.setState(({ isOpen }) => ({ isOpen: !isOpen }))
   render() {
     return (
-      <Navbar className={headerStyle} color="dark" dark expand="md" fixed="top">
+      <Navbar color="dark" dark expand="md" fixed="top">
         <NavbarBrand to="/" tag={Link}>
           WPM
         </NavbarBrand>
@@ -71,6 +71,11 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
         <NavbarToggler onClick={this.toggle} />
         <Collapse isOpen={this.state.isOpen} navbar>
           <Nav navbar>
+            <NavItem>
+              <NavLink tag={Link} to="/dash">
+                Dash
+              </NavLink>
+            </NavItem>
             <NavItem>
               <NavLink tag={Link} to="/tenants">
                 Tenants
@@ -106,23 +111,6 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   }
 }
 
-const headerStyle = css`
-  /* height: var(--header-height); */
-  label: Header;
-`
-
-// const Home: React.SFC<any> = () => (
-//   <div className={homeStyle}>
-//     <h4>Home page</h4>
-//     <br />
-//     <Link to="dashboard">Dashboard</Link>
-//   </div>
-// )
-// const homeStyle = css`
-//   padding: 1em;
-//   label: Home;
-// `
-
 class App extends React.Component {
   render() {
     return (
@@ -134,6 +122,7 @@ class App extends React.Component {
             <Main>
               <Switch>
                 <Route path="/" exact component={Home} />
+                <Route path="/dash" component={Dash} />
                 <Route path="/properties" component={Properties} />
                 <Route path="/tenants" component={Tenants} />
                 <Route path="/lease" component={Lease} />
@@ -153,5 +142,4 @@ const Main = styled.main`
   height: 100%;
 `
 
-// export default hot(module)(App)
 export default App

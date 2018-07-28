@@ -2,9 +2,13 @@ import React, { SFC } from 'react'
 import { css } from 'react-emotion'
 
 export const Dashboard: SFC<
-  RouteProps & { leaseContainer: any; sidebarItems: any[] }
+  RouteProps & {
+    leaseContainer: any
+    sidebarItems: any[]
+    rightSidebarItems?: any[]
+  }
 > = props => {
-  const { leaseContainer, sidebarItems } = props
+  const { leaseContainer, sidebarItems, rightSidebarItems } = props
   return (
     <div className={dashboardGridStyles}>
       <div className={leaseSectionStyles}>{leaseContainer}</div>
@@ -17,15 +21,25 @@ export const Dashboard: SFC<
           )
         })}
       </div>
+      <div className={rightSidebarStyles}>
+        {rightSidebarItems &&
+          rightSidebarItems.map((item: any, i) => {
+            return (
+              <div key={`rightSidebar${i}`} className={sidebarItemStyles}>
+                {item}
+              </div>
+            )
+          })}
+      </div>
     </div>
   )
 }
 const dashboardGridStyles = css({
   display: 'grid',
   gridTemplateAreas: `
-    "sidebar lease"
+    "sidebar lease rightSidebar"
   `,
-  gridTemplateColumns: '250px 1fr',
+  gridTemplateColumns: '250px 1fr 250px',
   gridTemplateRows: 'calc(100vh - var(--header-height))',
   label: 'DashboardGrid',
 })
@@ -38,7 +52,16 @@ const sidebarSectionStyles = css({
   paddingBottom: '1em',
   label: 'SidebarGridArea',
 })
+const rightSidebarStyles = css({
+  gridArea: 'rightSidebar',
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'flex-start',
+  paddingBottom: '1em',
+  label: 'RightSidebarGridArea',
+})
 const sidebarItemStyles = css({
+  width: '250px',
   display: 'flex',
   flex: 1,
   flexDirection: 'column',

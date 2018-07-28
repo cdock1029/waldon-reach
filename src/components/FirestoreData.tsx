@@ -1,7 +1,7 @@
 import { firestore, auth } from '../lib/firebase'
 import React from 'react'
 
-interface CollectionProps<T extends Doc> {
+export interface CollectionProps<T extends Doc> {
   authPath: string
   initialData?: T[]
   render: (data: T[], hasLoaded: boolean) => any
@@ -32,6 +32,7 @@ export class Collection<T extends Doc> extends React.Component<
   unsubAuth: firebase.Unsubscribe = () => {}
   unsubData: firebase.Unsubscribe = () => {}
   componentDidMount() {
+    console.log('collection component did mount:', { props: this.props })
     this.setupAuth()
   }
   componentWillUnmount() {
