@@ -22,24 +22,13 @@ const loadDefaults = {
   loading: Loading,
   delay: 400,
 }
-// const Properties = Loadable({
-//   loader: () => import('../pages/properties'),
-//   ...loadDefaults,
-// })
+
 const Dash = Loadable({
   loader: () => import('../pages/dash'),
   ...loadDefaults,
 })
-// const Tenants = Loadable({
-//   loader: () => import('../pages/tenants'),
-//   ...loadDefaults,
-// })
 const Lease = Loadable({
   loader: () => import('../pages/lease'),
-  ...loadDefaults,
-})
-const Home = Loadable({
-  loader: () => import('../pages/index'),
   ...loadDefaults,
 })
 
@@ -70,13 +59,13 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
         </Nav>
         <NavbarToggler onClick={this.toggle} />
         <Collapse isOpen={this.state.isOpen} navbar>
-          <Nav navbar>
+          {/* <Nav navbar>
             <NavItem>
               <NavLink tag={Link} to="/dash">
                 Dash
               </NavLink>
             </NavItem>
-            {/* <NavItem>
+            <NavItem>
               <NavLink tag={Link} to="/tenants">
                 Tenants
               </NavLink>
@@ -85,8 +74,8 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
               <NavLink tag={Link} to="/properties">
                 Properties
               </NavLink>
-            </NavItem> */}
-          </Nav>
+            </NavItem>
+          </Nav> */}
           <Nav className="ml-auto" navbar>
             <NavItem>
               <Auth>
@@ -121,10 +110,7 @@ class App extends React.Component {
             <Header />
             <Main>
               <Switch>
-                <Route path="/" exact component={Home} />
-                <Route path="/dash" component={Dash} />
-                {/* <Route path="/properties" component={Properties} />
-                <Route path="/tenants" component={Tenants} /> */}
+                <Route path="/" exact component={Dash} />
                 <Route path="/lease" component={Lease} />
               </Switch>
             </Main>
