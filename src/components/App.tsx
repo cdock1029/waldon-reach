@@ -22,18 +22,18 @@ const loadDefaults = {
   loading: Loading,
   delay: 400,
 }
-const Properties = Loadable({
-  loader: () => import('../pages/properties'),
-  ...loadDefaults,
-})
+// const Properties = Loadable({
+//   loader: () => import('../pages/properties'),
+//   ...loadDefaults,
+// })
 const Dash = Loadable({
   loader: () => import('../pages/dash'),
   ...loadDefaults,
 })
-const Tenants = Loadable({
-  loader: () => import('../pages/tenants'),
-  ...loadDefaults,
-})
+// const Tenants = Loadable({
+//   loader: () => import('../pages/tenants'),
+//   ...loadDefaults,
+// })
 const Lease = Loadable({
   loader: () => import('../pages/lease'),
   ...loadDefaults,
@@ -76,7 +76,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
                 Dash
               </NavLink>
             </NavItem>
-            <NavItem>
+            {/* <NavItem>
               <NavLink tag={Link} to="/tenants">
                 Tenants
               </NavLink>
@@ -85,7 +85,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
               <NavLink tag={Link} to="/properties">
                 Properties
               </NavLink>
-            </NavItem>
+            </NavItem> */}
           </Nav>
           <Nav className="ml-auto" navbar>
             <NavItem>
@@ -123,8 +123,8 @@ class App extends React.Component {
               <Switch>
                 <Route path="/" exact component={Home} />
                 <Route path="/dash" component={Dash} />
-                <Route path="/properties" component={Properties} />
-                <Route path="/tenants" component={Tenants} />
+                {/* <Route path="/properties" component={Properties} />
+                <Route path="/tenants" component={Tenants} /> */}
                 <Route path="/lease" component={Lease} />
               </Switch>
             </Main>
