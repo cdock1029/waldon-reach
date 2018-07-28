@@ -5,7 +5,7 @@
   "scripts": {
     "start": "parcel index.html",
     "prebuild": "npm run clean",
-    "build": "parcel build index.html",
+    "build": "parcel build index.html --no-source-maps",
     "clean": "rm -rf .cache && rm -rf dist",
     "serve": "serve dist"
   },

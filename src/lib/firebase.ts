@@ -4,7 +4,23 @@ import 'firebase/firestore'
 
 import config from './firebaseConfig'
 
-export const app = firebase.apps.length
+// interface Firestore {
+//   settings(param: {timestampsInSnapshots: boolean}) : void
+//   collection(path: string): any
+// }
+// interface FirebaseApp {
+//   firestore() : Firestore
+// }
+// interface Firebase {
+//   apps: any[]
+//   app(): FirebaseApp
+//   initializeApp(config: object) : FirebaseApp
+//   firestore() : Firestore
+// }
+
+// declare const firebase: any // Firebase
+
+export const app: any /* FirebaseApp*/ = firebase.apps.length
   ? firebase.app()
   : firebase.initializeApp(config)
 app.firestore().settings({ timestampsInSnapshots: true })

@@ -11,7 +11,7 @@
     "rootDir": "src",
 
     "allowJs": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "noImplicitReturns": true,
     "noImplicitThis": true,
     "noImplicitAny": true,
@@ -19,6 +19,10 @@
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": false,
     "baseUrl": "."
+
+    /* "typeRoots": ["./node_modules/@firebase"],
+    "types": ["app-types", "auth-types", "firestore-types"]
+    */
   },
   "exclude": ["node_modules", "dist", ".cache", "tmp"]
 }
