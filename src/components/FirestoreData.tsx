@@ -36,6 +36,7 @@ export class Collection<T extends Doc> extends React.Component<
     this.setupAuth()
   }
   componentWillUnmount() {
+    console.log('coll comp unmount:', this.props.authPath)
     this.unsubData()
     this.unsubAuth()
   }

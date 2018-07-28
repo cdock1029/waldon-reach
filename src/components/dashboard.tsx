@@ -5,7 +5,7 @@ export const Dashboard: SFC<
   RouteProps & {
     leaseContainer: any
     sidebarItems: any[]
-    rightSidebarItems?: any[]
+    rightSidebarItems: any[]
   }
 > = props => {
   const { leaseContainer, sidebarItems, rightSidebarItems } = props
@@ -15,21 +15,20 @@ export const Dashboard: SFC<
       <div className={sidebarSectionStyles}>
         {sidebarItems.map((item: any, i) => {
           return (
-            <div key={i} className={sidebarItemStyles}>
+            <div key={`leftSidebar${i}`} className={sidebarItemStyles}>
               {item}
             </div>
           )
         })}
       </div>
       <div className={rightSidebarStyles}>
-        {rightSidebarItems &&
-          rightSidebarItems.map((item: any, i) => {
-            return (
-              <div key={`rightSidebar${i}`} className={sidebarItemStyles}>
-                {item}
-              </div>
-            )
-          })}
+        {rightSidebarItems.map((item: any, i) => {
+          return (
+            <div key={`rightSidebar${i}`} className={sidebarItemStyles}>
+              {item}
+            </div>
+          )
+        })}
       </div>
     </div>
   )

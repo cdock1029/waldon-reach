@@ -67,7 +67,7 @@ const Units: SFC<
   }
 > = ({ units, hasUnitsLoaded, currentRouteParams }) => {
   return (
-    <React.Fragment>
+    <Fragment>
       <ListHeader label="Units">
         {(modal, toggle) => (
           <NewUnitForm
@@ -102,7 +102,7 @@ const Units: SFC<
           </div>
         ) : null}
       </ListGroup>
-    </React.Fragment>
+    </Fragment>
   )
 }
 
@@ -156,7 +156,17 @@ interface CombinedRenderProps {
 interface ComposedProps {
   propertyId?: string
 }
+
+// TODO: u must be last as it accepts extra params. check bug with adopt builder.. unmounts
+// components if they are added after 'u'
 const ComposedData = adopt<CombinedRenderProps, ComposedProps>({
+  t: ({ render }: any) => (
+    <TenantsCollection
+      render={(tenants, hasLoaded) =>
+        render({ tenants, hasTenantsLoaded: hasLoaded })
+      }
+    />
+  ),
   p: ({ render }: any) => (
     <PropertiesCollection
       render={(properties, hasLoaded) =>
@@ -177,17 +187,10 @@ const ComposedData = adopt<CombinedRenderProps, ComposedProps>({
       render({ units: [], hasLoaded: true })
     )
   },
-  t: ({ render }: any) => (
-    <TenantsCollection
-      render={(tenants, hasLoaded) =>
-        render({ tenants, hasTenantsLoaded: hasLoaded })
-      }
-    />
-  ),
 })
 
 const Dash: SFC<RouteProps> = ({ match, location }: any) => {
-  console.log({ match, location })
+  // console.log({ match, location })
   const { p: propertyId, u: unitId, t: tenantId } = qs.parse(location.search)
   const currentRouteParams = { propertyId, unitId, tenantId }
   return (
@@ -197,44 +200,12 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
         u: { units, hasUnitsLoaded },
         t: { tenants, hasTenantsLoaded },
       }) => {
-        // console.table(properties)
-        // console.log({ units, hasUnitsLoaded })
-        // return (
-        //   <div>
-        //     <ul>{properties.map(p => <li key={p.id}>{p.name}</li>)}</ul>
-        //     <ul>{units.map(u => <li key={u.id}>{u.label}</li>)}</ul>
-        //   </div>
-        // )
-
+        console.log({ properties, units, tenants })
         return (
           <Dashboard
-            leaseContainer={
-              <LeaseContainer {...currentRouteParams} />
-              // <Switch>
-              //   <Route component={LeaseContainer} path="/properties" exact />
-              //   <Route
-              //     render={({
-              //       match: {
-              //         params: { propertyId },
-              //       },
-              //     }: any) => <LeaseContainer propertyId={propertyId} />}
-              //     path="/properties/:propertyId"
-              //     exact
-              //   />
-              //   <Route
-              //     render={({
-              //       match: {
-              //         params: { propertyId, unitId },
-              //       },
-              //     }) => (
-              //       <LeaseContainer propertyId={propertyId} unitId={unitId} />
-              //     )}
-              //     path="/properties/:propertyId/units/:unitId"
-              //   />
-              // </Switch>
-            }
+            leaseContainer={<LeaseContainer {...currentRouteParams} />}
             sidebarItems={[
-              <React.Fragment key="sidebarTopList">
+              <Fragment key="sidebarTopList">
                 <ListHeader label="Properties">
                   {(modal, toggle) => (
                     <Modal isModalOpen={modal} toggle={toggle}>
@@ -259,7 +230,7 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
                     )
                   })}
                 </ListGroup>
-              </React.Fragment>,
+              </Fragment>,
               <Units
                 currentRouteParams={currentRouteParams}
                 hasUnitsLoaded={hasUnitsLoaded}
@@ -267,10 +238,37 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
               />,
             ]}
             rightSidebarItems={[
-              <Tenants
-                tenants={tenants}
-                currentRouteParams={currentRouteParams}
-              />,
+              <Fragment>
+                <ListHeader label="Tenants">
+                  {(modal, toggle) => (
+                    <NewTenantForm isModalOpen={modal} toggleModal={toggle} />
+                  )}
+                </ListHeader>
+                <ListGroup
+                  key="sidebarTopListGroup"
+                  className={tenantListWrapStyles}
+                  flush>
+                  {tenants.map(t => {
+                    return (
+                      <ListGroupItem
+                        className={css`
+                          &.list-group-item.list-group-item-action.active {
+                            color: #fff;
+                            background-color: #0c5460;
+                            border-color: #0c5460;
+                          }
+                        `}
+                        action
+                        key={t.id}
+                        to={`/dash?t=${t.id}`}
+                        active={currentRouteParams.tenantId === t.id}
+                        tag={Link}>
+                        {`${t.lastName}, ${t.firstName}`}
+                      </ListGroupItem>
+                    )
+                  })}
+                </ListGroup>
+              </Fragment>,
             ]}
           />
         )
