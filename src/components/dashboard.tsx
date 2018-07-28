@@ -5,7 +5,7 @@ export const Dashboard: SFC<
   RouteProps & {
     leaseContainer: any
     sidebarItems: any[]
-    rightSidebarItems: any[]
+    rightSidebarItems?: any[]
   }
 > = props => {
   const { leaseContainer, sidebarItems, rightSidebarItems } = props
@@ -22,7 +22,7 @@ export const Dashboard: SFC<
         })}
       </div>
       <div className={rightSidebarStyles}>
-        {rightSidebarItems.map((item: any, i) => {
+        {rightSidebarItems!.map((item: any, i) => {
           return (
             <div key={`rightSidebar${i}`} className={sidebarItemStyles}>
               {item}
@@ -33,6 +33,8 @@ export const Dashboard: SFC<
     </div>
   )
 }
+Dashboard.defaultProps = { rightSidebarItems: [] }
+
 const dashboardGridStyles = css({
   display: 'grid',
   gridTemplateAreas: `
@@ -82,11 +84,11 @@ const leaseSectionStyles = css`
   }
 `
 
-export default () => {
-  return (
-    <Dashboard
-      sidebarItems={[<div>item 1</div>, <div>item 2</div>]}
-      leaseContainer={<h1>lease container</h1>}
-    />
-  )
-}
+// export default () => {
+//   return (
+//     <Dashboard
+//       sidebarItems={[<div>item 1</div>, <div>item 2</div>]}
+//       leaseContainer={<h1>lease container</h1>}
+//     />
+//   )
+// }
