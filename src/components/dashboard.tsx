@@ -69,6 +69,10 @@ const sidebarItemStyles = css({
   justifyContent: 'flex-start',
   borderBottom: '1px solid rgba(0,0,0,0.1)',
   label: 'SidebarItem',
+  '.list-group-item': {
+    paddingTop: '0.5rem',
+    paddingBottom: '0.5rem',
+  },
 })
 
 const leaseSectionStyles = css`

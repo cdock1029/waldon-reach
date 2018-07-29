@@ -13,8 +13,9 @@ import {
   Row,
   Col,
   CardSubtitle,
+  Alert,
 } from 'reactstrap'
-import styled, { css } from 'react-emotion'
+import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
 import { Document, Collection } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
@@ -289,25 +290,6 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
             <CardBody>
               <CardText>Unit</CardText>
               <CardSubtitle>{unit.label}</CardSubtitle>
-              {/* {unit.label ? (
-                <p>label: {unit.label}</p>
-              ) : (
-                <button
-                  onClick={async () => {
-                    const ac = await auth.activeCompany()
-                    const unitRef = firestore.doc(
-                      `companies/${ac}/properties/${propertyId}/units/${unitId}`,
-                    )
-                    unitRef
-                      .update({ label: unit.address })
-                      .then(() => {
-                        console.log('updated..')
-                      })
-                      .catch((e: Error) => alert(`Error: ${e.message}`))
-                  }}>
-                  fix
-                </button>
-              )} */}
             </CardBody>
           </Card>
         ) : null
@@ -335,6 +317,15 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
             )}
           </CardBody>
         </Card>
+        // <Alert className={`${detailCardStyles} tenant-tile`}>
+        //   <h4 className="alert-heading">Tenant</h4>
+        //   {tenant && (
+        //     <Fragment>
+        //       <p>{`${tenant.firstName} ${tenant.lastName}`}</p>
+        //       <p className="mb-0">{tenant.email && tenant.email}</p>
+        //     </Fragment>
+        //   )}
+        // </Alert>
       )}
     />
   )
@@ -354,7 +345,9 @@ const leaseHeaderStyles = css`
   grid-template-columns: 1fr 1fr;
 `
 const detailCardStyles = css`
-  height: 100%;
+  /* height: 100%;
+  margin-bottom: 0;
+  */
 `
 
 const leaseContainerStyles = css`

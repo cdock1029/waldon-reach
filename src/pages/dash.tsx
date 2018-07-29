@@ -191,13 +191,6 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
                   {tenants.map(t => {
                     return (
                       <ListGroupItem
-                        className={css`
-                          &.list-group-item.list-group-item-action.active {
-                            color: #fff;
-                            background-color: #0c5460;
-                            border-color: #0c5460;
-                          }
-                        `}
                         action
                         key={t.id}
                         to={`${path}?t=${t.id}`}
@@ -238,6 +231,11 @@ const unitsListWrapStyles = css`
 const tenantListWrapStyles = css`
   flex: 1;
   overflow-y: scroll;
+  .list-group-item.list-group-item-action.active {
+    color: #fff;
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
 `
 
 export default Dash
