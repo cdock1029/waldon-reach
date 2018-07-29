@@ -39,7 +39,14 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   toggle = () => this.setState(({ isOpen }) => ({ isOpen: !isOpen }))
   render() {
     return (
-      <Navbar color="dark" dark expand="md" fixed="top">
+      <Navbar
+        css={`
+          /* box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2); */
+        `}
+        color="gradient-dark"
+        dark
+        expand="md"
+        fixed="top">
         {/* <Nav className="mr-auto" navbar>
           <Form inline>
             <FormGroup className="mx-sm-2 mb-0">

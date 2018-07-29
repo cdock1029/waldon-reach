@@ -9,7 +9,6 @@
     "serve": "serve dist"
   },
   "dependencies": {
-    "@mdx-js/tag": "^0.14.1",
     "@reach/router": "^1.1.1",
     "@reactions/component": "^2.0.2",
     "@types/query-string": "^6.1.0",

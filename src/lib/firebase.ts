@@ -3,6 +3,7 @@ import 'firebase/auth'
 import 'firebase/firestore'
 
 import config from './firebaseConfig'
+import { access } from 'fs'
 
 // interface Firestore {
 //   settings(param: {timestampsInSnapshots: boolean}) : void
@@ -27,10 +28,10 @@ app.firestore().settings({ timestampsInSnapshots: true })
 
 export const newDoc = async (collectionPath: string, data: Fs.DocumentData) => {
   if (auth.currentUser) {
-    const result = await auth.currentUser.getIdTokenResult()
+    const activeCompany = await auth.activeCompany()
     return app
       .firestore()
-      .collection(`companies/${result.claims.activeCompany}/${collectionPath}`)
+      .collection(`companies/${activeCompany}/${collectionPath}`)
       .doc()
       .set(data)
   }

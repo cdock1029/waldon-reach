@@ -248,8 +248,10 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
         render={property => (
           <Card className={detailCardStyles}>
             <CardBody>
-              <CardText>Property</CardText>
-              <CardTitle>{property && property.name}</CardTitle>
+              <CardText className="text-secondary">Property</CardText>
+              <CardTitle className="color-properties">
+                {property && property.name}
+              </CardTitle>
             </CardBody>
           </Card>
         )}
@@ -274,8 +276,8 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
         unit ? (
           <Card className={detailCardStyles}>
             <CardBody>
-              <CardText>Unit</CardText>
-              <CardSubtitle>{unit.label}</CardSubtitle>
+              <CardText className="text-secondary">Unit</CardText>
+              <CardTitle className="color-units">{unit.label}</CardTitle>
             </CardBody>
           </Card>
         ) : null
@@ -292,13 +294,17 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
       render={tenant => (
         <Card className={detailCardStyles}>
           <CardBody>
-            <CardText>Tenant</CardText>
+            <CardText className="text-secondary">Tenant</CardText>
             {tenant && (
               <Fragment>
-                <CardSubtitle>
-                  <div>{`${tenant.firstName} ${tenant.lastName}`}</div>
-                </CardSubtitle>
-                {tenant.email && <div>{tenant.email}</div>}
+                <CardTitle className="text-primary">
+                  {`${tenant.firstName} ${tenant.lastName}`}
+                </CardTitle>
+                {tenant.email && (
+                  <CardSubtitle className="text-muted">
+                    {tenant.email}
+                  </CardSubtitle>
+                )}
               </Fragment>
             )}
           </CardBody>
@@ -324,7 +330,7 @@ const StringStack = styled('pre')`
 const leaseHeaderStyles = css`
   grid-area: leasesHeader;
   /* account for tenant deatils, name email etc.. */
-  min-height: 152px;
+  min-height: 164px;
   display: grid;
   padding: 1em;
   grid-gap: 1em;

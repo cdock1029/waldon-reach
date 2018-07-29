@@ -31,17 +31,15 @@ const unitValidationSchema = Yup.object().shape({
 class NewUnitForm extends React.Component<Props> {
   render() {
     const { isModalOpen, toggleModal } = this.props
-    const activeCompany = auth.activeCompany
+    const initial: Pick<Unit, 'label'> = { label: '' }
     return (
       <Formik
-        initialValues={{
-          address: '',
-        }}
-        onSubmit={({ address }, { setErrors, setSubmitting, resetForm }) => {
+        initialValues={initial}
+        validationSchema={unitValidationSchema}
+        onSubmit={(values, { setErrors, setSubmitting, resetForm }) => {
           const { propertyId } = this.props
-          newDoc(`companies/${activeCompany}/properties/${propertyId}/units`, {
-            address,
-          })
+          const upperCased = { label: values.label.toUpperCase() }
+          newDoc(`properties/${propertyId}/units`, upperCased)
             .then(() => {
               // setSubmitting(false)
               toggleModal()
@@ -49,15 +47,8 @@ class NewUnitForm extends React.Component<Props> {
             })
             .catch((e: Error) => {
               setSubmitting(false)
-              setErrors({ address: e.message })
+              setErrors({ label: e.message })
             })
-        }}
-        validate={({ address }) => {
-          const errors: { address?: string } = {}
-          if (!address) {
-            errors.address = 'Required'
-          }
-          return errors
         }}
         render={({
           values,
@@ -80,18 +71,18 @@ class NewUnitForm extends React.Component<Props> {
               <ModalBody>
                 <Form onSubmit={handleSubmit}>
                   <FormGroup>
-                    <Label for="address">Unit Address</Label>
+                    <Label for="label">Unit Address/Label</Label>
                     <Input
                       type="text"
-                      name="address"
-                      id="address"
-                      value={values.address}
+                      name="label"
+                      id="label"
+                      value={values.label}
                       onChange={handleChange}
                       onBlur={handleBlur}
                     />
-                    {touched.address &&
-                      errors.address && (
-                        <FormText color="danger">{errors.address}</FormText>
+                    {touched.label &&
+                      errors.label && (
+                        <FormText color="danger">{errors.label}</FormText>
                       )}
                   </FormGroup>
                 </Form>
