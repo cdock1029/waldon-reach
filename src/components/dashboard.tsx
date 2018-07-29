@@ -80,19 +80,6 @@ const leaseSectionStyles = css`
   display: grid;
   grid-template-areas: 'leasesHeader' 'leasesTable';
   grid-template-rows: minmax(min-content, auto) 1fr;
-  /* grid-gap: 1em; */
   padding-bottom: 1rem;
-  overflow: hidden;
-  &:first-child {
-    overflow-y: scroll;
-  }
+  overflow: scroll;
 `
-
-// export default () => {
-//   return (
-//     <Dashboard
-//       sidebarItems={[<div>item 1</div>, <div>item 2</div>]}
-//       leaseContainer={<h1>lease container</h1>}
-//     />
-//   )
-// }

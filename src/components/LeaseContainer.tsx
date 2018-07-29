@@ -10,16 +10,15 @@ import {
   Card,
   CardTitle,
   CardText,
-  Row,
-  Col,
   CardSubtitle,
-  Alert,
 } from 'reactstrap'
-import styled, { css, cx } from 'react-emotion'
+import styled, { css } from 'react-emotion'
 import ReactTable from 'react-table'
 import { Document, Collection } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
 import { NavLink as Link } from 'react-router-dom'
+import { ListHeader } from '../components/ListHeader'
+import NewTenantForm from './NewTenantForm'
 
 type CollectionReference = firebase.firestore.CollectionReference
 
@@ -72,84 +71,71 @@ class LeaseContainer extends React.Component<
           {tenantId && <TenantDetail tenantId={tenantId} />}
         </div>
         <div className={leaseContainerStyles}>
-          <h5
-            className={css`
-              display: flex;
-              flex-direction: row;
-              justify-content: space-between;
-              .badge {
-                cursor: pointer;
-              }
-            `}>
-            Leases
-            <Badge color="secondary" onClick={() => alert('yo')}>
-              New
-            </Badge>
-          </h5>
-          <Row>
-            <Col>
-              <Nav tabs>
-                <NavItem>
-                  <NavLink
-                    active={this.state.activeTab === LeaseActiveFilter.ACTIVE}
-                    className={tabNavLinkStyles}
-                    onClick={() => this.toggleTab(LeaseActiveFilter.ACTIVE)}>
-                    Active
-                  </NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink
-                    active={this.state.activeTab === LeaseActiveFilter.INACTIVE}
-                    className={tabNavLinkStyles}
-                    onClick={() => this.toggleTab(LeaseActiveFilter.INACTIVE)}>
-                    Inactive
-                  </NavLink>
-                </NavItem>
-              </Nav>
-              <TabContent
-                className={tabContentStyles}
-                activeTab={this.state.activeTab}>
-                <LeaseCollection
-                  authPath="leases"
-                  where={where}
-                  render={(leases, hasLoaded) => {
-                    // console.log({ leases, hasLoaded })
-                    const tab = this.state.activeTab
-                    return (
-                      <Fragment>
-                        {tab === LeaseActiveFilter.ACTIVE && (
-                          <TabPane tabId={LeaseActiveFilter.ACTIVE}>
-                            <LeasesView
-                              key="active"
-                              tab="active"
-                              /* leases={hasLoaded ? leases : []} */
-                              leases={leases}
-                              showProperties={!Boolean(propertyId)}
-                              showUnits={!Boolean(unitId)}
-                              loading={!hasLoaded}
-                            />
-                          </TabPane>
-                        )}
-                        {tab === LeaseActiveFilter.INACTIVE && (
-                          <TabPane tabId={LeaseActiveFilter.INACTIVE}>
-                            <LeasesView
-                              key="inactive"
-                              tab="inactive"
-                              /* leases={hasLoaded ? leases : []}*/
-                              leases={leases}
-                              showProperties={!Boolean(propertyId)}
-                              showUnits={!Boolean(unitId)}
-                              loading={!hasLoaded}
-                            />
-                          </TabPane>
-                        )}
-                      </Fragment>
-                    )
-                  }}
-                />
-              </TabContent>
-            </Col>
-          </Row>
+          <ListHeader label="Leases">
+            {(modal, toggle) => (
+              <NewTenantForm isModalOpen={modal} toggleModal={toggle} />
+            )}
+          </ListHeader>
+          <Nav tabs className="bg-light">
+            <NavItem>
+              <NavLink
+                active={this.state.activeTab === LeaseActiveFilter.ACTIVE}
+                className={tabNavLinkStyles}
+                onClick={() => this.toggleTab(LeaseActiveFilter.ACTIVE)}>
+                Active
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink
+                active={this.state.activeTab === LeaseActiveFilter.INACTIVE}
+                className={tabNavLinkStyles}
+                onClick={() => this.toggleTab(LeaseActiveFilter.INACTIVE)}>
+                Inactive
+              </NavLink>
+            </NavItem>
+          </Nav>
+          <TabContent
+            className={tabContentStyles}
+            activeTab={this.state.activeTab}>
+            <LeaseCollection
+              authPath="leases"
+              where={where}
+              render={(leases, hasLoaded) => {
+                // console.log({ leases, hasLoaded })
+                const tab = this.state.activeTab
+                return (
+                  <Fragment>
+                    {tab === LeaseActiveFilter.ACTIVE && (
+                      <TabPane tabId={LeaseActiveFilter.ACTIVE}>
+                        <LeasesView
+                          key="active"
+                          tab="active"
+                          /* leases={hasLoaded ? leases : []} */
+                          leases={leases}
+                          showProperties={!Boolean(propertyId)}
+                          showUnits={!Boolean(unitId)}
+                          loading={!hasLoaded}
+                        />
+                      </TabPane>
+                    )}
+                    {tab === LeaseActiveFilter.INACTIVE && (
+                      <TabPane tabId={LeaseActiveFilter.INACTIVE}>
+                        <LeasesView
+                          key="inactive"
+                          tab="inactive"
+                          /* leases={hasLoaded ? leases : []}*/
+                          leases={leases}
+                          showProperties={!Boolean(propertyId)}
+                          showUnits={!Boolean(unitId)}
+                          loading={!hasLoaded}
+                        />
+                      </TabPane>
+                    )}
+                  </Fragment>
+                )
+              }}
+            />
+          </TabContent>
         </div>
       </Fragment>
     )

@@ -40,10 +40,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   render() {
     return (
       <Navbar color="dark" dark expand="md" fixed="top">
-        <NavbarBrand to="/" tag={Link}>
-          WPM
-        </NavbarBrand>
-        <Nav className="mr-auto" navbar>
+        {/* <Nav className="mr-auto" navbar>
           <Form inline>
             <FormGroup className="mx-sm-2 mb-0">
               <Input
@@ -56,26 +53,12 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
               />
             </FormGroup>
           </Form>
-        </Nav>
-        <NavbarToggler onClick={this.toggle} />
+        </Nav> */}
+        <NavbarToggler className="ml-auto" onClick={this.toggle} />
         <Collapse isOpen={this.state.isOpen} navbar>
-          {/* <Nav navbar>
-            <NavItem>
-              <NavLink tag={Link} to="/dash">
-                Dash
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink tag={Link} to="/tenants">
-                Tenants
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink tag={Link} to="/properties">
-                Properties
-              </NavLink>
-            </NavItem>
-          </Nav> */}
+          <NavbarBrand to="/" tag={Link}>
+            WPM
+          </NavbarBrand>
           <Nav className="ml-auto" navbar>
             <NavItem>
               <Auth>
