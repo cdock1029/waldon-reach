@@ -371,6 +371,7 @@ const leaseContainerStyles = css`
 `
 const tabContentStyles = css`
   padding-top: 1em;
+  background-color: #fff;
 `
 const tabNavLinkStyles = css`
   cursor: pointer;
