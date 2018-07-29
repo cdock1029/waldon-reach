@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "start": "parcel index.html",
-    "old": "parcel build index.html --no-cache",
-    "build": "parcel build index.html --no-cache --experimental-scope-hoisting",
+    "build": "parcel build index.html --no-cache",
     "clean": "rm -rf .cache && rm -rf dist",
     "serve": "serve dist"
   },
