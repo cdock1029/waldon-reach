@@ -13,16 +13,16 @@ $enable-gradients: true;
 
 :root {
   --header-height: 3.5rem;
-  --properties-theme-color: var(--cyan); // #0c5460;
-  --units-theme-color: var(--teal); // #155724;
+  --color-properties: var(--cyan); // #0c5460;
+  --color-units: var(--teal); // #155724;
 }
 .color-properties {
   /* color: var(--properties-theme-color); */
-  color: var(--cyan);
+  color: var(--color-properties);
 }
 .color-units {
   /* color: var(--units-theme-color); */
-  color: var(--teal);
+  color: var(--color-properties);
 }
 
 html {

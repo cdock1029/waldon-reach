@@ -7,6 +7,7 @@ export const ListHeader: React.SFC<{
   label: string
   children: JSX.Element
   disabled?: boolean
+  color?: string
 }> = ({ children, label, disabled }) => {
   return (
     <h6 className={listHeaderStyles}>
@@ -14,11 +15,7 @@ export const ListHeader: React.SFC<{
       <BooleanValue>
         {({ value, toggle }: { value: boolean; toggle(): any }) => (
           <Fragment>
-            {!disabled && (
-              <Badge onClick={toggle} color="secondary">
-                New
-              </Badge>
-            )}
+            {!disabled && <Badge onClick={toggle}>New</Badge>}
             {React.cloneElement(React.Children.only(children), {
               isModalOpen: value,
               toggleModal: toggle,

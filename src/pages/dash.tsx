@@ -217,8 +217,8 @@ const propertiesListWrapStyles = css`
   overflow-y: scroll;
   .list-group-item.list-group-item-action.active {
     color: #fff;
-    background-color: var(--properties-theme-color);
-    border-color: var(--properties-theme-color);
+    background-color: var(--color-properties);
+    border-color: var(--color-properties);
   }
 `
 const unitsListWrapStyles = css`
@@ -226,8 +226,8 @@ const unitsListWrapStyles = css`
   overflow-y: scroll;
   .list-group-item.list-group-item-action.active {
     color: #fff;
-    background-color: var(--units-theme-color);
-    border-color: var(--units-theme-color);
+    background-color: var(--color-units);
+    border-color: var(--color-units);
   }
 `
 const tenantListWrapStyles = css`
