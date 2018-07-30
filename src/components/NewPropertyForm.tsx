@@ -17,29 +17,26 @@ import {
 } from 'reactstrap'
 
 interface Props {
-  propertyId: string
   isModalOpen?: boolean
   toggleModal?: () => void
 }
 
-const unitValidationSchema = Yup.object().shape({
-  label: Yup.string()
+const validationSchema = Yup.object().shape({
+  name: Yup.string()
     .required()
-    .min(1)
     .max(200),
 })
-class NewUnitForm extends React.Component<Props> {
+export class NewPropertyForm extends React.Component<Props> {
   render() {
     const { isModalOpen, toggleModal } = this.props
-    const initial: Pick<Unit, 'label'> = { label: '' }
+    const initial: Pick<Property, 'name'> = { name: '' }
     return (
       <Formik
         initialValues={initial}
-        validationSchema={unitValidationSchema}
+        validationSchema={validationSchema}
         onSubmit={(values, { setStatus, setSubmitting, resetForm }) => {
-          const { propertyId } = this.props
-          const upperCased = { label: values.label.toUpperCase() }
-          newDoc(`properties/${propertyId}/units`, upperCased)
+          console.log('on submit:', { values })
+          newDoc('properties', { name: values.name.toUpperCase() })
             .then(() => {
               toggleModal!()
               resetForm()
@@ -51,8 +48,8 @@ class NewUnitForm extends React.Component<Props> {
         }}
         render={({
           values,
-          errors,
           status,
+          errors,
           touched,
           handleChange,
           handleBlur,
@@ -68,7 +65,7 @@ class NewUnitForm extends React.Component<Props> {
           }
           return (
             <Modal centered isOpen={isModalOpen} toggle={doToggle}>
-              <ModalHeader toggle={doToggle}>New Unit</ModalHeader>
+              <ModalHeader toggle={doToggle}>New Property</ModalHeader>
               <ModalBody>
                 {status && status.firebaseError ? (
                   <div>
@@ -84,18 +81,18 @@ class NewUnitForm extends React.Component<Props> {
                 ) : null}
                 <Form onSubmit={handleSubmit}>
                   <FormGroup>
-                    <Label for="label">Unit Address/Label</Label>
+                    <Label for="name">Property Name / Address</Label>
                     <Input
                       type="text"
-                      name="label"
-                      id="label"
-                      value={values.label}
+                      name="name"
+                      id="name"
+                      value={values.name}
                       onChange={handleChange}
                       onBlur={handleBlur}
                     />
-                    {touched.label &&
-                      errors.label && (
-                        <FormText color="danger">{errors.label}</FormText>
+                    {touched.name &&
+                      errors.name && (
+                        <FormText color="danger">{errors.name}</FormText>
                       )}
                   </FormGroup>
                 </Form>
@@ -118,5 +115,3 @@ class NewUnitForm extends React.Component<Props> {
     )
   }
 }
-
-export default NewUnitForm

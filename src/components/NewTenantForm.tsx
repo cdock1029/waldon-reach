@@ -1,7 +1,7 @@
 import React from 'react'
 import { Formik } from 'formik'
-import * as yup from 'yup'
-import { newDoc, auth } from '../lib/firebase'
+import * as Yup from 'yup'
+import { newDoc } from '../lib/firebase'
 import { Alert } from 'reactstrap'
 import {
   Form,
@@ -18,37 +18,32 @@ import {
 import { css } from 'react-emotion'
 
 interface Props {
-  isModalOpen: boolean
-  toggleModal: () => void
+  isModalOpen?: boolean
+  toggleModal?: () => void
 }
 class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> {
-  static schema = yup.object().shape({
-    firstName: yup.string().label('First Name').required().min(2).default(''),
-    lastName: yup.string().label('Last Name').required().min(2).default(''),
-    email: yup.string().label('Email').required().email().default(''),
+  static schema = Yup.object().shape({
+    firstName: Yup.string().label('First Name').required().min(2),
+    lastName: Yup.string().label('Last Name').required().min(2),
+    email: Yup.string().label('Email').required().email(),
   })
   render() {
     const { isModalOpen, toggleModal } = this.props
     return (
       <Formik
-        initialValues={NewTenantForm.schema.cast(undefined) as Tenant}
+        initialValues={{firstName: '', lastName: '', email: ''}}
         validationSchema={NewTenantForm.schema}
         onSubmit={(
           { firstName, lastName, email },
           { setSubmitting, setStatus, resetForm },
         ) => {
-          // Promise.reject('test').catch(e => {
-          //   setStatus({firebaseError: e.message || e})
-          // })
-
-          newDoc(`/tenants`, {
-            firstName,
-            lastName,
-            email,
+          newDoc('tenants', {
+            firstName: firstName.toUpperCase(),
+            lastName: lastName.toUpperCase(),
+            email: email.toUpperCase(),
           })
             .then(() => {
-              // setSubmitting(false)
-              toggleModal()
+              toggleModal!()
               resetForm()
             })
             .catch((e: Error) => {
@@ -70,14 +65,9 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
           status,
           setStatus
         }) => {
-          // console.log({status})
           return (
             <Modal centered isOpen={isModalOpen} toggle={toggleModal}>
-              <ModalHeader
-                className={css({ flexDirection: 'row' })}
-                toggle={toggleModal}>
-                New Tenant
-              </ModalHeader>
+              <ModalHeader toggle={toggleModal}>New Tenant</ModalHeader>
               <ModalBody>
                 {status && status.firebaseError ? (
                 <div>
@@ -139,7 +129,7 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
                 <Button
                   color="secondary"
                   onClick={() => {
-                    toggleModal()
+                    toggleModal!()
                     resetForm()
                   }}>
                   Cancel

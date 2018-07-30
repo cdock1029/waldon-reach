@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@reach/router": "^1.1.1",
-    "@reactions/component": "^2.0.2",
     "@types/query-string": "^6.1.0",
     "@types/react-router-dom": "^4.3.0",
     "@types/yup": "^0.24.7",
@@ -32,6 +31,7 @@
     "react-static": "^6.0.0-beta.16",
     "react-static-plugin-emotion": "^1.0.6",
     "react-table": "^6.8.6",
+    "react-values": "^0.2.4",
     "reactstrap": "^6.3.0",
     "sass-loader": "^7.0.3",
     "src": "^1.1.2",

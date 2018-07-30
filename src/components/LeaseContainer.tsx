@@ -72,9 +72,7 @@ class LeaseContainer extends React.Component<
         </div>
         <div className={leaseContainerStyles}>
           <ListHeader label="Leases">
-            {(modal, toggle) => (
-              <NewTenantForm isModalOpen={modal} toggleModal={toggle} />
-            )}
+            <NewTenantForm />
           </ListHeader>
           <Nav tabs className="bg-light">
             <NavItem>

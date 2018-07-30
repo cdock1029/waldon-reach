@@ -1,6 +1,6 @@
 import React, { SFC, Fragment } from 'react'
-import { Collection, CollectionProps } from '../components/FirestoreData'
-import { Route, NavLink as Link, Switch } from 'react-router-dom'
+import { Collection } from '../components/FirestoreData'
+import { NavLink as Link } from 'react-router-dom'
 import { ListHeader } from '../components/ListHeader'
 import {
   ListGroup,
@@ -8,9 +8,10 @@ import {
   Card,
   CardText,
   CardTitle,
-  Modal,
+  Badge,
 } from 'reactstrap'
 import { collator } from '../lib/index'
+import { NewPropertyForm } from '../components/NewPropertyForm'
 import NewUnitForm from '../components/NewUnitForm'
 import NewTenantForm from '../components/NewTenantForm'
 import LeaseContainer from '../components/LeaseContainer'
@@ -113,66 +114,54 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
             sidebarItems={[
               <Fragment key="sidebarTopList">
                 <ListHeader label="Properties">
-                  {(modal, toggle) => (
-                    <Modal isModalOpen={modal} toggle={toggle}>
-                      Hello world
-                    </Modal>
-                  )}
+                  <NewPropertyForm />
                 </ListHeader>
                 <ListGroup
                   key="sidebarTopListGroup"
                   className={propertiesListWrapStyles}
                   flush>
-                  {properties.map(p => {
-                    return (
-                      <ListGroupItem
-                        action
-                        key={p.id}
-                        to={`${path}?p=${p.id}`}
-                        active={p.id === propertyId}
-                        tag={Link}>
-                        {p.name}
-                      </ListGroupItem>
-                    )
-                  })}
+                  {properties.length ? (
+                    properties.map(p => {
+                      return (
+                        <ListGroupItem
+                          action
+                          key={p.id}
+                          to={`${path}?p=${p.id}`}
+                          active={p.id === propertyId}
+                          tag={Link}>
+                          {p.name}
+                        </ListGroupItem>
+                      )
+                    })
+                  ) : hasPropertiesLoaded ? (
+                    <NoItems label="properties" />
+                  ) : null}
                 </ListGroup>
               </Fragment>,
 
               <Fragment>
-                <ListHeader label="Units">
-                  {(modal, toggle) => (
-                    <NewUnitForm
-                      propertyId={currentRouteParams.propertyId}
-                      isModalOpen={modal}
-                      toggleModal={toggle}
-                    />
-                  )}
+                <ListHeader label="Units" disabled={!propertyId}>
+                  <NewUnitForm propertyId={currentRouteParams.propertyId} />
                 </ListHeader>
 
                 <ListGroup flush className={unitsListWrapStyles}>
-                  {units.map(u => {
-                    return (
-                      <ListGroupItem
-                        action
-                        key={u.id}
-                        to={`${path}?p=${currentRouteParams.propertyId}&u=${
-                          u.id
-                        }`}
-                        active={currentRouteParams.unitId === u.id}
-                        tag={Link}>
-                        {u.label}
-                      </ListGroupItem>
-                    )
-                  })}
-                  {hasUnitsLoaded && !units.length ? (
-                    <div className={css({ padding: '1em' })}>
-                      <Card body>
-                        <CardTitle>No units</CardTitle>
-                        <CardText>
-                          click <code>New</code> to create a new unit
-                        </CardText>
-                      </Card>
-                    </div>
+                  {units.length ? (
+                    units.map(u => {
+                      return (
+                        <ListGroupItem
+                          action
+                          key={u.id}
+                          to={`${path}?p=${currentRouteParams.propertyId}&u=${
+                            u.id
+                          }`}
+                          active={currentRouteParams.unitId === u.id}
+                          tag={Link}>
+                          {u.label}
+                        </ListGroupItem>
+                      )
+                    })
+                  ) : hasUnitsLoaded ? (
+                    <NoItems label="units" />
                   ) : null}
                 </ListGroup>
               </Fragment>,
@@ -180,26 +169,28 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
             rightSidebarItems={[
               <Fragment>
                 <ListHeader label="Tenants">
-                  {(modal, toggle) => (
-                    <NewTenantForm isModalOpen={modal} toggleModal={toggle} />
-                  )}
+                  <NewTenantForm />
                 </ListHeader>
                 <ListGroup
                   key="sidebarTopListGroup"
                   className={tenantListWrapStyles}
                   flush>
-                  {tenants.map(t => {
-                    return (
-                      <ListGroupItem
-                        action
-                        key={t.id}
-                        to={`${path}?t=${t.id}`}
-                        active={currentRouteParams.tenantId === t.id}
-                        tag={Link}>
-                        {`${t.lastName}, ${t.firstName}`}
-                      </ListGroupItem>
-                    )
-                  })}
+                  {tenants.length ? (
+                    tenants.map(t => {
+                      return (
+                        <ListGroupItem
+                          action
+                          key={t.id}
+                          to={`${path}?t=${t.id}`}
+                          active={currentRouteParams.tenantId === t.id}
+                          tag={Link}>
+                          {`${t.lastName}, ${t.firstName}`}
+                        </ListGroupItem>
+                      )
+                    })
+                  ) : hasTenantsLoaded ? (
+                    <NoItems label="tenants" />
+                  ) : null}
                 </ListGroup>
               </Fragment>,
             ]}
@@ -209,6 +200,17 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
     </ComposedData>
   )
 }
+
+const NoItems: React.SFC<{ label: string }> = ({ label }) => (
+  <div css={{ padding: '1em', h6: { display: 'inline-block' } }}>
+    <Card body>
+      <CardTitle>No {label}</CardTitle>
+      <CardText>
+        click <h6 className="text-primary">New</h6> to add a new one
+      </CardText>
+    </Card>
+  </div>
+)
 
 const propertiesListWrapStyles = css`
   flex: 1;

@@ -1,35 +1,35 @@
-import React from 'react'
-import Component from '@reactions/component'
+import React, { Fragment } from 'react'
 import { Badge } from 'reactstrap'
 import { css, cx } from 'react-emotion'
+import { BooleanValue } from 'react-values'
 
 export const ListHeader: React.SFC<{
   label: string
-  children: (modal: any, toggle: () => any) => any
-}> = ({ children, label }) => {
+  children: JSX.Element
+  disabled?: boolean
+}> = ({ children, label, disabled }) => {
   return (
-    <Component
-      initialState={{ modal: false }}
-      render={({ setState, state: { modal } }: any) => (
-        <h6 className={listHeaderStyles}>
-          {label + ' '}
-          <Badge
-            onClick={() =>
-              setState(({ modal: m }: any) => ({
-                modal: !m,
-              }))
-            }
-            color="secondary">
-            New
-          </Badge>
-          {children(modal, () =>
-            setState(({ modal }: any) => ({ modal: !modal })),
-          )}
-        </h6>
-      )}
-    />
+    <h6 className={listHeaderStyles}>
+      {label}
+      <BooleanValue>
+        {({ value, toggle }: { value: boolean; toggle(): any }) => (
+          <Fragment>
+            {!disabled && (
+              <Badge onClick={toggle} color="secondary">
+                New
+              </Badge>
+            )}
+            {React.cloneElement(React.Children.only(children), {
+              isModalOpen: value,
+              toggleModal: toggle,
+            })}
+          </Fragment>
+        )}
+      </BooleanValue>
+    </h6>
   )
 }
+ListHeader.defaultProps = { disabled: false }
 
 const listHeaderStyles = cx(
   'bg-light',

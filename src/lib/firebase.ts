@@ -3,7 +3,6 @@ import 'firebase/auth'
 import 'firebase/firestore'
 
 import config from './firebaseConfig'
-import { access } from 'fs'
 
 // interface Firestore {
 //   settings(param: {timestampsInSnapshots: boolean}) : void
