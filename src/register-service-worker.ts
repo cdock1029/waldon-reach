@@ -29,9 +29,7 @@ export default function register() {
       const swUrl = `/service-worker.js`
 
       if (isLocalhost) {
-        console.log(
-          'This is running on localhost. Lets check if a service worker still exists or not.',
-        )
+        // 'This is running on localhost. Lets check if a service worker still exists or not.',
         checkValidServiceWorker(swUrl)
 
         // Add some additional logging to localhost, pointing developers to the
@@ -43,7 +41,7 @@ export default function register() {
           )
         })
       } else {
-        console.log('Is not local host. Just register service worker')
+        // 'Is not local host. Just register service worker'
         registerValidSW(swUrl)
       }
     })
@@ -53,7 +51,6 @@ export default function register() {
 }
 
 function registerValidSW(swUrl: string) {
-  console.log('registering valid SW')
   navigator.serviceWorker
     .register(swUrl)
     .then(registration => {
@@ -98,7 +95,7 @@ function checkValidServiceWorker(swUrl: string) {
           })
         })
       } else {
-        console.log('Service worker found. Proceed as normal.')
+        // 'Service worker found. Proceed as normal.'
         registerValidSW(swUrl)
       }
     })
