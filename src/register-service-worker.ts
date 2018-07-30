@@ -24,12 +24,14 @@ export default function register() {
       // serve assets; see https://github.com/facebookincubator/create-react-app/issues/2374
       return
     }
-
+    console.log('adding event listener load..')
     window.addEventListener('load', () => {
       const swUrl = `/service-worker.js`
 
       if (isLocalhost) {
-        // This is running on localhost. Lets check if a service worker still exists or not.
+        console.log(
+          'This is running on localhost. Lets check if a service worker still exists or not.',
+        )
         checkValidServiceWorker(swUrl)
 
         // Add some additional logging to localhost, pointing developers to the
@@ -41,7 +43,7 @@ export default function register() {
           )
         })
       } else {
-        // Is not local host. Just register service worker
+        console.log('Is not local host. Just register service worker')
         registerValidSW(swUrl)
       }
     })
@@ -51,6 +53,7 @@ export default function register() {
 }
 
 function registerValidSW(swUrl: string) {
+  console.log('registering valid SW')
   navigator.serviceWorker
     .register(swUrl)
     .then(registration => {
@@ -95,7 +98,7 @@ function checkValidServiceWorker(swUrl: string) {
           })
         })
       } else {
-        // Service worker found. Proceed as normal.
+        console.log('Service worker found. Proceed as normal.')
         registerValidSW(swUrl)
       }
     })

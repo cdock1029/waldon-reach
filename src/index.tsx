@@ -28,14 +28,9 @@ async function main() {
     }
   } finally {
     render(App)
-    // if ((module as any).hot) {
-    //   ;(module as any).hot.accept('./components/App', () =>
-    //     render(require('./components/App').default),
-    //   )
-    // }
   }
 }
 
-main().then(() => {
-  registerServiceWorker()
-})
+main()
+
+registerServiceWorker()
