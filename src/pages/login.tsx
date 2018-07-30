@@ -83,7 +83,7 @@ class Login extends React.Component<{}, LoginState> {
                     />
                   </FormGroup>
                   <FormGroup>
-                    <Button block color="primary">
+                    <Button block className="btn-tenants">
                       Log In
                     </Button>
                   </FormGroup>

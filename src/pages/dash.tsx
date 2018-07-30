@@ -140,7 +140,7 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
               </Fragment>,
 
               <Fragment>
-                <ListHeader label="Units" disabled={!propertyId}>
+                <ListHeader label="units" disabled={!propertyId}>
                   <NewUnitForm propertyId={currentRouteParams.propertyId} />
                 </ListHeader>
 
@@ -202,11 +202,15 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
 }
 
 const NoItems: React.SFC<{ label: string }> = ({ label }) => (
-  <div css={{ padding: '1em', h6: { display: 'inline-block' } }}>
+  <div
+    css={{
+      padding: '1em',
+      h6: { display: 'inline-block', color: `var(--color-${label})` },
+    }}>
     <Card body>
       <CardTitle>No {label}</CardTitle>
       <CardText>
-        click <h6 className="text-primary">New</h6> to add a new one
+        click <h6>New</h6> to add a new one
       </CardText>
     </Card>
   </div>
