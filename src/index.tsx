@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom'
 import { firestore } from './lib/firebase'
 
 import App from './components/App'
+import registerServiceWorker from './register-service-worker'
 import './app.scss'
 
 export default App
@@ -35,6 +36,6 @@ async function main() {
   }
 }
 
-// if (typeof document !== 'undefined') {
-main()
-// }
+main().then(() => {
+  registerServiceWorker()
+})

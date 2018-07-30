@@ -9,9 +9,6 @@ import {
   NavItem,
   NavLink,
   NavbarBrand,
-  Form,
-  FormGroup,
-  Input,
 } from 'reactstrap'
 import styled from 'react-emotion'
 import Loadable from 'react-loadable'
@@ -39,28 +36,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   toggle = () => this.setState(({ isOpen }) => ({ isOpen: !isOpen }))
   render() {
     return (
-      <Navbar
-        css={`
-          /* box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2); */
-        `}
-        color="gradient-dark"
-        dark
-        expand="md"
-        fixed="top">
-        {/* <Nav className="mr-auto" navbar>
-          <Form inline>
-            <FormGroup className="mx-sm-2 mb-0">
-              <Input
-                className="mr-sm-3"
-                bsSize="sm"
-                type="search"
-                id="search"
-                name="search"
-                placeholder="Search"
-              />
-            </FormGroup>
-          </Form>
-        </Nav> */}
+      <Navbar color="gradient-dark" dark expand="md" fixed="top">
         <NavbarToggler className="ml-auto" onClick={this.toggle} />
         <Collapse isOpen={this.state.isOpen} navbar>
           <NavbarBrand to="/" tag={Link}>
