@@ -15,6 +15,10 @@ export default function register() {
     // The URL constructor is available in all browsers that support SW.
     const publicUrl = new URL('/', window.location.href)
     if (publicUrl.origin !== window.location.origin) {
+      console.log('pub oring !== window loc origin:', {
+        pubOrigin: publicUrl.origin,
+        winLocOrigin: window.location.origin,
+      })
       // Our service worker won't work if PUBLIC_URL is on a different origin
       // from what our page is served on. This might happen if a CDN is used to
       // serve assets; see https://github.com/facebookincubator/create-react-app/issues/2374
@@ -41,6 +45,8 @@ export default function register() {
         registerValidSW(swUrl)
       }
     })
+  } else {
+    console.log("didn't register")
   }
 }
 
