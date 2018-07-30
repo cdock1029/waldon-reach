@@ -102,7 +102,7 @@ export class NewPropertyForm extends React.Component<Props> {
                   Cancel
                 </Button>
                 <Button
-                  color="primary"
+                  className="btn-properties"
                   onClick={submitForm}
                   disabled={isSubmitting}>
                   Save

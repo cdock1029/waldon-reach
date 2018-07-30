@@ -36,7 +36,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   toggle = () => this.setState(({ isOpen }) => ({ isOpen: !isOpen }))
   render() {
     return (
-      <Navbar color="gradient-dark" dark expand="md" fixed="top">
+      <Navbar color="dark" dark expand="md" fixed="top">
         <NavbarToggler className="ml-auto" onClick={this.toggle} />
         <Collapse isOpen={this.state.isOpen} navbar>
           <NavbarBrand to="/" tag={Link}>

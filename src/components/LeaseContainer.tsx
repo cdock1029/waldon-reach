@@ -295,7 +295,7 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
             <CardText className="text-secondary">Tenant</CardText>
             {tenant && (
               <Fragment>
-                <CardTitle className="text-primary">
+                <CardTitle className="color-tenants">
                   {`${tenant.firstName} ${tenant.lastName}`}
                 </CardTitle>
                 {tenant.email && (

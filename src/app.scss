@@ -1,28 +1,9 @@
-$theme-colors: (
-  'primary': indigo,
-);
-
-// TODO: colors; can be customized here..
-// $colors: (
-//   'cyan': red,
-// );
-
-$enable-gradients: true;
-
-@import 'node_modules/bootstrap/scss/bootstrap';
-
 :root {
   --header-height: 3.5rem;
   --color-properties: var(--cyan); // #0c5460;
   --color-units: var(--teal); // #155724;
-}
-.color-properties {
-  /* color: var(--properties-theme-color); */
-  color: var(--color-properties);
-}
-.color-units {
-  /* color: var(--units-theme-color); */
-  color: var(--color-units);
+  --color-tenants: indigo;
+  --primary: var(--color-tenants);
 }
 
 html {
@@ -50,4 +31,32 @@ body {
 div,
 span {
   position: relative;
+}
+
+.color-properties {
+  color: var(--color-properties);
+}
+.color-units {
+  color: var(--color-units);
+}
+.color-tenants {
+  color: var(--color-tenants);
+}
+.btn-properties {
+  color: #fff;
+  background-color: var(--color-properties);
+  border-color: var(--color-properties);
+}
+.btn-units {
+  color: #fff;
+  background-color: var(--color-units);
+  border-color: var(--color-units);
+}
+.btn-tenants {
+  color: #fff;
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+a {
+  color: var(--primary);
 }

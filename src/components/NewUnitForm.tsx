@@ -105,7 +105,7 @@ class NewUnitForm extends React.Component<Props> {
                   Cancel
                 </Button>
                 <Button
-                  color="primary"
+                  className="btn-units"
                   onClick={submitForm}
                   disabled={isSubmitting}>
                   Save

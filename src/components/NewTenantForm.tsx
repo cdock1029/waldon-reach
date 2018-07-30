@@ -135,7 +135,7 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
                   Cancel
                 </Button>
                 <Button
-                  color="primary"
+                  className='btn-tenants'
                   onClick={submitForm}
                   disabled={isSubmitting}>
                   Save Tenant
