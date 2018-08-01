@@ -8,11 +8,15 @@ import {
   NavItem,
   NavLink,
   NavbarBrand,
+  Button,
+  Form,
 } from 'reactstrap'
 import styled from 'react-emotion'
 import loadable from 'loadable-components'
+import { BooleanValue } from 'react-values'
 import Dash from '../pages/dash'
 import { AuthProvider, AuthConsumer as Auth } from './Auth'
+import { ZenProvider, ZenConsumer } from './Zen'
 
 // const AuthProvider: any = loadable(async () => {
 //   const [{ app }, { AuthProvider }] = await Promise.all([
@@ -45,6 +49,15 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
             WPM
           </NavbarBrand>
           <Nav className="ml-auto" navbar>
+            <Form inline>
+              <ZenConsumer>
+                {({ value, toggle }) => (
+                  <Button outline onClick={toggle}>
+                    Zen is {value ? 'on' : 'off'}
+                  </Button>
+                )}
+              </ZenConsumer>
+            </Form>
             <NavItem>
               <Auth>
                 {auth =>
@@ -73,16 +86,18 @@ class App extends React.Component {
     return (
       <AuthProvider claims={['activeCompany']}>
         <BrowserRouter>
-          <AppContainer>
-            <Login />
-            <Header />
-            <Main>
-              <Switch>
-                <Route path="/" exact component={Dash} />
-                <Route path="/lease" component={Lease} />
-              </Switch>
-            </Main>
-          </AppContainer>
+          <ZenProvider>
+            <AppContainer>
+              <Login />
+              <Header />
+              <Main>
+                <Switch>
+                  <Route path="/" exact component={Dash} />
+                  <Route path="/lease" component={Lease} />
+                </Switch>
+              </Main>
+            </AppContainer>
+          </ZenProvider>
         </BrowserRouter>
       </AuthProvider>
     )

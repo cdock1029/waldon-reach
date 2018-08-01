@@ -1,5 +1,6 @@
 import React, { SFC } from 'react'
-import { css } from 'react-emotion'
+import styled, { css } from 'react-emotion'
+import { ZenConsumer as Zen } from './Zen'
 
 export const Dashboard: SFC<
   RouteProps & {
@@ -10,50 +11,64 @@ export const Dashboard: SFC<
 > = props => {
   const { leaseContainer, sidebarItems, rightSidebarItems } = props
   return (
-    <div className={dashboardGridStyles}>
-      <div className={leaseSectionStyles}>{leaseContainer}</div>
-      <div className={sidebarSectionStyles}>
-        {sidebarItems.map((item: any, i) => {
-          return (
-            <div key={`leftSidebar${i}`} className={sidebarItemStyles}>
-              {item}
-            </div>
-          )
-        })}
-      </div>
-      <div className={rightSidebarStyles}>
-        {rightSidebarItems!.map((item: any, i) => {
-          return (
-            <div key={`rightSidebar${i}`} className={sidebarItemStyles}>
-              {item}
-            </div>
-          )
-        })}
-      </div>
-    </div>
+    <Zen>
+      {({ value }) => (
+        <DashBoardGrid zen={value}>
+          <div className={leaseSectionStyles}>{leaseContainer}</div>
+          <LeftSidebar zen={value}>
+            {sidebarItems.map((item: any, i) => {
+              return (
+                <div key={`leftSidebar${i}`} className={sidebarItemStyles}>
+                  {item}
+                </div>
+              )
+            })}
+          </LeftSidebar>
+          <RightSidebar>
+            {rightSidebarItems!.map((item: any, i) => {
+              return (
+                <div key={`rightSidebar${i}`} className={sidebarItemStyles}>
+                  {item}
+                </div>
+              )
+            })}
+          </RightSidebar>
+        </DashBoardGrid>
+      )}
+    </Zen>
   )
 }
 Dashboard.defaultProps = { rightSidebarItems: [] }
 
-const dashboardGridStyles = css({
-  display: 'grid',
-  gridTemplateAreas: `
+const DashBoardGrid: any = styled.div(
+  {
+    display: 'grid',
+    gridTemplateAreas: `
     "sidebar lease rightSidebar"
   `,
-  gridTemplateColumns: '250px 1fr 250px',
-  gridTemplateRows: 'calc(100vh - var(--header-height))',
-  label: 'DashboardGrid',
-})
+    gridTemplateRows: 'calc(100vh - var(--header-height))',
+    label: 'DashboardGrid',
+  },
+  (props: { zen: boolean }) => ({
+    gridTemplateColumns: props.zen ? '0 1fr 0' : '250px 1fr 250px', // '250px 1fr 250px',
+  }),
+)
 
-const sidebarSectionStyles = css({
-  gridArea: 'sidebar',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'flex-start',
-  paddingBottom: '1em',
-  label: 'SidebarGridArea',
-})
-const rightSidebarStyles = css({
+const LeftSidebar: any = styled.div(
+  {
+    gridArea: 'sidebar',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    paddingBottom: '1em',
+    label: 'SidebarGridArea',
+    transition: 'transform 0.3s ease-out',
+  },
+  ({ zen }: { zen: boolean }) => ({
+    transform: `translateX(${zen ? '-250px' : '0'})`,
+  }),
+)
+const RightSidebar = styled.div({
   gridArea: 'rightSidebar',
   display: 'flex',
   flexDirection: 'column',
