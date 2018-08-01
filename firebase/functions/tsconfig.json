@@ -7,7 +7,10 @@
     "lib": ["es2017"],
     "outDir": "lib",
     "sourceMap": true,
-    "noImplicitReturns": false,
+    "noImplicitReturns": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noUnusedLocals": true,
     "types": ["node"],
     "rootDir": "./src",
     "baseUrl": "."

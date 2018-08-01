@@ -13,27 +13,14 @@ import {
 } from 'reactstrap'
 import styled from 'react-emotion'
 import loadable from 'loadable-components'
-import { BooleanValue } from 'react-values'
 import Dash from '../pages/dash'
 import { AuthProvider, AuthConsumer as Auth } from './Auth'
 import { ZenProvider, ZenConsumer } from './Zen'
 
-// const AuthProvider: any = loadable(async () => {
-//   const [{ app }, { AuthProvider }] = await Promise.all([
-//     import('../lib/firebase'),
-//     import('./Auth'),
-//   ])
-//   const AP: any = (props: any) => <AuthProvider firebase={app} {...props} />
-//   return AP
-// })
-// const Auth = loadable(async () => {
-//   const { AuthConsumer } = await import('./Auth')
-//   return AuthConsumer
-// })
-
 // const Dash = loadable(() => import('../pages/dash'))
 const Lease = loadable(() => import('../pages/lease'))
 const Login = loadable(() => import('../pages/login'))
+const Qbo = loadable(() => import('../pages/qbo').then(mod => mod.Qbo))
 
 class Header extends React.Component<{}, { isOpen: boolean }> {
   state = {
@@ -58,22 +45,29 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
                 )}
               </ZenConsumer>
             </Form>
-            <NavItem>
-              <Auth>
-                {auth =>
-                  auth.user ? (
-                    <NavLink
-                      href="#"
-                      onClick={(e: any) => {
-                        e.preventDefault()
-                        auth.signOut()
-                      }}>
-                      Sign Out
-                    </NavLink>
-                  ) : null
-                }
-              </Auth>
-            </NavItem>
+            <Auth>
+              {auth =>
+                auth.user ? (
+                  <React.Fragment>
+                    <NavItem>
+                      <NavLink tag={Link} to="/qbo">
+                        QBO
+                      </NavLink>
+                    </NavItem>
+                    <NavItem>
+                      <NavLink
+                        href="#"
+                        onClick={(e: any) => {
+                          e.preventDefault()
+                          auth.signOut()
+                        }}>
+                        Sign Out
+                      </NavLink>
+                    </NavItem>
+                  </React.Fragment>
+                ) : null
+              }
+            </Auth>
           </Nav>
         </Collapse>
       </Navbar>
@@ -94,6 +88,7 @@ class App extends React.Component {
                 <Switch>
                   <Route path="/" exact component={Dash} />
                   <Route path="/lease" component={Lease} />
+                  <Route path="/qbo" component={Qbo} />
                 </Switch>
               </Main>
             </AppContainer>
