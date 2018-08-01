@@ -1,7 +1,6 @@
 import React, { SFC, Fragment } from 'react'
 import {
   CardBody,
-  Badge,
   TabContent,
   TabPane,
   Nav,
@@ -11,9 +10,11 @@ import {
   CardTitle,
   CardText,
   CardSubtitle,
+  Badge,
 } from 'reactstrap'
 import styled, { css } from 'react-emotion'
 import ReactTable from 'react-table'
+import { format } from 'date-fns'
 import { Document, Collection } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
 import { NavLink as Link } from 'react-router-dom'
@@ -156,19 +157,14 @@ const LeasesView: SFC<LeasesProps & { tab?: string }> = ({
   const columns = [
     {
       Header: 'Tenants',
-      columns: [
-        {
-          Header: 'Name',
-          id: 'name',
-          accessor: (l: Lease) => (
-            <StringStack>
-              {Object.entries(l.tenants)
-                .map<string>(([id, { exists, name }]) => name)
-                .join('\n')}
-            </StringStack>
-          ),
-        },
-      ],
+      id: 'tenants',
+      accessor: (l: Lease) => (
+        <StringStack>
+          {Object.entries(l.tenants)
+            .map<string>(([id, { exists, name }]) => name)
+            .join('\n')}
+        </StringStack>
+      ),
     },
     {
       Header: 'Rent',
@@ -224,9 +220,91 @@ const LeasesView: SFC<LeasesProps & { tab?: string }> = ({
         defaultPageSize={15}
         pageSizeOptions={[10, 15, 50, 100]}
         className="-striped -highlight"
+        SubComponent={({ original: lease }) => {
+          return <TransactionsSubComponent lease={lease} />
+        }}
       />
     </div>
   )
+}
+
+class TransactionsSubComponent extends React.Component<{
+  lease: Lease
+}> {
+  render() {
+    const { lease } = this.props
+    return (
+      <Collection<Transaction>
+        authPath={`leases/${lease.id}/transactions`}
+        orderBy={{ field: 'date', direction: 'desc' }}
+        render={(transactions, hasLoaded) => (
+          <div
+            css={{
+              padding: '2em',
+              /*'.transactions-header': {
+                border: '1px solid rgba(0,0,0,.1)',
+                borderBottom: 'none',
+              },*/
+            }}>
+            <ListHeader label="transactions" className="transactions-header">
+              <NewTenantForm />
+            </ListHeader>
+            <ReactTable
+              className={transactionTableStyle}
+              loading={!hasLoaded}
+              data={transactions}
+              defaultPageSize={5}
+              columns={[
+                {
+                  Header: 'type',
+                  accessor: 'type',
+                  Cell: ({
+                    value,
+                    original: { type },
+                  }: {
+                    original: Transaction
+                    value: number
+                  }) => (
+                    <Badge
+                      pill
+                      color={type === 'CHARGE' ? 'secondary' : 'success'}>
+                      {value}
+                    </Badge>
+                  ),
+                },
+                {
+                  Header: 'amount',
+                  accessor: 'amount',
+                  Cell: ({
+                    value,
+                    original: { type },
+                  }: {
+                    original: Transaction
+                    value: number
+                  }) => {
+                    return (
+                      <span
+                        className={
+                          type === 'PAYMENT' ? 'text-success' : undefined
+                        }>
+                        {value}
+                      </span>
+                    )
+                  },
+                },
+                {
+                  Header: 'date',
+                  id: 'date',
+                  accessor: (t: Transaction) =>
+                    format(t.date.toDate(), 'EEE d MMM YYYY'),
+                },
+              ]}
+            />
+          </div>
+        )}
+      />
+    )
+  }
 }
 
 class PropertyDoc extends Document<Property> {}
@@ -244,7 +322,7 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
       <PropertyDoc
         authPath={`properties/${propertyId}`}
         render={property => (
-          <Card className={detailCardStyles}>
+          <Card>
             <CardBody>
               <CardText className="text-secondary">Property</CardText>
               <CardTitle className="color-properties">
@@ -272,7 +350,7 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
       authPath={`properties/${propertyId}/units/${unitId}`}
       render={unit =>
         unit ? (
-          <Card className={detailCardStyles}>
+          <Card>
             <CardBody>
               <CardText className="text-secondary">Unit</CardText>
               <CardTitle className="color-units">{unit.label}</CardTitle>
@@ -290,7 +368,7 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
     <TenantDoc
       authPath={`tenants/${tenantId}`}
       render={tenant => (
-        <Card className={detailCardStyles}>
+        <Card>
           <CardBody>
             <CardText className="text-secondary">Tenant</CardText>
             {tenant && (
@@ -334,12 +412,6 @@ const leaseHeaderStyles = css`
   grid-gap: 1em;
   grid-template-columns: 1fr 1fr;
 `
-const detailCardStyles = css`
-  /* height: 100%;
-  margin-bottom: 0;
-  */
-`
-
 const leaseContainerStyles = css`
   grid-area: leasesTable;
   display: block;
@@ -358,6 +430,9 @@ const tabContentStyles = css`
 `
 const tabNavLinkStyles = css`
   cursor: pointer;
+`
+const transactionTableStyle = css`
+  background-color: #fffcf8;
 `
 
 export default LeaseContainer

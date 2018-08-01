@@ -39,6 +39,12 @@ interface Lease extends Doc {
   status: string
 }
 
+interface Transaction extends Doc {
+  amount: number
+  date: { toDate(): Date }
+  type: 'PAYMENT' | 'CHARGE'
+}
+
 type WhereParam = [
   string | firebase.firestore.FieldPath,
   firebase.firestore.WhereFilterOp,

@@ -8,9 +8,11 @@ export const ListHeader: React.SFC<{
   children: JSX.Element
   disabled?: boolean
   color?: string
-}> = ({ children, label, disabled }) => {
+  className?: string
+  css?: any
+}> = ({ children, label, disabled, className }) => {
   return (
-    <h6 className={listHeaderStyles}>
+    <h6 className={cx('bg-light', listHeaderStyles, className)}>
       {label}
       <BooleanValue>
         {({ value, toggle }: { value: boolean; toggle(): any }) => (
@@ -28,15 +30,12 @@ export const ListHeader: React.SFC<{
 }
 ListHeader.defaultProps = { disabled: false }
 
-const listHeaderStyles = cx(
-  'bg-light',
-  css`
-    padding: 0.5em;
-    margin: 0;
-    display: block;
-    .badge {
-      cursor: pointer;
-      float: right;
-    }
-  `,
-)
+const listHeaderStyles = css`
+  padding: 0.5em;
+  margin: 0;
+  display: block;
+  .badge {
+    cursor: pointer;
+    float: right;
+  }
+`

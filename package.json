@@ -15,6 +15,7 @@
     "@types/react-router-dom": "^4.3.0",
     "@types/yup": "^0.24.7",
     "bootstrap": "^4.1.2",
+    "date-fns": "^2.0.0-alpha.16",
     "dotenv": "^6.0.0",
     "emotion": "^9.2.6",
     "firebase": "^5.3.0",
