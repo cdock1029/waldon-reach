@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "start": "parcel index.html",
+    "start": "parcel src/index.html",
     "prebuild": "npm run clean",
-    "build": "parcel build index.html --no-cache",
+    "build": "parcel build src/index.html --no-cache && cp src/robots.txt dist/",
     "clean": "rm -rf .cache && rm -rf dist",
     "serve": "serve dist"
   },
