@@ -8,7 +8,9 @@
     "outDir": "lib",
     "sourceMap": true,
     "noImplicitReturns": false,
-    "types": ["node"]
+    "types": ["node"],
+    "rootDir": "./src",
+    "baseUrl": "."
   },
   "compileOnSave": true,
   "include": ["src"],

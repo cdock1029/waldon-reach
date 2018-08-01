@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { BrowserRouter, Switch, Route, NavLink as Link } from 'react-router-dom'
-import { AuthProvider, AuthConsumer as Auth } from './Auth'
 import {
   Collapse,
   NavbarToggler,
@@ -11,23 +10,26 @@ import {
   NavbarBrand,
 } from 'reactstrap'
 import styled from 'react-emotion'
-import Loadable from 'react-loadable'
-import Login from '../pages/login'
+import loadable from 'loadable-components'
+import Dash from '../pages/dash'
+import { AuthProvider, AuthConsumer as Auth } from './Auth'
 
-const Loading = ({ pastDelay }: any) => (pastDelay ? <h1>Loading..</h1> : null)
-const loadDefaults = {
-  loading: Loading,
-  delay: 400,
-}
+// const AuthProvider: any = loadable(async () => {
+//   const [{ app }, { AuthProvider }] = await Promise.all([
+//     import('../lib/firebase'),
+//     import('./Auth'),
+//   ])
+//   const AP: any = (props: any) => <AuthProvider firebase={app} {...props} />
+//   return AP
+// })
+// const Auth = loadable(async () => {
+//   const { AuthConsumer } = await import('./Auth')
+//   return AuthConsumer
+// })
 
-const Dash = Loadable({
-  loader: () => import('../pages/dash'),
-  ...loadDefaults,
-})
-const Lease = Loadable({
-  loader: () => import('../pages/lease'),
-  ...loadDefaults,
-})
+// const Dash = loadable(() => import('../pages/dash'))
+const Lease = loadable(() => import('../pages/lease'))
+const Login = loadable(() => import('../pages/login'))
 
 class Header extends React.Component<{}, { isOpen: boolean }> {
   state = {

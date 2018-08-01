@@ -8,7 +8,7 @@
     "lib": ["dom", "es2017"],
     "skipLibCheck": true,
     "outDir": "dist",
-    "rootDir": "src",
+    "rootDir": "./src",
 
     "allowJs": true,
     "sourceMap": false,
@@ -25,5 +25,6 @@
     */
     "types": ["node"]
   },
+  "include": ["src"],
   "exclude": ["node_modules", "dist", ".cache", "tmp"]
 }

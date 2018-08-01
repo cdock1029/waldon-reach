@@ -4,16 +4,13 @@ import {
   Button,
   Form,
   FormGroup,
-  Label,
   Input,
   FormText,
-  Card,
   Modal,
   ModalHeader,
   ModalBody,
 } from 'reactstrap'
 import { AuthConsumer as Auth } from '../components/Auth'
-import { notBuilding } from '../lib'
 
 interface LoginState {
   error?: string
@@ -44,13 +41,8 @@ class Login extends React.Component<{}, LoginState> {
     return (
       <Auth>
         {auth => {
-          // show modal if not building and user is not logged in
-          const doShowModal = notBuilding() && !auth.user
           return (
-            <Modal
-              className={loginStyle}
-              isOpen={doShowModal}
-              toggle={() => {}}>
+            <Modal className={loginStyle} isOpen={!auth.user} toggle={() => {}}>
               <ModalHeader className="title">Login</ModalHeader>
               <ModalBody>
                 <Form
