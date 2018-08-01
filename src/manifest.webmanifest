@@ -4,7 +4,7 @@
   "description": "Simple property management app",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "./favicon.ico",
       "sizes": "64x64",
       "type": "image/x-icon"
     }
