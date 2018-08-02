@@ -1,13 +1,18 @@
 import React from 'react'
 import { Button } from 'reactstrap'
+import { auth } from '../lib/firebase'
 
 declare const intuit: any
 
 // css class: .intuitPlatformConnectButton
 
+const AUTH_URL =
+  'https://us-central1-wpmfirebaseproject.cloudfunctions.net/qbo/auth/hello'
+
 export class Qbo extends React.Component {
   state = {
     loaded: false,
+    message: '',
   }
   componentDidMount() {
     const qbo = document.getElementById('qbo')
@@ -37,8 +42,22 @@ export class Qbo extends React.Component {
   handleConnectClick = () => {
     intuit.ipp.anywhere.controller.onConnectToIntuitClicked()
   }
+  handleAuthFunc = () => {
+    auth!.currentUser!.getIdToken().then(token => {
+      fetch(AUTH_URL, {
+        method: 'GET',
+        headers: new Headers({ Authorization: `Bearer ${token}` }),
+      })
+        .then(res => res.text())
+        .then(text => this.setState(() => ({ message: text })))
+        .catch(e => {
+          console.error(e)
+          this.setState(() => ({ message: e.message }))
+        })
+    })
+  }
   render() {
-    const { loaded } = this.state
+    const { loaded, message } = this.state
     return (
       <div css={'padding: 2em; padding-top: 60px;'}>
         <p>Qbo connect</p>
@@ -49,6 +68,10 @@ export class Qbo extends React.Component {
         ) : (
           <h4>Loading...</h4>
         )}
+        <div css={'padding: 2em'}>
+          <button onClick={this.handleAuthFunc}>Auth check</button>
+          <p>{message}</p>
+        </div>
       </div>
     )
   }
