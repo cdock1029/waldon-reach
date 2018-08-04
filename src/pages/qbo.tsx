@@ -1,5 +1,6 @@
 import React from 'react'
 import { Button } from 'reactstrap'
+import { SharedValue } from '../components/SharedValue'
 import { auth } from '../lib/firebase'
 
 declare const intuit: any
@@ -71,6 +72,39 @@ export class Qbo extends React.Component {
         <div css={'padding: 2em'}>
           <button onClick={this.handleAuthFunc}>Auth check</button>
           <p>{message}</p>
+        </div>
+        <br />
+        <div>
+          <SharedValue<boolean> storageKey="qboBool">
+            {({ value, set }) => {
+              console.log({ value1: value })
+              return (
+                <div
+                  css={
+                    'display: flex; flex-direction: column; margin-botton: 1em;'
+                  }>
+                  <label>Boolean 1: {String(value)}</label>
+                  <button onClick={() => set(!value)}>Toggle</button>
+                </div>
+              )
+            }}
+          </SharedValue>
+        </div>
+        <div>
+          <SharedValue<boolean> storageKey="qboBool">
+            {({ value, set }) => {
+              console.log({ value2: value })
+              return (
+                <div
+                  css={
+                    'display: flex; flex-direction: column; margin-botton: 1em;'
+                  }>
+                  <label>Boolean 2: {String(value)}</label>
+                  <button onClick={() => set(!value)}>Toggle</button>
+                </div>
+              )
+            }}
+          </SharedValue>
         </div>
       </div>
     )

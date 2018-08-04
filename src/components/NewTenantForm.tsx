@@ -2,7 +2,6 @@ import React from 'react'
 import { Formik } from 'formik'
 import * as Yup from 'yup'
 import { newDoc } from '../lib/firebase'
-import { Alert } from 'reactstrap'
 import {
   Form,
   FormGroup,
@@ -14,8 +13,8 @@ import {
   ModalBody,
   ModalFooter,
   Button,
+  Alert
 } from 'reactstrap'
-import { css } from 'react-emotion'
 
 interface Props {
   isModalOpen?: boolean

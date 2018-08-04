@@ -19,7 +19,8 @@ import { Document, Collection } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
 import { NavLink as Link } from 'react-router-dom'
 import { ListHeader } from '../components/ListHeader'
-import NewTenantForm from './NewTenantForm'
+import { NewLeaseForm } from '../components/NewLeaseForm'
+import NewTenantForm from '../components/NewTenantForm'
 
 type CollectionReference = firebase.firestore.CollectionReference
 
@@ -73,7 +74,7 @@ class LeaseContainer extends React.Component<
         </div>
         <div className={leaseContainerStyles}>
           <ListHeader label="Leases">
-            <NewTenantForm />
+            <NewLeaseForm />
           </ListHeader>
           <Nav tabs className="bg-light">
             <NavItem>

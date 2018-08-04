@@ -1,5 +1,6 @@
 declare module '@reach/router'
 declare module '@reactions/component'
+declare module 'dinero.js'
 
 declare module '*.mdx' {
   let MDXComponent: (props: any) => JSX.Element
@@ -30,19 +31,21 @@ interface Tenant extends Doc {
 
 interface Lease extends Doc {
   rent: number
+  securityDeposit: number
   balance: number
   tenants: { [id: string]: { exists: boolean; name: string } }
   units: { [id: string]: { exists: boolean; address: string } }
   properties: { [id: string]: { exists: boolean; name: string } }
-  startDate?: string
-  endDate?: string
-  status: string
+  startDate?: Date
+  endDate?: Date
+  status: 'ACTIVE' | 'INACTIVE' | 'COLLECTIONS'
 }
 
 interface Transaction extends Doc {
   amount: number
   date: { toDate(): Date }
   type: 'PAYMENT' | 'CHARGE'
+  subtype: string
 }
 
 type WhereParam = [
