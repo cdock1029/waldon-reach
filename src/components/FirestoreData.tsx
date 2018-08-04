@@ -4,7 +4,8 @@ import React from 'react'
 export interface CollectionProps<T extends Doc> {
   authPath: string
   initialData?: T[]
-  render: (data: T[], hasLoaded: boolean) => any
+  render?: (data: T[], hasLoaded: boolean) => any
+  children?: (data: T[], hasLoaded: boolean) => any
   transform?: (data: T[]) => T[]
   orderBy?: {
     field: string | firebase.firestore.FieldPath
@@ -25,9 +26,16 @@ export class Collection<T extends Doc> extends React.Component<
   static defaultProps = {
     initialData: [],
   }
-  state: CollectionState<T> = {
-    data: this.props.initialData!,
-    hasLoaded: false,
+
+  constructor(props: CollectionProps<T>) {
+    super(props)
+    this.state = {
+      data: this.props.initialData!,
+      hasLoaded: false,
+    }
+    if (!props.render && !props.children) {
+      throw new Error('Either a render or children prop is required.')
+    }
   }
   unsubAuth: firebase.Unsubscribe = () => {}
   unsubData: firebase.Unsubscribe = () => {}
@@ -93,7 +101,10 @@ export class Collection<T extends Doc> extends React.Component<
     this.setState(() => ({ data, hasLoaded: true }))
   }
   render() {
-    return this.props.render(this.state.data, this.state.hasLoaded)
+    const { children, render } = this.props
+
+    const renderMethod = render ? render : children
+    return renderMethod!(this.state.data, this.state.hasLoaded)
   }
 }
 
