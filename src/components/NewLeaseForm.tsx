@@ -58,15 +58,15 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
             <ModalBody>
               {isModalOpen ? (
                 <Downshift
-                  onChange={selection => console.log('selection:', selection)}
+                  onChange={selection => console.log({ selection })}
                   itemToString={property => (property ? property.name : '')}>
                   {({
                     getInputProps,
                     getItemProps,
                     getLabelProps,
                     getMenuProps,
-                    getToggleButtonProps,
-                    toggleMenu,
+                    openMenu,
+                    closeMenu,
                     isOpen,
                     inputValue,
                     highlightedIndex,
@@ -81,7 +81,12 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                               <label {...getLabelProps()}>
                                 Enter a Property
                               </label>
-                              <input {...getInputProps()} />
+                              <input
+                                {...getInputProps({
+                                  onFocus: () => openMenu(),
+                                  onBlur: () => closeMenu(),
+                                })}
+                              />
                               <Dropdown isOpen={isOpen} toggle={() => {}}>
                                 <DropdownToggle tag="div" />
                                 <DropdownMenu>
