@@ -97,10 +97,8 @@ class LeaseContainer extends React.Component<
           <TabContent
             className={tabContentStyles}
             activeTab={this.state.activeTab}>
-            <LeaseCollection
-              authPath="leases"
-              where={where}
-              render={(leases, hasLoaded) => {
+            <LeaseCollection authPath="leases" where={where}>
+              {(leases, hasLoaded) => {
                 // console.log({ leases, hasLoaded })
                 const tab = this.state.activeTab
                 return (
@@ -134,7 +132,7 @@ class LeaseContainer extends React.Component<
                   </Fragment>
                 )
               }}
-            />
+            </LeaseCollection>
           </TabContent>
         </div>
       </Fragment>
@@ -237,8 +235,8 @@ class TransactionsSubComponent extends React.Component<{
     return (
       <Collection<Transaction>
         authPath={`leases/${lease.id}/transactions`}
-        orderBy={{ field: 'date', direction: 'desc' }}
-        render={(transactions, hasLoaded) => (
+        orderBy={{ field: 'date', direction: 'desc' }}>
+        {(transactions, hasLoaded) => (
           <div
             css={{
               padding: '2em',
@@ -303,7 +301,7 @@ class TransactionsSubComponent extends React.Component<{
             />
           </div>
         )}
-      />
+      </Collection>
     )
   }
 }
@@ -320,9 +318,8 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
 }) => {
   return (
     <Fragment>
-      <PropertyDoc
-        authPath={`properties/${propertyId}`}
-        render={property => (
+      <PropertyDoc authPath={`properties/${propertyId}`}>
+        {property => (
           <Card>
             <CardBody>
               <CardText className="text-secondary">Property</CardText>
@@ -332,7 +329,7 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
             </CardBody>
           </Card>
         )}
-      />
+      </PropertyDoc>
       {children}
     </Fragment>
   )
@@ -347,9 +344,8 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
   unitId,
 }) => {
   return (
-    <UnitDoc
-      authPath={`properties/${propertyId}/units/${unitId}`}
-      render={unit =>
+    <UnitDoc authPath={`properties/${propertyId}/units/${unitId}`}>
+      {unit =>
         unit ? (
           <Card>
             <CardBody>
@@ -359,16 +355,15 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
           </Card>
         ) : null
       }
-    />
+    </UnitDoc>
   )
 }
 
 class TenantDoc extends Document<Tenant> {}
 const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
   return (
-    <TenantDoc
-      authPath={`tenants/${tenantId}`}
-      render={tenant => (
+    <TenantDoc authPath={`tenants/${tenantId}`}>
+      {tenant => (
         <Card>
           <CardBody>
             <CardText className="text-secondary">Tenant</CardText>
@@ -396,7 +391,7 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
         //   )}
         // </Alert>
       )}
-    />
+    </TenantDoc>
   )
 }
 
