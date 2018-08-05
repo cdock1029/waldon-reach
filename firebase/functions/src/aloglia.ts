@@ -22,6 +22,7 @@ let config: configTypes.Config | undefined
 
 function getClient(): Client {
   if (typeof client === 'undefined') {
+    console.log('algolia client undefined')
     const algoliasearch: (
       id: string,
       key: string,
