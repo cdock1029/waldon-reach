@@ -1,13 +1,17 @@
 import functions, { EventContext } from 'firebase-functions'
 import admin from 'firebase-admin'
-import { format, getMonth, subMonths } from 'date-fns'
+import {
+  format,
+  // getMonth,
+  // subMonths
+} from 'date-fns'
 
 const serverTimeStamp = () => admin.firestore.FieldValue.serverTimestamp()
 type Message = functions.pubsub.Message
 
 const MONTHLY_LATE_FEE_RENT_JOBS = 'jobs/monthly-late-fee-rent-jobs/iterations'
 const COMPANY_MLFR_JOBS = 'company-jobs'
-const LEASE_MLFR_JOBS = 'lease-jobs'
+// const LEASE_MLFR_JOBS = 'lease-jobs'
 
 // col            doc                 col         doc          col            col
 // jobs/monthly-late-fee-rent-jobs/iterations/2018-08-03/company-jobs/cid/lease-jobs/lid
@@ -84,32 +88,34 @@ export const strictJobMonthlyLateFeesRentLease = async (
   context: EventContext,
 ): Promise<boolean> => {
   // individual lease calulation... look at balance, rent, late fee policy etc.
-  const { day, companyId, leaseId } = context.params
+  // const { day, companyId, leaseId } = context.params
 
-  const leaseRef = admin
+  /*  const leaseRef = admin
     .firestore()
     .collection(`companies/${companyId}/leases`)
     .doc(leaseId)
+    */
 
-  const lease = await leaseRef.get()
+  /* const lease = await leaseRef.get() */
   // if balance <= 0... i think we'er done...
 
   // else ... need to see if applied a late fee past month already.
   // get month of today .get last month. today's Month - 1.
-  const lastMonth = subMonths(day, 1)
-  const startLastMonth = new Date(
-    lastMonth.getFullYear(),
-    lastMonth.getMonth(),
-    1,
-  )
+  // const lastMonth = subMonths(day, 1)
+  // const startLastMonth = new Date(
+  //   lastMonth.getFullYear(),
+  //   lastMonth.getMonth(),
+  //   1,
+  // )
 
-  const leaseTransactionsRef = leaseRef
+  /* const leaseTransactionsRef = leaseRef
     .collection('transactions')
     .where('date', '>=', startLastMonth)
     .where('date', '<', new Date(day))
     .where('TYPE', '==', 'LATE_FEE')
+    */
 
-  const prevLateFees = await leaseTransactionsRef.get()
+  /* const prevLateFees = await leaseTransactionsRef.get() */
 
   const batch = admin.firestore().batch()
 

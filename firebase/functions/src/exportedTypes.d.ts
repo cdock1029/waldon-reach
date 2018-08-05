@@ -1,3 +1,4 @@
-type DocSnap = FirebaseFirestore.DocumentSnapshot
-type Transaction = FirebaseFirestore.Transaction
-type TransactionPromise = Promise<Transaction>
+import { config, https } from 'firebase-functions'
+
+export type CallableContext = https.CallableContext
+export type HttpsErrorType = typeof https.HttpsError
