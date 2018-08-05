@@ -1,53 +1,71 @@
-import algoliasearch, { Client, Index } from 'algoliasearch'
+import * as functions from 'firebase-functions'
+// import admin from 'firebase-admin'
+import { Client, Index } from 'algoliasearch'
+import { CallableContext /*, HttpsErrorType*/ } from './exportedTypes'
+
+// tslint:disable-next-line:no-duplicate-imports
 import {
-  EventContext,
-  Change,
-  config as configNamespace,
+  // EventContext,
+  // Change,
+  config as configTypes,
 } from 'firebase-functions'
-import { app } from 'firebase-admin'
-import { CallableContext, HttpsErrorType } from './exportedTypes'
+
+// import { app } from 'firebase-admin'
 
 // const ALGOLIA_APP_ID = config.algolia.app_id
 // const ALGOLIA_ADMIN_KEY = config.algolia.admin_key
 // const ALGOLIA_SEARCH_KEY = config.algolia.search_key
 
-const ALGOLIA_INDEX_NAME = 'wpm'
 let client: Client | undefined // = algoliasearch(ALGOLIA_APP_ID, ALGOLIA_ADMIN_KEY)
 let index: Index | undefined
+let config: configTypes.Config | undefined
 
-function getClient(config: configNamespace.Config): Client {
-  if (!client) {
+function getClient(): Client {
+  if (typeof client === 'undefined') {
+    const algoliasearch: (
+      id: string,
+      key: string,
+    ) => Client = require('algoliasearch')
+    config = functions.config()
     client = algoliasearch(config.algolia.app_id, config.algolia.admin_key)
   }
   return client
 }
-function getIndex(config: configNamespace.Config): Index {
+function getIndex(): Index {
   if (!index) {
-    const c = getClient(config)
+    const ALGOLIA_INDEX_NAME = 'wpm'
+    const c = getClient()
     index = c.initIndex(ALGOLIA_INDEX_NAME)
   }
   return index
 }
+if (false) {
+  console.log(getIndex.toString())
+}
 
-export const onPropertyCreated = async (
-  snap: DocSnap,
-  context: EventContext,
+/*
+export const onPropertyCreated = (
+  functions: any,
   admin: app.App,
   config: configNamespace.Config,
 ) => {
-  const property = {
-    objectID: snap.id,
-    ...snap.data(),
-    companyId: context.params.companyId,
-  }
+  return functions.firestore
+    .document('companies/{companyId}/properties/{propertyId}')
+    .onCreaty(async (snap: DocSnap, context: EventContext) => {
+      const property = {
+        objectID: snap.id,
+        ...snap.data(),
+        companyId: context.params.companyId,
+      }
 
-  try {
-    await getIndex(config).saveObject(property)
-    return true
-  } catch (e) {
-    console.log(`Error saving Property=[${snap.id}] to algolia:`, e)
-    return false
-  }
+      try {
+        await getIndex(config).saveObject(property)
+        return true
+      } catch (e) {
+        console.log(`Error saving Property=[${snap.id}] to algolia:`, e)
+        return false
+      }
+    })
 }
 
 export const onPropertyDeleted = async (
@@ -119,35 +137,36 @@ export const unitDeleteDecCount = (
     const unitCount = propertyDoc.data()!.unitCount - 1
     return trans.update(propertyRef!, { unitCount })
   })
-}
+}*/
 
-export const getAlgoliaSecuredKey = (
-  data: any,
-  context: CallableContext,
-  config: configNamespace.Config,
-  HttpsError: HttpsErrorType,
-): { key: string } => {
-  if (!context.auth) {
-    throw new HttpsError(
-      'failed-precondition',
-      'Function must be called while authenticated.',
+export const getAlgoliaSecuredKey = functions.https.onCall(
+  (data: any, context: CallableContext): { key: string } => {
+    context.rawRequest.socket.setKeepAlive(true)
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'failed-precondition',
+        'Function must be called while authenticated.',
+      )
+    }
+    const activeCompany: string | undefined = context.auth.token.activeCompany
+    if (!activeCompany) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'Function must be called while authenticated.',
+      )
+    }
+    const uid = context.auth.uid
+    const params = {
+      filters: `companyId:${activeCompany}`,
+      userToken: uid,
+    }
+    const algoliaClient = getClient()
+    const key = algoliaClient.generateSecuredApiKey(
+      config!.algolia.search_key,
+      params,
     )
-  }
-  const activeCompany: string | undefined = context.auth.token.activeCompany
-  if (!activeCompany) {
-    throw new HttpsError(
-      'permission-denied',
-      'Function must be called while authenticated.',
-    )
-  }
-  const uid = context.auth.uid
-  const params = {
-    filters: `companyId:${activeCompany}`,
-    userToken: uid,
-  }
-  const key = getClient(config).generateSecuredApiKey(
-    config.algolia.search_key,
-    params,
-  )
-  return { key }
-}
+    // todo: can we check if this exists on the user (since tied to activeCompany, if not loade here.. then save.)
+    // admin.auth().setCustomUserClaims(uid, {searchKey: key})
+    return { key }
+  },
+)

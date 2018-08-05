@@ -1,6 +1,7 @@
 import firebase, { firestore as Fs, auth as Au } from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
+import 'firebase/functions'
 
 import config from './firebaseConfig'
 
@@ -58,6 +59,7 @@ type Auth = Au.Auth & {
 
 export const auth: Auth = new Proxy(app.auth(), handler)
 export const firestore = firebase.firestore()
+export const functions = firebase.functions
 
 export function onAuthStateChangedWithClaims(
   claimsKeys: string[],

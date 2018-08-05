@@ -1,7 +1,5 @@
-import * as functions from 'firebase-functions'
 import admin from 'firebase-admin'
 
-const config = functions.config()
 admin.initializeApp()
 admin.firestore().settings({ timestampsInSnapshots: true })
 
@@ -29,16 +27,17 @@ function wasCalled(functionName: string): boolean {
 //     require('./qbo').expressApp(req, resp, config, admin),
 //   )
 // }
+
 if (wasCalled('qbo')) {
-  exports.qbo = require('./qbo').expressApp
+  exports.qbo = require('./qbo')
+}
+if (wasCalled('getAlgoliaSecuredKey')) {
+  exports.getAlgoliaSecuredKey = require('./aloglia').getAlgoliaSecuredKey
 }
 
+/*
 if (wasCalled('onPropertyCreated')) {
-  exports.onPropertyCreated = functions.firestore
-    .document('companies/{companyId}/properties/{propertyId}')
-    .onCreate((snap, context) =>
-      require('./algolia').onPropertyCreated(snap, context, admin, config),
-    )
+  exports.onPropertyCreated = require('./algolia').onPropertyCreated(functions, admin, config)
 }
 
 if (wasCalled('onPropertyUpdated')) {
@@ -73,13 +72,5 @@ if (wasCalled('unitDeleteDecCount')) {
     )
 }
 
-if (wasCalled('getAlgoliaSecuredKey')) {
-  exports.getAlgoliaSecuredKey = functions.https.onCall((data, context) =>
-    require('./aloglia').getAlgoliaSecuredKey(
-      data,
-      context,
-      config,
-      functions.https.HttpsError,
-    ),
-  )
-}
+
+*/
