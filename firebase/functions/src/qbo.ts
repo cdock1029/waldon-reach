@@ -34,7 +34,7 @@ function loadApp(/* config: configTypes.Config, admin: adminApp.App*/) {
   const doAsync = require('doasync')
   const QuickBooks = require('node-quickbooks')
   const cookieParser = require('cookie-parser')() // <-- why?
-  const cors = require('cors')({ origin: true })
+  const cors = require('cors')({ origin: true, maxAge: 86400 })
   const csrf = new Tokens()
   const ejs = require('ejs')
 
@@ -139,6 +139,9 @@ function loadApp(/* config: configTypes.Config, admin: adminApp.App*/) {
       appRoot: appRoot,
       appCenter: QuickBooks.APP_CENTER_BASE,
     })
+  })
+  app.get('/apex', (req, res) => {
+    res.json({ response: 'ok' })
   })
 
   app.get(
