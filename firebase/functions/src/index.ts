@@ -1,4 +1,5 @@
 import admin from 'firebase-admin'
+// import { Request, Response } from 'firebase-functions'
 
 admin.initializeApp()
 admin.firestore().settings({ timestampsInSnapshots: true })
@@ -9,24 +10,12 @@ function wasCalled(functionName: string): boolean {
   )
 }
 
-// export const pubSubMonthlyLateFeesRent = functions.pubsub
-//   .topic('monthly-late-fee-rent-job')
-//   .onPublish(require('./strictPubSubMonthlyLateFeesRent'))
-
-// col            doc                 col         doc          col            col
-// jobs/monthly-late-fee-rent-jobs/iterations/2018-08-03/company-jobs/cid/lease-jobs/lid
-
-// export const jobMonthlyLateFeesCompany = functions.firestore
-//   .document(
-//     'jobs/monthly-late-fee-rent-jobs/iterations/{day}/company-jobs/{companyId}',
-//   )
-//   .onCreate(require('./strictJobMonthlyLateFeesRentCompany'))
-
-// if (wasCalled('qbo')) {
-//   exports.qbo = functions.https.onRequest((req, resp) =>
-//     require('./qbo').expressApp(req, resp, config, admin),
-//   )
-// }
+if (wasCalled('pubSubMonthlyLateFeesRent')) {
+  const monthlyJob = require('./monthly-job')
+  exports.pubSubMonthlyLateFeesRent = monthlyJob.pubSubMonthlyLateFeesRent
+  exports.jobMonthlyLateFeesCompany = monthlyJob.jobMonthlyLateFeesCompany
+  exports.jobMonthlyLateFeesRentLease = monthlyJob.jobMonthlyLateFeesRentLease
+}
 
 if (wasCalled('qbo')) {
   exports.qbo = require('./qbo')

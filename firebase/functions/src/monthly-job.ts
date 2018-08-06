@@ -9,122 +9,214 @@ import {
 const serverTimeStamp = () => admin.firestore.FieldValue.serverTimestamp()
 type Message = functions.pubsub.Message
 
-const MONTHLY_LATE_FEE_RENT_JOBS = 'jobs/monthly-late-fee-rent-jobs/iterations'
-const COMPANY_MLFR_JOBS = 'company-jobs'
-// const LEASE_MLFR_JOBS = 'lease-jobs'
+const PUB_SUB_TOPIC_MLFRJ = 'monthly-late-fee-rent-job'
+const MONTHLY_LATE_FEE_RENT_JOBS = 'monthly-late-fee-rent-jobs'
+const COMPANY_JOBS_SUBCOLLECTION = 'company-job'
+const LEASE_JOB_SUBCOLLECTION = 'lease-jobs'
 
-// col            doc                 col         doc          col            col
-// jobs/monthly-late-fee-rent-jobs/iterations/2018-08-03/company-jobs/cid/lease-jobs/lid
-
-export const strictPubSubMonthlyLateFeesRent = async (
-  message: Message,
-): Promise<boolean> => {
-  const compsRef = admin.firestore().collection('companies')
-  const today = format(new Date(), 'YYYY-MM-dd')
-  const jobRef = admin
-    .firestore()
-    .collection(MONTHLY_LATE_FEE_RENT_JOBS)
-    .doc(today)
-
-  const batch = admin.firestore().batch()
-
-  batch.create(jobRef, { createdAt: serverTimeStamp(), done: false })
-  const companies = await compsRef.get()
-
-  companies.docs.forEach(companyDoc => {
-    const companyJobRef = jobRef
-      .collection(COMPANY_MLFR_JOBS)
-      .doc(companyDoc.id)
-    batch.create(companyJobRef, { done: false })
-  })
-  try {
-    await batch.commit()
-    console.log('pubsub monthly lf/rent batch (create company jobs) success')
-    return true
-  } catch (e) {
-    console.log('Batch error:', e)
-    return false
-  }
+interface JobDocument {
+  createdAt: FirebaseFirestore.FieldValue
+  startedAt?: FirebaseFirestore.FieldValue
+  endedAt?: FirebaseFirestore.FieldValue
+  subJobs?: SubJobs
 }
+interface SubJobs {
+  [subJobKey: string]: JobDocument | undefined
+}
+
+//            C                  D             C            D          C          D
+// monthly-late-fee-rent-jobs/{2018-08-03}/company-jobs/{companyId}/lease-jobs/{leaseId}
+export const pubSubMonthlyLateFeesRent = functions.pubsub
+  .topic(PUB_SUB_TOPIC_MLFRJ)
+  .onPublish(
+    async (message: Message): Promise<boolean> => {
+      const batch = admin.firestore().batch()
+      const jobRef = admin
+        .firestore()
+        .collection(MONTHLY_LATE_FEE_RENT_JOBS)
+        .doc(/* today */ format(new Date(), 'YYYY-MM-dd'))
+
+      // initialize new Global Job Document
+      const jobDocument: JobDocument = {
+        createdAt: serverTimeStamp(),
+        startedAt: serverTimeStamp(),
+        subJobs: {},
+      }
+
+      // get all companies
+      const companies = await admin
+        .firestore()
+        .collection('companies')
+        .get()
+
+      // for each Company, create Company job in sub-collection..
+      // and add details to sub-jobs field
+      companies.docs.forEach(({ id: companyId }) => {
+        const companySubJobRef = jobRef
+          .collection(COMPANY_JOBS_SUBCOLLECTION)
+          .doc(companyId)
+
+        const companySubJobDoc: JobDocument = { createdAt: serverTimeStamp() }
+        jobDocument.subJobs![companyId] = companySubJobDoc
+
+        batch.create(companySubJobRef, companySubJobDoc)
+      })
+
+      // TODO: to "finish", this job, create a trigger for "update", on *this* global
+      // job document, which will be modified by each sub-task..
+      batch.create(jobRef, jobDocument)
+      try {
+        await batch.commit()
+        console.log(
+          'pubsub monthly lf/rent batch (create company jobs) success',
+        )
+        return true
+      } catch (e) {
+        console.log('Batch error:', e)
+        return false
+      }
+    },
+  )
 
 // jobs/monthly-late-fee-rent-jobs/iterations/{day}/company-jobs/{companyId}
-export const strictJobMonthlyLateFeesRentCompany = async (
-  snap: DocSnap,
-  context: EventContext,
-): Promise<boolean> => {
-  // get all active leases..
-  // batch create lease jobs..
+export const jobMonthlyLateFeesCompany = functions.firestore
+  .document(
+    `${MONTHLY_LATE_FEE_RENT_JOBS}/{jobDayId}/${COMPANY_JOBS_SUBCOLLECTION}/{companyId}`,
+  )
+  .onCreate(
+    async (
+      companyJobSnap: DocSnap,
+      context: EventContext,
+    ): Promise<boolean> => {
+      const { companyId } = context.params
+      const globalJobDocRef = companyJobSnap.ref.parent.parent
+      if (!globalJobDocRef) {
+        throw new Error(
+          `Company job doc [${
+            companyJobSnap.id
+          }] has no Global Job ancestor. eventId:[${context.eventId}]`,
+        )
+      }
 
-  const companyId = context.params.companyId
-  const companyRef = admin
-    .firestore()
-    .collection('companies')
-    .doc(companyId)
-  const companyLeases = await companyRef
-    .collection('leases')
-    .where('status', '==', 'ACTIVE')
-    .get()
+      // in a transaction, mark this companyJob as "started..."
+      try {
+        const result = await admin.firestore().runTransaction(async trans => {
+          const globalJobSnap = await trans.get(globalJobDocRef!)
+          const globalSubJobs = (globalJobSnap.data()! as JobDocument).subJobs
 
-  const companyJobRef = snap.ref
-  const batch = admin.firestore().batch()
+          // "createdAt" in parent, so not undefined
+          const subJob: JobDocument = globalSubJobs![companyId]!
+          if (subJob.startedAt) {
+            // job already started.
+            return Promise.resolve({ alreadyStarted: true })
+          }
+          subJob.startedAt = serverTimeStamp()
+          trans.update(globalJobDocRef, { subJobs: globalSubJobs })
+          return Promise.resolve({ alreadyStarted: false })
+        })
+        if (result.alreadyStarted) {
+          console.log('already started')
+          return false
+        }
+      } catch (e) {
+        console.error(
+          `Error marking global MLFRJ > subjob started for company[${companyId}].`,
+          e,
+        )
+        return false
+      }
+      // now we can process this sub job..
+      const batch = admin.firestore().batch()
 
-  companyLeases.docs.forEach(leaseDoc => {
-    const leaseJobRef = companyJobRef.collection('lease-jobs').doc(leaseDoc.id)
-    batch.create(leaseJobRef, { done: false })
-  })
-  try {
-    await batch.commit()
-    console.log('monthly lf/rent company batch (create lease jobs) success')
-    return true
-  } catch (e) {
-    console.log('Batch error:', e)
-    return false
-  }
-}
+      // get all active leases..
+      // TODO: what if this is thousands...
+      const companyLeases = await admin
+        .firestore()
+        .collection('companies')
+        .doc(companyId)
+        .collection('leases')
+        // status: ACTIVE | COLLECTIONS | INACTIVE
+        // we want !== INACTIVE (collections & active will get charged)
+        // so.. status < INACTIVE :D :) :S
+        // !!!! TODO: think about logic.
+        .where('status', '<', 'INACTIVE')
+        // .where('balance', '>', 0)
+        // oops we need all balances for rent?... hmmm
+        .get()
 
-// jobs/monthly-late-fee-rent-jobs/iterations/{day}/company-jobs/{companyId}/lease-jobs/{leaseId}
-export const strictJobMonthlyLateFeesRentLease = async (
-  snap: DocSnap,
-  context: EventContext,
-): Promise<boolean> => {
-  // individual lease calulation... look at balance, rent, late fee policy etc.
-  // const { day, companyId, leaseId } = context.params
+      // ** We're the first ones here, so no contention over this field
+      // this "companyJob" just got started so it has no "subjobs"
+      // for each Lease, create Lease job in sub-collection..
+      // an add details to sub-jobs field
+      const companyJobDocSubJobs: SubJobs = {}
+      companyLeases.docs.forEach(({ id: leaseId }) => {
+        const leaseSubJobRef = companyJobSnap.ref
+          .collection(LEASE_JOB_SUBCOLLECTION)
+          .doc(leaseId)
 
-  /*  const leaseRef = admin
-    .firestore()
-    .collection(`companies/${companyId}/leases`)
-    .doc(leaseId)
-    */
+        const leaseSubJobDoc: JobDocument = { createdAt: serverTimeStamp() }
+        companyJobDocSubJobs[leaseId] = leaseSubJobDoc
 
-  /* const lease = await leaseRef.get() */
-  // if balance <= 0... i think we'er done...
+        batch.create(leaseSubJobRef, leaseSubJobDoc)
+      })
+      batch.update(companyJobSnap.ref, { subJobs: companyJobDocSubJobs })
+      try {
+        await batch.commit()
+        console.log('monthly lf/rent company batch (create lease jobs) success')
+        return true
+      } catch (e) {
+        console.log('Batch error:', e)
+        return false
+      }
+    },
+  )
 
-  // else ... need to see if applied a late fee past month already.
-  // get month of today .get last month. today's Month - 1.
-  // const lastMonth = subMonths(day, 1)
-  // const startLastMonth = new Date(
-  //   lastMonth.getFullYear(),
-  //   lastMonth.getMonth(),
-  //   1,
-  // )
+export const jobMonthlyLateFeesRentLease = functions.firestore
+  .document(
+    `${MONTHLY_LATE_FEE_RENT_JOBS}/{day}/${COMPANY_JOBS_SUBCOLLECTION}/{companyId}/${LEASE_JOB_SUBCOLLECTION}/{leaseId}`,
+  )
+  .onCreate(
+    async (snap: DocSnap, context: EventContext): Promise<boolean> => {
+      // individual lease calulation... look at balance, rent, late fee policy etc.
+      const { /*day,*/ companyId, leaseId } = context.params
 
-  /* const leaseTransactionsRef = leaseRef
+      const leaseRef = admin
+        .firestore()
+        .collection(`companies/${companyId}/leases`)
+        .doc(leaseId)
+
+      console.log('TODO: ', leaseRef)
+
+      /* const lease = await leaseRef.get() */
+      // if balance <= 0... i think we'er done...
+
+      // else ... need to see if applied a late fee past month already.
+      // get month of today .get last month. today's Month - 1.
+      // const lastMonth = subMonths(day, 1)
+      // const startLastMonth = new Date(
+      //   lastMonth.getFullYear(),
+      //   lastMonth.getMonth(),
+      //   1,
+      // )
+
+      /* const leaseTransactionsRef = leaseRef
     .collection('transactions')
     .where('date', '>=', startLastMonth)
     .where('date', '<', new Date(day))
     .where('TYPE', '==', 'LATE_FEE')
     */
 
-  /* const prevLateFees = await leaseTransactionsRef.get() */
+      /* const prevLateFees = await leaseTransactionsRef.get() */
 
-  const batch = admin.firestore().batch()
+      const batch = admin.firestore().batch()
 
-  try {
-    await batch.commit()
-    console.log('monthly lf/rent company batch (create lease jobs) success')
-    return true
-  } catch (e) {
-    console.log('Batch error:', e)
-    return false
-  }
-}
+      try {
+        await batch.commit()
+        console.log('monthly lf/rent company batch (create lease jobs) success')
+        return true
+      } catch (e) {
+        console.log('Batch error:', e)
+        return false
+      }
+    },
+  )
