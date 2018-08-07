@@ -15,12 +15,21 @@ export const ListHeader: React.SFC<{
     <h6 className={cx('bg-light', listHeaderStyles, className)}>
       {label}
       <BooleanValue>
-        {({ value, toggle }: { value: boolean; toggle(): any }) => (
+        {({
+          value,
+          toggle,
+          set,
+        }: {
+          value: boolean
+          toggle(): any
+          set: any
+        }) => (
           <Fragment>
             {!disabled && <Badge onClick={toggle}>New</Badge>}
             {React.cloneElement(React.Children.only(children), {
               isModalOpen: value,
               toggleModal: toggle,
+              closeModal: () => set(false),
             })}
           </Fragment>
         )}

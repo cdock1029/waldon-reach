@@ -28,6 +28,7 @@ const toggleNoop = () => {}
 interface NewLeaseFormProps {
   isModalOpen?: boolean
   toggleModal?: () => void
+  closeModal?: () => void
   propertyId?: string
   unitId?: string
   tenantId?: string
@@ -45,13 +46,7 @@ const initialLeaseFormValues: LeaseFormValues = {
 }
 export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
   render() {
-    const {
-      propertyId,
-      unitId,
-      tenantId,
-      isModalOpen,
-      toggleModal,
-    } = this.props
+    const { propertyId, unitId, tenantId, isModalOpen } = this.props
     const price = Dinero({ amount: 55000 })
       .add(Dinero({ amount: 34 }))
       .toFormat('$0,0.00')
@@ -60,9 +55,13 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
         initialValues={initialLeaseFormValues}
         onSubmit={(values: LeaseFormValues) => alert('todo')}>
         {({ values, setValues, resetForm }) => {
+          const closeModal = () => {
+            resetForm()
+            this.props.closeModal!()
+          }
           const { propertyId } = values
           return (
-            <Modal isOpen={isModalOpen} centered toggle={toggleModal}>
+            <Modal isOpen={isModalOpen} centered toggle={closeModal}>
               <ModalHeader>New Lease</ModalHeader>
               <ModalBody>
                 {isModalOpen ? (
@@ -244,12 +243,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                 ) : null}
               </ModalBody>
               <ModalFooter>
-                <Button
-                  onClick={() => {
-                    toggleModal!()
-                  }}>
-                  Cancel
-                </Button>
+                <Button onClick={closeModal}>Cancel</Button>
                 <Button color="info">Create Lease</Button>
               </ModalFooter>
             </Modal>
