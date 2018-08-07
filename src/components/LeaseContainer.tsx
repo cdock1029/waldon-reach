@@ -74,7 +74,11 @@ class LeaseContainer extends React.Component<
         </div>
         <div className={leaseContainerStyles}>
           <ListHeader label="Leases">
-            <NewLeaseForm />
+            <NewLeaseForm
+              propertyId={propertyId}
+              unitId={unitId}
+              tenantId={tenantId}
+            />
           </ListHeader>
           <Nav tabs className="bg-light">
             <NavItem>
