@@ -167,7 +167,7 @@ export class Document<T extends Doc> extends React.Component<
     if (this.props.transform) {
       data = this.props.transform(data)
     }
-    this.setState(() => ({ data }))
+    this.setState(() => ({ data, hasLoaded: true }))
   }
   render() {
     return this.props.children(this.state.data, this.state.hasLoaded)
