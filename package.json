@@ -2,6 +2,7 @@
   "name": "waldon-reach",
   "version": "0.1.0",
   "private": true,
+  "main": "src/index.html",
   "scripts": {
     "start": "parcel src/index.html",
     "prebuild": "npm run clean",
