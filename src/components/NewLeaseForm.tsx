@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react'
-import { Formik, Field, Form, FieldArray, FormikBag } from 'formik'
+import { Formik, Field, Form, FieldArray, FormikProps } from 'formik'
 // import Downshift from 'downshift'
 import Dinero from 'dinero.js'
 import { Collection, Document } from './FirestoreData'
@@ -81,7 +81,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
         initialValues={initialValues}
         onSubmit={(
           { propertyId, unitIds, tenantIds }: LeaseFormValues,
-          { resetForm },
+          { resetForm }: FormikProps<LeaseFormValues>,
         ) => {
           alert(
             JSON.stringify(
@@ -97,7 +97,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
           resetForm()
           this.props.closeModal!()
         }}>
-        {({ values, setValues, resetForm }) => {
+        {({ values, setValues, resetForm }: FormikProps<LeaseFormValues>) => {
           const closeModal = () => {
             resetForm()
             this.props.closeModal!()

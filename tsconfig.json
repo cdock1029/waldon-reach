@@ -7,8 +7,8 @@
     "allowSyntheticDefaultImports": true,
     "lib": ["dom", "es2017"],
     "skipLibCheck": true,
-    "outDir": "dist",
-    "rootDir": "./src",
+    "outDir": "./dist",
+    "rootDir": ".",
 
     "allowJs": true,
     "sourceMap": false,
@@ -21,6 +21,6 @@
     "baseUrl": ".",
     "types": ["node"]
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", ".cache", "tmp"]
+  "include": ["./src"],
+  "exclude": ["./node_modules", "./dist", "./.cache", "./tmp", "./firebase"]
 }

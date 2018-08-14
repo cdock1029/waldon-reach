@@ -1,5 +1,5 @@
 import React from 'react'
-import { Formik } from 'formik'
+import { Formik, FormikProps } from 'formik'
 import * as Yup from 'yup'
 import { newDoc } from '../lib/firebase'
 import {
@@ -22,6 +22,10 @@ interface Props {
   toggleModal?: () => void
 }
 
+interface NewUnitForm {
+  label: string
+}
+
 const unitValidationSchema = Yup.object().shape({
   label: Yup.string()
     .required()
@@ -31,12 +35,14 @@ const unitValidationSchema = Yup.object().shape({
 class NewUnitForm extends React.Component<Props> {
   render() {
     const { isModalOpen, toggleModal } = this.props
-    const initial: Pick<Unit, 'label'> = { label: '' }
     return (
       <Formik
-        initialValues={initial}
+        initialValues={{ label: '' }}
         validationSchema={unitValidationSchema}
-        onSubmit={(values, { setStatus, setSubmitting, resetForm }) => {
+        onSubmit={(
+          values: NewUnitForm,
+          { setStatus, setSubmitting, resetForm }: FormikProps<NewUnitForm>,
+        ) => {
           const { propertyId } = this.props
           const upperCased = { label: values.label.toUpperCase() }
           newDoc(`properties/${propertyId}/units`, upperCased)
@@ -61,7 +67,7 @@ class NewUnitForm extends React.Component<Props> {
           submitForm,
           setStatus,
           resetForm,
-        }) => {
+        }: FormikProps<NewUnitForm>) => {
           const doToggle = () => {
             toggleModal!()
             resetForm()

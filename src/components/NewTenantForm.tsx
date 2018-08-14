@@ -1,5 +1,5 @@
 import React from 'react'
-import { Formik } from 'formik'
+import { Formik, FormikProps } from 'formik'
 import * as Yup from 'yup'
 import { newDoc } from '../lib/firebase'
 import {
@@ -20,6 +20,11 @@ interface Props {
   isModalOpen?: boolean
   toggleModal?: () => void
 }
+interface TenantForm {
+  firstName: string
+  lastName: string
+  email: string
+}
 class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> {
   static schema = Yup.object().shape({
     firstName: Yup.string().label('First Name').required().min(2),
@@ -33,8 +38,8 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
         initialValues={{firstName: '', lastName: '', email: ''}}
         validationSchema={NewTenantForm.schema}
         onSubmit={(
-          { firstName, lastName, email },
-          { setSubmitting, setStatus, resetForm },
+          { firstName, lastName, email }: TenantForm,
+          { setSubmitting, setStatus, resetForm }: FormikProps<TenantForm>,
         ) => {
           newDoc('tenants', {
             firstName: firstName.toUpperCase(),
@@ -63,7 +68,7 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
           resetForm,
           status,
           setStatus
-        }) => {
+        }: FormikProps<TenantForm>) => {
           return (
             <Modal centered isOpen={isModalOpen} toggle={toggleModal}>
               <ModalHeader toggle={toggleModal}>New Tenant</ModalHeader>

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Formik } from 'formik'
+import { Formik, FormikProps } from 'formik'
 import * as Yup from 'yup'
 import { newDoc } from '../lib/firebase'
 import {
@@ -20,7 +20,9 @@ interface Props {
   isModalOpen?: boolean
   toggleModal?: () => void
 }
-
+interface PropertyForm {
+  name: ''
+}
 const validationSchema = Yup.object().shape({
   name: Yup.string()
     .required()
@@ -29,13 +31,14 @@ const validationSchema = Yup.object().shape({
 export class NewPropertyForm extends React.Component<Props> {
   render() {
     const { isModalOpen, toggleModal } = this.props
-    const initial: Pick<Property, 'name'> = { name: '' }
     return (
       <Formik
-        initialValues={initial}
+        initialValues={{ name: '' }}
         validationSchema={validationSchema}
-        onSubmit={(values, { setStatus, setSubmitting, resetForm }) => {
-          console.log('on submit:', { values })
+        onSubmit={(
+          values: PropertyForm,
+          { setStatus, setSubmitting, resetForm }: FormikProps<PropertyForm>,
+        ) => {
           newDoc('properties', { name: values.name.toUpperCase() })
             .then(() => {
               toggleModal!()
@@ -58,7 +61,7 @@ export class NewPropertyForm extends React.Component<Props> {
           submitForm,
           setStatus,
           resetForm,
-        }) => {
+        }: FormikProps<PropertyForm>) => {
           const doToggle = () => {
             toggleModal!()
             resetForm()
