@@ -30,49 +30,53 @@ export const pubSubMonthlyLateFeesRent = functions.pubsub
   .topic(PUB_SUB_TOPIC_MLFRJ)
   .onPublish(
     async (message: Message): Promise<boolean> => {
-      const batch = admin.firestore().batch()
+      // global job ref
       const jobRef = admin
         .firestore()
         .collection(MONTHLY_LATE_FEE_RENT_JOBS)
         .doc(/* today */ format(new Date(), 'YYYY-MM-dd'))
 
-      // initialize new Global Job Document
-      const jobDocument: JobDocument = {
-        createdAt: serverTimeStamp(),
-        startedAt: serverTimeStamp(),
-        subJobs: {},
-      }
+      const companiesRef = admin.firestore().collection('companies')
 
       // get all companies
-      const companies = await admin
+      const transactionPromise = admin
         .firestore()
-        .collection('companies')
-        .get()
+        .runTransaction(async trans => {
+          const companies = await trans.get(companiesRef)
+          // initialize new Global Job Document
+          const jobDocument: JobDocument = {
+            createdAt: serverTimeStamp(),
+            startedAt: serverTimeStamp(),
+            // subJobs: {},
+          }
+          trans.set(jobRef, jobDocument)
 
-      // for each Company, create Company job in sub-collection..
-      // and add details to sub-jobs field
-      companies.docs.forEach(({ id: companyId }) => {
-        const companySubJobRef = jobRef
-          .collection(COMPANY_JOBS_SUBCOLLECTION)
-          .doc(companyId)
+          // for each Company, create Company job in sub-collection..
+          // and add details to sub-jobs field
+          companies.docs.forEach(({ id: companyId }) => {
+            const companySubJobRef = jobRef
+              .collection(COMPANY_JOBS_SUBCOLLECTION)
+              .doc(companyId)
 
-        const companySubJobDoc: JobDocument = { createdAt: serverTimeStamp() }
-        jobDocument.subJobs![companyId] = companySubJobDoc
-
-        batch.create(companySubJobRef, companySubJobDoc)
-      })
+            const companySubJobDoc: JobDocument = {
+              createdAt: serverTimeStamp(),
+            }
+            trans.set(companySubJobRef, companySubJobDoc)
+            // add company sub-job to global job ref
+            trans.update(jobRef, { [`subJobs.${companyId}`]: companySubJobDoc })
+          })
+        })
 
       // TODO: to "finish", this job, create a trigger for "update", on *this* global
       // job document, which will be modified by each sub-task..
-      batch.create(jobRef, jobDocument)
       try {
-        await batch.commit()
+        await transactionPromise
         console.log(
-          'pubsub monthly lf/rent batch (create company jobs) success',
+          'pubsub monthly lf/rent transaction (create company jobs) success',
         )
         return true
       } catch (e) {
-        console.log('Batch error:', e)
+        console.log('Transaction error:', e)
         return false
       }
     },
@@ -90,6 +94,19 @@ export const jobMonthlyLateFeesCompany = functions.firestore
     ): Promise<boolean> => {
       const { companyId } = context.params
       const globalJobDocRef = companyJobSnap.ref.parent.parent
+      // all active leases..
+      // TODO: handle many many leases?
+      const companyLeasesRef = admin
+        .firestore()
+        .collection('companies')
+        .doc(companyId)
+        .collection('leases')
+        // status: ACTIVE | COLLECTIONS | INACTIVE
+        // we want !== INACTIVE (collections & active will get charged)
+        // so.. status < INACTIVE :D :) :S
+        // !!!! TODO: think about logic.
+        .where('status', '<', 'INACTIVE')
+
       if (!globalJobDocRef) {
         throw new Error(
           `Company job doc [${
@@ -100,72 +117,51 @@ export const jobMonthlyLateFeesCompany = functions.firestore
 
       // in a transaction, mark this companyJob as "started..."
       try {
-        const result = await admin.firestore().runTransaction(async trans => {
-          const globalJobSnap = await trans.get(globalJobDocRef!)
-          const globalSubJobs = (globalJobSnap.data()! as JobDocument).subJobs
+        const result = await admin
+          .firestore()
+          .runTransaction<{ alreadyStarted: boolean }>(async trans => {
+            const globalJobSnap = await trans.get(globalJobDocRef)
+            const startedAtField = `subJobs.${companyId}.startedAt`
 
-          // "createdAt" in parent, so not undefined
-          const subJob: JobDocument = globalSubJobs![companyId]!
-          if (subJob.startedAt) {
-            // job already started.
-            return Promise.resolve({ alreadyStarted: true })
-          }
-          subJob.startedAt = serverTimeStamp()
-          trans.update(globalJobDocRef, { subJobs: globalSubJobs })
-          return Promise.resolve({ alreadyStarted: false })
-        })
+            if (globalJobSnap.get(startedAtField)) {
+              // job already started.
+              return Promise.resolve({ alreadyStarted: true })
+            }
+
+            const companyLeases = await trans.get(companyLeasesRef)
+
+            trans.update(globalJobDocRef, {
+              [startedAtField]: serverTimeStamp(),
+            })
+
+            companyLeases.docs.forEach(({ id: leaseId }) => {
+              // creating lease-sub job
+              const leaseSubJobRef = companyJobSnap.ref
+                .collection(LEASE_JOB_SUBCOLLECTION)
+                .doc(leaseId)
+
+              const leaseSubJobDoc: JobDocument = {
+                createdAt: serverTimeStamp(),
+              }
+              trans.set(leaseSubJobRef, leaseSubJobDoc)
+              trans.update(companyJobSnap.ref, {
+                [`subJobs.${leaseId}`]: leaseSubJobDoc,
+              })
+            })
+
+            return Promise.resolve({ alreadyStarted: false })
+          })
         if (result.alreadyStarted) {
           console.log('already started')
           return false
         }
+        console.log('monthly lf/rent company batch (create lease jobs) success')
+        return true
       } catch (e) {
         console.error(
           `Error marking global MLFRJ > subjob started for company[${companyId}].`,
           e,
         )
-        return false
-      }
-      // now we can process this sub job..
-      const batch = admin.firestore().batch()
-
-      // get all active leases..
-      // TODO: what if this is thousands...
-      const companyLeases = await admin
-        .firestore()
-        .collection('companies')
-        .doc(companyId)
-        .collection('leases')
-        // status: ACTIVE | COLLECTIONS | INACTIVE
-        // we want !== INACTIVE (collections & active will get charged)
-        // so.. status < INACTIVE :D :) :S
-        // !!!! TODO: think about logic.
-        .where('status', '<', 'INACTIVE')
-        // .where('balance', '>', 0)
-        // oops we need all balances for rent?... hmmm
-        .get()
-
-      // ** We're the first ones here, so no contention over this field
-      // this "companyJob" just got started so it has no "subjobs"
-      // for each Lease, create Lease job in sub-collection..
-      // an add details to sub-jobs field
-      const companyJobDocSubJobs: SubJobs = {}
-      companyLeases.docs.forEach(({ id: leaseId }) => {
-        const leaseSubJobRef = companyJobSnap.ref
-          .collection(LEASE_JOB_SUBCOLLECTION)
-          .doc(leaseId)
-
-        const leaseSubJobDoc: JobDocument = { createdAt: serverTimeStamp() }
-        companyJobDocSubJobs[leaseId] = leaseSubJobDoc
-
-        batch.create(leaseSubJobRef, leaseSubJobDoc)
-      })
-      batch.update(companyJobSnap.ref, { subJobs: companyJobDocSubJobs })
-      try {
-        await batch.commit()
-        console.log('monthly lf/rent company batch (create lease jobs) success')
-        return true
-      } catch (e) {
-        console.log('Batch error:', e)
         return false
       }
     },
