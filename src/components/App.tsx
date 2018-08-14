@@ -13,13 +13,12 @@ import {
 } from 'reactstrap'
 import styled from 'react-emotion'
 import loadable from 'loadable-components'
-import Dash from '../pages/dash'
-import { AuthProvider, AuthConsumer as Auth } from './Auth'
-import { ZenProvider, ZenConsumer } from './Zen'
+import { app } from '../lib/firebase'
 
-// const Dash = loadable(() => import('../pages/dash'))
+const ZenProvider = loadable(() => import('./Zen').then(mod => mod.ZenProvider))
+const ZenConsumer = loadable(() => import('./Zen').then(mod => mod.ZenConsumer))
+const Dash = loadable(() => import('../pages/dash'))
 const Lease = loadable(() => import('../pages/lease'))
-const Login = loadable(() => import('../pages/login'))
 const Qbo = loadable(() => import('../pages/qbo').then(mod => mod.Qbo))
 
 class Header extends React.Component<{}, { isOpen: boolean }> {
@@ -27,6 +26,12 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
     isOpen: false,
   }
   toggle = () => this.setState(({ isOpen }) => ({ isOpen: !isOpen }))
+  signOut = (e: any) => {
+    e.preventDefault()
+    app()
+      .auth()
+      .signOut()
+  }
   render() {
     return (
       <Navbar color="dark" dark expand="md" fixed="top">
@@ -45,29 +50,18 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
                 )}
               </ZenConsumer>
             </Form>
-            <Auth>
-              {auth =>
-                auth.user ? (
-                  <React.Fragment>
-                    <NavItem>
-                      <NavLink tag={Link} to="/qbo">
-                        QBO
-                      </NavLink>
-                    </NavItem>
-                    <NavItem>
-                      <NavLink
-                        href="#"
-                        onClick={(e: any) => {
-                          e.preventDefault()
-                          auth.signOut()
-                        }}>
-                        Sign Out
-                      </NavLink>
-                    </NavItem>
-                  </React.Fragment>
-                ) : null
-              }
-            </Auth>
+            <React.Fragment>
+              <NavItem>
+                <NavLink tag={Link} to="/qbo">
+                  QBO
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink href="#" onClick={this.signOut}>
+                  Sign Out
+                </NavLink>
+              </NavItem>
+            </React.Fragment>
           </Nav>
         </Collapse>
       </Navbar>
@@ -78,23 +72,30 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
 class App extends React.Component {
   render() {
     return (
-      <AuthProvider claims={['activeCompany']}>
-        <BrowserRouter>
-          <ZenProvider>
-            <AppContainer>
-              <Login />
-              <Header />
-              <Main>
-                <Switch>
-                  <Route path="/" exact component={Dash} />
-                  <Route path="/lease" component={Lease} />
-                  <Route path="/qbo" component={Qbo} />
-                </Switch>
-              </Main>
-            </AppContainer>
-          </ZenProvider>
-        </BrowserRouter>
-      </AuthProvider>
+      // <AuthProvider claims={['activeCompany']}>
+      //   <AuthConsumer>
+      //     {({ user }) =>
+      //       user ? (
+      <BrowserRouter>
+        <ZenProvider>
+          <AppContainer>
+            <Header />
+            <Main>
+              <Switch>
+                <Route path="/" exact component={Dash} />
+                <Route path="/lease" component={Lease} />
+                <Route path="/qbo" component={Qbo} />
+              </Switch>
+            </Main>
+          </AppContainer>
+        </ZenProvider>
+      </BrowserRouter>
+      //       ) : (
+      //         <Login />
+      //       )
+      //     }
+      //   </AuthConsumer>
+      // </AuthProvider>
     )
   }
 }

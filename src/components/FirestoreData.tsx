@@ -1,4 +1,4 @@
-import { firestore, auth } from '../lib/firebase'
+import { app, getClaim } from '../lib/firebase'
 import React from 'react'
 
 export interface CollectionProps<T extends Doc> {
@@ -33,16 +33,17 @@ export class Collection<T extends Doc> extends React.Component<
       hasLoaded: false,
     }
   }
-  unsubAuth: firebase.Unsubscribe = () => {}
+  // unsubAuth: firebase.Unsubscribe = () => {}
   unsubData: firebase.Unsubscribe = () => {}
   componentDidMount() {
     console.log('collection component did mount:', { props: this.props })
-    this.setupAuth()
+    // this.setupAuth()
+    this.setupData()
   }
   componentWillUnmount() {
     console.log('coll comp unmount:', this.props.authPath)
     this.unsubData()
-    this.unsubAuth()
+    // this.unsubAuth()
   }
   componentDidUpdate(prevProps: CollectionProps<T>) {
     const { where: prevWhere } = prevProps
@@ -63,31 +64,27 @@ export class Collection<T extends Doc> extends React.Component<
       this.setupData()
     }
   }
-  setupAuth = () => {
-    this.unsubAuth = auth.onAuthStateChanged(user => {
-      this.unsubData()
-      this.setupData()
-    })
-  }
+  // setupAuth = () => {
+  //   this.unsubAuth = app()auth().onAuthStateChanged(user => {
+  //     this.unsubData()
+  //     this.setupData()
+  //   })
+  // }
   setupData = async () => {
-    if (!auth.currentUser) {
-      this.setState(({ data }) => (data.length ? { data: [] } : null))
-    } else {
-      const { authPath, orderBy, where } = this.props
-      const activeCompany = await auth.activeCompany()
-      let collectionRef: firebase.firestore.Query = firestore.collection(
-        `companies/${activeCompany}/${authPath}`,
-      )
-      if (where) {
-        where.forEach(([fp, filtOp, val]) => {
-          collectionRef = collectionRef.where(fp, filtOp, val)
-        })
-      }
-      if (orderBy) {
-        collectionRef = collectionRef.orderBy(orderBy.field, orderBy.direction)
-      }
-      this.unsubData = collectionRef.onSnapshot(this.handleSnap)
+    const { authPath, orderBy, where } = this.props
+    const activeCompany = getClaim('activeCompany') // await auth().activeCompany()
+    let collectionRef: firebase.firestore.Query = app()
+      .firestore()
+      .collection(`companies/${activeCompany}/${authPath}`)
+    if (where) {
+      where.forEach(([fp, filtOp, val]) => {
+        collectionRef = collectionRef.where(fp, filtOp, val)
+      })
     }
+    if (orderBy) {
+      collectionRef = collectionRef.orderBy(orderBy.field, orderBy.direction)
+    }
+    this.unsubData = collectionRef.onSnapshot(this.handleSnap)
   }
   handleSnap = (snap: firebase.firestore.QuerySnapshot) => {
     let data: T[] = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as T))
@@ -122,14 +119,15 @@ export class Document<T extends Doc> extends React.Component<
       hasLoaded: false,
     }
   }
-  unsubAuth: firebase.Unsubscribe = () => {}
+  // unsubAuth: firebase.Unsubscribe = () => {}
   unsubData: firebase.Unsubscribe = () => {}
   componentDidMount() {
-    this.setupAuth()
+    // this.setupAuth()
+    this.setupData()
   }
   componentWillUnmount() {
     this.unsubData()
-    this.unsubAuth()
+    // this.unsubAuth()
   }
   componentDidUpdate(prevProps: DocumentProps<T>) {
     if (prevProps.authPath !== this.props.authPath) {
@@ -144,23 +142,20 @@ export class Document<T extends Doc> extends React.Component<
       this.setupData()
     }
   }
-  setupAuth = () => {
-    this.unsubAuth = auth.onAuthStateChanged(user => {
-      this.unsubData()
-      this.setupData()
-    })
-  }
+  // setupAuth = () => {
+  //   this.unsubAuth = auth().onAuthStateChanged(user => {
+  //     this.unsubData()
+  //     this.setupData()
+  //   })
+  // }
   setupData = async () => {
     // console.log('setting up data', { currentUser: auth.currentUser })
-    if (!auth.currentUser) {
-      this.setState(({ data }) => (data ? { data: null } : null))
-    } else {
-      const activeCompany = await auth.activeCompany()
-      const documentRef = firestore.doc(
-        `companies/${activeCompany}/${this.props.authPath}`,
-      )
-      this.unsubData = documentRef.onSnapshot(this.handleSnap)
-    }
+
+    const activeCompany = getClaim('activeCompany') //await auth().activeCompany()
+    const documentRef = app()
+      .firestore()
+      .doc(`companies/${activeCompany}/${this.props.authPath}`)
+    this.unsubData = documentRef.onSnapshot(this.handleSnap)
   }
   handleSnap = (snap: firebase.firestore.DocumentSnapshot) => {
     let data: T = { id: snap.id, ...snap.data() } as T

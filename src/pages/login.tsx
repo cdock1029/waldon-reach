@@ -9,82 +9,81 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
+  Label,
 } from 'reactstrap'
-import { AuthConsumer as Auth } from '../components/Auth'
+import { app } from '../lib/firebase'
 
 interface LoginState {
   error?: string
+  isModalOpen: boolean
 }
 class Login extends React.Component<{}, LoginState> {
-  state: LoginState = {}
+  state: LoginState = {
+    isModalOpen: true,
+  }
   clearError = () =>
     this.setState(
       ({ error }: Pick<LoginState, 'error'>) =>
         error ? { error: undefined } : null,
     )
-  handleSubmit = (
-    e: any,
-    signIn: (email: string, password: string) => Promise<any>,
-  ) => {
+  handleSubmit = (e: any) => {
     e.preventDefault()
     const {
       email: { value: email },
       password: { value: password },
     } = e.target.elements
-    console.log({ email, password })
-    signIn(email, password).catch(error => {
-      this.setState({ error: error.message })
-    })
+    app()
+      .auth()
+      .signInWithEmailAndPassword(email, password)
+      .then(() => this.setState({ isModalOpen: false }))
+      .catch(error => {
+        this.setState({ error: error.message })
+      })
   }
+  noop() {}
   render() {
-    const error = this.state.error
+    const { error, isModalOpen } = this.state
     return (
-      <Auth>
-        {auth => {
-          return (
-            <Modal className={loginStyle} isOpen={!auth.user} toggle={() => {}}>
-              <ModalHeader className="title">Login</ModalHeader>
-              <ModalBody>
-                <Form
-                  onSubmit={e => this.handleSubmit(e, auth.signIn)}
-                  method="post"
-                  onFocus={this.clearError}>
-                  {error && (
-                    <FormGroup>
-                      <FormText color="danger">{error}</FormText>
-                    </FormGroup>
-                  )}
-                  <FormGroup>
-                    {/* <Label htmlFor="email">Email</Label> */}
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="Email"
-                      required
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    {/* <Label htmlFor="password">Password</Label> */}
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="Password"
-                      required
-                    />
-                  </FormGroup>
-                  <FormGroup>
-                    <Button block className="btn-tenants">
-                      Log In
-                    </Button>
-                  </FormGroup>
-                </Form>
-              </ModalBody>
-            </Modal>
-          )
-        }}
-      </Auth>
+      <div>
+        <Modal className={loginStyle} isOpen={isModalOpen} toggle={this.noop}>
+          <ModalHeader className="title">Login</ModalHeader>
+          <ModalBody>
+            <Form
+              onSubmit={this.handleSubmit}
+              method="post"
+              onFocus={this.clearError}>
+              <FormGroup>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  placeholder="Email"
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  placeholder="Password"
+                  required
+                />
+              </FormGroup>
+              <FormGroup>
+                <Button block className="btn-tenants">
+                  Log In
+                </Button>
+              </FormGroup>
+              <FormGroup>
+                <FormText color="danger">{error || '\u00A0'}</FormText>
+              </FormGroup>
+            </Form>
+          </ModalBody>
+        </Modal>
+      </div>
     )
   }
 }
