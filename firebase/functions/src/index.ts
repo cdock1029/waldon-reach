@@ -1,28 +1,28 @@
-import admin from 'firebase-admin'
-// import { Request, Response } from 'firebase-functions'
+import glob from 'glob'
 
-admin.initializeApp()
-admin.firestore().settings({ timestampsInSnapshots: true })
+const files = glob.sync('./**/*.function.js', { cwd: __dirname })
 
-function wasCalled(functionName: string): boolean {
-  return (
-    !process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === functionName
-  )
+for (const file of files) {
+  const functionName = file
+    .split('/')
+    .pop()!
+    .slice(0, -12) // remove '.function.js'
+  if (
+    !process.env.FUNCTION_NAME ||
+    process.env.FUNCTION_NAME === functionName
+  ) {
+    exports[functionName] = require(file)
+  }
 }
 
-if (wasCalled('pubSubMonthlyLateFeesRent')) {
-  const monthlyJob = require('./monthly-job')
-  exports.pubSubMonthlyLateFeesRent = monthlyJob.pubSubMonthlyLateFeesRent
-  exports.jobMonthlyLateFeesCompany = monthlyJob.jobMonthlyLateFeesCompany
-  exports.jobMonthlyLateFeesRentLease = monthlyJob.jobMonthlyLateFeesRentLease
-}
+// import { wasCalled } from './deps'
 
-if (wasCalled('qbo')) {
-  exports.qbo = require('./qbo')
-}
-if (wasCalled('getAlgoliaSecuredKey')) {
-  exports.getAlgoliaSecuredKey = require('./aloglia').getAlgoliaSecuredKey
-}
+// if (wasCalled('pubSubMonthlyLateFeesRent')) {
+//   const monthlyJob = require('./monthly-job')
+//   exports.pubSubMonthlyLateFeesRent = monthlyJob.pubSubMonthlyLateFeesRent
+//   exports.jobMonthlyLateFeesCompany = monthlyJob.jobMonthlyLateFeesCompany
+//   exports.jobMonthlyLateFeesRentLease = monthlyJob.jobMonthlyLateFeesRentLease
+// }
 
 /*
 if (wasCalled('onPropertyCreated')) {

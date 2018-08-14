@@ -1,10 +1,11 @@
 import React, { Fragment } from 'react'
 import { Formik, Field, Form, FieldArray, FormikBag } from 'formik'
-import Downshift from 'downshift'
+// import Downshift from 'downshift'
 import Dinero from 'dinero.js'
 import { Collection, Document } from './FirestoreData'
 import Yup from 'yup'
 import { newDoc } from '../lib/firebase'
+import { BooleanValue } from 'react-values'
 import {
   Alert,
   FormGroup,
@@ -124,83 +125,42 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                         console.log({ data, inputValue, authPath })
                         return (
                           <Fragment>
-                            <Downshift
-                              inputValue={inputValue}
-                              itemToString={(p: Property) => (p ? p.name : '')}
-                              onChange={(selection: Property) => {
-                                setValues({
-                                  ...values,
-                                  propertyId: selection.id,
-                                })
-                              }}>
+                            <BooleanValue>
                               {({
-                                getMenuProps,
-                                getRootProps,
-                                toggleMenu,
-                                getInputProps,
-                                getItemProps,
-                                getLabelProps,
-                                openMenu,
-                                closeMenu,
-                                isOpen,
-                                inputValue,
-                                highlightedIndex,
-                                selectedItem,
-                              }) => {
-                                console.log({
-                                  ...values,
-                                  inputValue,
-                                  highlightedIndex,
-                                })
-                                return (
-                                  <div>
-                                    <Dropdown
-                                      isOpen={isOpen}
-                                      toggle={toggleNoop}>
-                                      <DropdownToggle
-                                        tag="div"
-                                        data-toggle="dropdown"
-                                        aria-expanded={isOpen}>
-                                        <FormGroup>
-                                          <Label {...getLabelProps()}>
-                                            Enter a Property
-                                          </Label>
-                                          <Input
-                                            {...getInputProps({
-                                              disabled: Boolean(
-                                                this.props.propertyId,
+                                value: isOpen,
+                                toggle,
+                              }: {
+                                value: boolean
+                                toggle: () => any
+                              }) => (
+                                <Dropdown isOpen={isOpen} toggle={toggle}>
+                                  <DropdownToggle
+                                    tag="div"
+                                    data-toggle="dropdown"
+                                    aria-expanded={isOpen}>
+                                    <FormGroup>
+                                      <Label>Enter a Property</Label>
+                                      {/* <Input /> */}
+                                      <span>todo</span>
+                                    </FormGroup>
+                                  </DropdownToggle>
+                                  {Array.isArray(data) ? (
+                                    <DropdownMenu>
+                                      {data
+                                        .filter(
+                                          property =>
+                                            !inputValue ||
+                                            property.name
+                                              .toUpperCase()
+                                              .includes(
+                                                inputValue.toUpperCase(),
                                               ),
-                                              onFocus: () => openMenu(),
-                                              onBlur: () => closeMenu(),
-                                              onChange: () => {
-                                                if (values.propertyId) {
-                                                  console.log('resetting!')
-                                                  resetForm()
-                                                }
-                                              },
-                                            })}
-                                          />
-                                        </FormGroup>
-                                      </DropdownToggle>
-                                      {Array.isArray(data) ? (
-                                        <DropdownMenu>
-                                          {data
-                                            .filter(
-                                              property =>
-                                                !inputValue ||
-                                                property.name
-                                                  .toUpperCase()
-                                                  .includes(
-                                                    inputValue.toUpperCase(),
-                                                  ),
-                                            )
-                                            .map((item, index) => (
-                                              <DropdownItem
-                                                {...getItemProps({
-                                                  key: item.id,
-                                                  index,
-                                                  item,
-                                                  style: {
+                                        )
+                                        .map((item, index) => (
+                                          <DropdownItem
+                                            key={item.id}
+                                            style={
+                                              undefined /* {
                                                     backgroundColor:
                                                       highlightedIndex === index
                                                         ? 'lightgray'
@@ -209,110 +169,109 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                                                       selectedItem === item
                                                         ? 'bold'
                                                         : 'normal',
-                                                  },
-                                                })}>
-                                                {item.name}
-                                              </DropdownItem>
-                                            ))}
-                                        </DropdownMenu>
-                                      ) : null}
-                                    </Dropdown>
-                                  </div>
-                                )
-                              }}
-                            </Downshift>
+                                                  }*/
+                                            }>
+                                            {item.name}
+                                          </DropdownItem>
+                                        ))}
+                                    </DropdownMenu>
+                                  ) : null}
+                                </Dropdown>
+                              )}
+                            </BooleanValue>
                             {propertyId ? (
-                              <Collection<Unit>
-                                key={propertyId}
-                                authPath={`properties/${propertyId}/units`}>
-                                {(units, hasLoaded) => (
-                                  <Downshift
-                                    onChange={(selection: Unit) => {
-                                      setValues({
-                                        ...values,
-                                        unitIds: values.unitIds.add(
-                                          selection.id,
-                                        ),
-                                      })
-                                    }}
-                                    itemToString={(u: Unit) =>
-                                      u ? u.label : ''
-                                    }>
-                                    {({
-                                      getInputProps,
-                                      getItemProps,
-                                      getLabelProps,
-                                      openMenu,
-                                      closeMenu,
-                                      isOpen,
-                                      inputValue,
-                                      highlightedIndex,
-                                      selectedItem,
-                                    }) => (
-                                      <div>
-                                        <Dropdown
-                                          isOpen={isOpen}
-                                          toggle={toggleNoop}>
-                                          <DropdownToggle
-                                            tag="div"
-                                            data-toggle="dropdown"
-                                            aria-expanded={isOpen}>
-                                            <FormGroup>
-                                              <Label {...getLabelProps()}>
-                                                Enter a Unit
-                                              </Label>
-                                              <Input
-                                                {...getInputProps({
-                                                  onFocus: () => openMenu(),
-                                                  onBlur: () => closeMenu(),
-                                                })}
-                                              />
-                                            </FormGroup>
-                                          </DropdownToggle>
-                                          <DropdownMenu
-                                            css={{
-                                              maxHeight: '10em',
-                                              overflowY: 'scroll',
-                                            }}>
-                                            {units
-                                              .filter(
-                                                unit =>
-                                                  !inputValue ||
-                                                  unit.label
-                                                    .toUpperCase()
-                                                    .includes(
-                                                      inputValue.toUpperCase(),
-                                                    ),
-                                              )
-                                              .map((item, index) => (
-                                                <DropdownItem
-                                                  {...getItemProps({
-                                                    key: item.id,
-                                                    index,
-                                                    item,
-                                                    style: {
-                                                      backgroundColor:
-                                                        highlightedIndex ===
-                                                        index
-                                                          ? 'lightgray'
-                                                          : 'white',
-                                                      fontWeight:
-                                                        selectedItem === item
-                                                          ? 'bold'
-                                                          : 'normal',
-                                                    },
-                                                  })}>
-                                                  {item.label}
-                                                </DropdownItem>
-                                              ))}
-                                          </DropdownMenu>
-                                        </Dropdown>
-                                      </div>
-                                    )}
-                                  </Downshift>
-                                )}
-                              </Collection>
-                            ) : null}
+                              <h3>todo</h3>
+                            ) : // <Collection<Unit>
+                            //   key={propertyId}
+                            //   authPath={`properties/${propertyId}/units`}>
+                            //   {(units, hasLoaded) => (
+                            //     <Downshift
+                            //       onChange={(selection: Unit) => {
+                            //         setValues({
+                            //           ...values,
+                            //           unitIds: values.unitIds.add(
+                            //             selection.id,
+                            //           ),
+                            //         })
+                            //       }}
+                            //       itemToString={(u: Unit) =>
+                            //         u ? u.label : ''
+                            //       }>
+                            //       {({
+                            //         getInputProps,
+                            //         getItemProps,
+                            //         getLabelProps,
+                            //         openMenu,
+                            //         closeMenu,
+                            //         isOpen,
+                            //         inputValue,
+                            //         highlightedIndex,
+                            //         selectedItem,
+                            //       }) => (
+                            //         <div>
+                            //           <Dropdown
+                            //             isOpen={isOpen}
+                            //             toggle={toggleNoop}>
+                            //             <DropdownToggle
+                            //               tag="div"
+                            //               data-toggle="dropdown"
+                            //               aria-expanded={isOpen}>
+                            //               <FormGroup>
+                            //                 <Label {...getLabelProps()}>
+                            //                   Enter a Unit
+                            //                 </Label>
+                            //                 <Input
+                            //                   {...getInputProps({
+                            //                     onFocus: () => openMenu(),
+                            //                     onBlur: () => closeMenu(),
+                            //                   })}
+                            //                 />
+                            //               </FormGroup>
+                            //             </DropdownToggle>
+                            //             <DropdownMenu
+                            //               css={{
+                            //                 maxHeight: '10em',
+                            //                 overflowY: 'scroll',
+                            //               }}>
+                            //               {units
+                            //                 .filter(
+                            //                   unit =>
+                            //                     !inputValue ||
+                            //                     unit.label
+                            //                       .toUpperCase()
+                            //                       .includes(
+                            //                         inputValue.toUpperCase(),
+                            //                       ),
+                            //                 )
+                            //                 .map((item, index) => (
+                            //                   <DropdownItem
+                            //                     {...getItemProps({
+                            //                       key: item.id,
+                            //                       index,
+                            //                       item,
+                            //                       style: {
+                            //                         backgroundColor:
+                            //                           highlightedIndex ===
+                            //                           index
+                            //                             ? 'lightgray'
+                            //                             : 'white',
+                            //                         fontWeight:
+                            //                           selectedItem === item
+                            //                             ? 'bold'
+                            //                             : 'normal',
+                            //                       },
+                            //                     })}>
+                            //                     {item.label}
+                            //                   </DropdownItem>
+                            //                 ))}
+                            //             </DropdownMenu>
+                            //           </Dropdown>
+                            //         </div>
+                            //       )}
+                            //     </Downshift>
+                            //   )}
+                            // </Collection>
+                            null}
                           </Fragment>
                         )
                       }}
@@ -321,86 +280,87 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                   <Collection<Tenant> authPath="tenants">
                     {(tenants, hasLoaded) => {
                       return (
-                        <Downshift
-                          onChange={(selection: Tenant) => {
-                            setValues({
-                              ...values,
-                              tenantIds: values.tenantIds.add(selection.id),
-                            })
-                          }}
-                          itemToString={(t: Tenant) =>
-                            t ? `${t.lastName}, ${t.firstName}` : ''
-                          }>
-                          {({
-                            getInputProps,
-                            getItemProps,
-                            getLabelProps,
-                            openMenu,
-                            closeMenu,
-                            isOpen,
-                            inputValue,
-                            highlightedIndex,
-                            selectedItem,
-                          }) => (
-                            <div>
-                              <Dropdown isOpen={isOpen} toggle={toggleNoop}>
-                                <DropdownToggle
-                                  tag="div"
-                                  data-toggle="dropdown"
-                                  aria-expanded={isOpen}>
-                                  <FormGroup>
-                                    <Label {...getLabelProps()}>
-                                      Enter a Tenant
-                                    </Label>
-                                    <Input
-                                      {...getInputProps({
-                                        onFocus: () => openMenu(),
-                                        onBlur: () => closeMenu(),
-                                      })}
-                                    />
-                                  </FormGroup>
-                                </DropdownToggle>
-                                <DropdownMenu>
-                                  {tenants
-                                    .filter(tenant => {
-                                      const inValUpper = inputValue
-                                        ? inputValue.toUpperCase()
-                                        : ''
-                                      return (
-                                        !inValUpper ||
-                                        tenant.firstName
-                                          .toUpperCase()
-                                          .includes(inValUpper) ||
-                                        tenant.lastName
-                                          .toUpperCase()
-                                          .includes(inValUpper)
-                                      )
-                                    })
-                                    .map((item, index) => (
-                                      <DropdownItem
-                                        {...getItemProps({
-                                          key: item.id,
-                                          index,
-                                          item,
-                                          style: {
-                                            backgroundColor:
-                                              highlightedIndex === index
-                                                ? 'lightgray'
-                                                : 'white',
-                                            fontWeight:
-                                              selectedItem === item
-                                                ? 'bold'
-                                                : 'normal',
-                                          },
-                                        })}>
-                                        {`${item.lastName}, ${item.firstName}`}
-                                      </DropdownItem>
-                                    ))}
-                                </DropdownMenu>
-                              </Dropdown>
-                            </div>
-                          )}
-                        </Downshift>
+                        <h2>todo</h2>
+                        // <Downshift
+                        //   onChange={(selection: Tenant) => {
+                        //     setValues({
+                        //       ...values,
+                        //       tenantIds: values.tenantIds.add(selection.id),
+                        //     })
+                        //   }}
+                        //   itemToString={(t: Tenant) =>
+                        //     t ? `${t.lastName}, ${t.firstName}` : ''
+                        //   }>
+                        //   {({
+                        //     getInputProps,
+                        //     getItemProps,
+                        //     getLabelProps,
+                        //     openMenu,
+                        //     closeMenu,
+                        //     isOpen,
+                        //     inputValue,
+                        //     highlightedIndex,
+                        //     selectedItem,
+                        //   }) => (
+                        //     <div>
+                        //       <Dropdown isOpen={isOpen} toggle={toggleNoop}>
+                        //         <DropdownToggle
+                        //           tag="div"
+                        //           data-toggle="dropdown"
+                        //           aria-expanded={isOpen}>
+                        //           <FormGroup>
+                        //             <Label {...getLabelProps()}>
+                        //               Enter a Tenant
+                        //             </Label>
+                        //             <Input
+                        //               {...getInputProps({
+                        //                 onFocus: () => openMenu(),
+                        //                 onBlur: () => closeMenu(),
+                        //               })}
+                        //             />
+                        //           </FormGroup>
+                        //         </DropdownToggle>
+                        //         <DropdownMenu>
+                        //           {tenants
+                        //             .filter(tenant => {
+                        //               const inValUpper = inputValue
+                        //                 ? inputValue.toUpperCase()
+                        //                 : ''
+                        //               return (
+                        //                 !inValUpper ||
+                        //                 tenant.firstName
+                        //                   .toUpperCase()
+                        //                   .includes(inValUpper) ||
+                        //                 tenant.lastName
+                        //                   .toUpperCase()
+                        //                   .includes(inValUpper)
+                        //               )
+                        //             })
+                        //             .map((item, index) => (
+                        //               <DropdownItem
+                        //                 {...getItemProps({
+                        //                   key: item.id,
+                        //                   index,
+                        //                   item,
+                        //                   style: {
+                        //                     backgroundColor:
+                        //                       highlightedIndex === index
+                        //                         ? 'lightgray'
+                        //                         : 'white',
+                        //                     fontWeight:
+                        //                       selectedItem === item
+                        //                         ? 'bold'
+                        //                         : 'normal',
+                        //                   },
+                        //                 })}>
+                        //                 {`${item.lastName}, ${item.firstName}`}
+                        //               </DropdownItem>
+                        //             ))}
+                        //         </DropdownMenu>
+                        //       </Dropdown>
+                        //     </div>
+                        //   )}
+                        // </Downshift>
                       )
                     }}
                   </Collection>

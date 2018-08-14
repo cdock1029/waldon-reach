@@ -1,5 +1,4 @@
-import * as functions from 'firebase-functions'
-import admin from 'firebase-admin'
+import { functions, admin } from './deps'
 import express from 'express'
 import QuickBooks from 'node-quickbooks'
 import axios from 'axios'
@@ -9,13 +8,12 @@ import bodyParser from 'body-parser'
 import qs from 'query-string'
 import Tokens from 'csrf'
 import doAsync from 'doasync'
-require('ejs')
-
-// tslint:disable-next-line:no-duplicate-imports
 import { /*app as adminApp, */ auth as adminAuth } from 'firebase-admin'
 // tslint:disable-next-line:no-duplicate-imports
 import { Request, Response, NextFunction } from 'express'
 type AuthRequest = Request & { user?: adminAuth.DecodedIdToken }
+
+require('ejs')
 
 const csrf = new Tokens()
 const cookieParser = require('cookie-parser')() // <-- why?
@@ -197,8 +195,9 @@ authRoutes.get('/hello', (req: AuthRequest, res) => {
   res.send(`Hello ${req.user!.uid}`)
 })
 
-function handleRequest(req: functions.Request, resp: functions.Response): void {
-  req.socket.setKeepAlive(true)
+function handleRequest(req: Request, resp: Response): void {
+  resp.setHeader('Access-Control-Max-Age', 86400)
+  resp.setHeader('connection', 'Keep-Alive')
   return app(req, resp)
 }
 
