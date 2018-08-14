@@ -1,12 +1,12 @@
 import React from 'react'
 import { Button } from 'reactstrap'
 import { SharedValue } from '../components/SharedValue'
-import { auth, functions } from '../lib/firebase'
+import { app } from '../lib/firebase'
 // import 'firebase/functions'
-const getAlgoliaSecuredKey = functions().httpsCallable('getAlgoliaSecuredKey')
-
+const getAlgoliaSecuredKey = app()
+  .functions()
+  .httpsCallable('getAlgoliaSecuredKey')
 declare const intuit: any
-
 // css class: .intuitPlatformConnectButton
 
 const AUTH_URL =
@@ -57,30 +57,33 @@ export class Qbo extends React.Component<
     this.setState(() => ({
       authCheck: { value: '', loading: true, time: '' },
     }))
-    auth!.currentUser!.getIdToken().then(token => {
-      const t0 = performance.now()
-      fetch(AUTH_URL, {
-        method: 'GET',
-        headers: new Headers({ Authorization: `Bearer ${token}` }),
+    app()
+      .auth()
+      .currentUser!.getIdToken()
+      .then(token => {
+        const t0 = performance.now()
+        fetch(AUTH_URL, {
+          method: 'GET',
+          headers: new Headers({ Authorization: `Bearer ${token}` }),
+        })
+          .then(res => res.text())
+          .then(text => {
+            const t1 = performance.now()
+            this.setState(() => ({
+              authCheck: {
+                value: text,
+                loading: false,
+                time: `${(t1 - t0).toFixed(1)} ms`,
+              },
+            }))
+          })
+          .catch(e => {
+            console.error(e)
+            this.setState(({ authCheck }) => ({
+              authCheck: { ...authCheck, value: e.message, loading: false },
+            }))
+          })
       })
-        .then(res => res.text())
-        .then(text => {
-          const t1 = performance.now()
-          this.setState(() => ({
-            authCheck: {
-              value: text,
-              loading: false,
-              time: `${(t1 - t0).toFixed(1)} ms`,
-            },
-          }))
-        })
-        .catch(e => {
-          console.error(e)
-          this.setState(({ authCheck }) => ({
-            authCheck: { ...authCheck, value: e.message, loading: false },
-          }))
-        })
-    })
   }
   handleCallable = async () => {
     this.setState(() => ({

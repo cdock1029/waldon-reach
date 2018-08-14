@@ -5,7 +5,7 @@
   "scripts": {
     "start": "parcel src/index.html",
     "prebuild": "npm run clean",
-    "build": "parcel build src/index.html --no-cache && cp src/robots.txt dist/",
+    "build": "parcel build src/index.html --no-cache && cp src/static/robots.txt dist/",
     "clean": "rm -rf .cache && rm -rf dist",
     "serve": "serve dist"
   },
@@ -36,7 +36,7 @@
     "react-static": "^6.0.0-beta.16",
     "react-static-plugin-emotion": "^1.0.6",
     "react-table": "^6.8.6",
-    "react-values": "^0.2.4",
+    "react-values": "^0.3.0",
     "reactstrap": "^6.3.0",
     "sass-loader": "^7.0.3",
     "src": "^1.1.2",
@@ -65,13 +65,13 @@
     "convert-tsconfig-paths-to-webpack-aliases": "^0.9.2",
     "parcel-bundler": "^1.9.7",
     "parcel-plugin-bundle-visualiser": "^1.1.2",
-    "parcel-plugin-sw-precache": "^0.5.2",
+    "parcel-plugin-sw-precache": "^1.0.1",
     "parcel-plugin-typescript": "^1.0.0",
     "react-snap": "^1.17.0",
-    "react-testing-library": "^4.1.3",
+    "react-testing-library": "^5.0.0",
     "serve": "^9.3.0",
     "ts-loader": "^4.4.2",
-    "typescript": "^2.9.2"
+    "typescript": "^3.0.1"
   },
   "browserslist": [
     "chrome 69"

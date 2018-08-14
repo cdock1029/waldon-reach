@@ -1,35 +1,32 @@
-import firebase, { firestore as Fs, auth as Au } from 'firebase/app'
+import firebase, { firestore as Fs } from 'firebase/app'
 import 'firebase/auth'
 import 'firebase/firestore'
 import 'firebase/functions'
-
 import config from './firebaseConfig'
 
-// interface Firestore {
-//   settings(param: {timestampsInSnapshots: boolean}) : void
-//   collection(path: string): any
-// }
-// interface FirebaseApp {
-//   firestore() : Firestore
-// }
-// interface Firebase {
-//   apps: any[]
-//   app(): FirebaseApp
-//   initializeApp(config: object) : FirebaseApp
-//   firestore() : Firestore
-// }
-
-// declare const firebase: any // Firebase
-
-export const app: any /* FirebaseApp*/ = firebase.apps.length
-  ? firebase.app()
-  : firebase.initializeApp(config)
-app.firestore().settings({ timestampsInSnapshots: true })
+let _app: firebase.app.App
+export const init = async () => {
+  _app = firebase.apps.length ? firebase.app() : firebase.initializeApp(config)
+  _app.firestore().settings({ timestampsInSnapshots: true })
+  try {
+    await _app
+      .firestore()
+      .enablePersistence()
+      .then(() => console.log('enabled!!'))
+  } catch (e) {
+    if (
+      !e.message.includes('Firestore has already been started and persistence')
+    ) {
+      console.log({ e1: e })
+    }
+  }
+}
+export const app: () => firebase.app.App = () => _app
 
 export const newDoc = async (collectionPath: string, data: Fs.DocumentData) => {
-  if (auth.currentUser) {
-    const activeCompany = await auth.activeCompany()
-    return app
+  if (app().auth().currentUser) {
+    const activeCompany = getClaim('activeCompany')
+    return app()
       .firestore()
       .collection(`companies/${activeCompany}/${collectionPath}`)
       .doc()
@@ -37,50 +34,27 @@ export const newDoc = async (collectionPath: string, data: Fs.DocumentData) => {
   }
 }
 
-const activeCompany = async () => {
-  if (!auth.currentUser) {
-    return undefined
-  }
-  const token = await auth.currentUser.getIdTokenResult()
-  return token.claims.activeCompany
-}
-const handler = {
-  get(target: any, prop: string) {
-    if (prop === 'activeCompany') {
-      return activeCompany
-    }
-    return target[prop]
-  },
-}
-
-type Auth = Au.Auth & {
-  activeCompany(): Promise<string | undefined>
-}
-
-export const auth: Auth = new Proxy(app.auth(), handler)
-export const firestore = firebase.firestore()
-export const functions = firebase.functions
-
+let _claims: { [key: string]: string } = {}
 export function onAuthStateChangedWithClaims(
   claimsKeys: string[],
   callback: (
-    result: { user: firebase.User | null; claims: { [key: string]: string } },
-  ) => any,
+    user: firebase.User | null,
+    claims: { [key: string]: string },
+  ) => void,
 ) {
-  return auth.onAuthStateChanged(async user => {
-    let claims = {}
-    if (user) {
-      const token = await user.getIdTokenResult()
-      claims = claimsKeys.reduce((acc, claim) => {
-        acc[claim] = token.claims[claim]
-        return acc
-      }, claims)
-    }
-    callback({ user, claims })
-  })
+  return app()
+    .auth()
+    .onAuthStateChanged(async user => {
+      let claims = {}
+      if (user) {
+        const token = await user.getIdTokenResult(true)
+        claims = claimsKeys.reduce((acc, claim) => {
+          acc[claim] = token.claims[claim]
+          return acc
+        }, claims)
+      }
+      _claims = claims
+      callback(user, claims)
+    })
 }
-// export const updateCompany = () => activeCompany.updateCompanyOnAuth()
-// export { firestore as Fs, auth as Auth } from 'firebase'
-// export { app as App } from 'firebase/app'
-
-// export { appTypes, authTypes, fsTypes }
+export const getClaim = (key: string) => _claims[key]

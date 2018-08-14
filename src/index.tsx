@@ -1,22 +1,19 @@
 import React from 'react'
 import { render } from 'react-dom'
-import { firestore } from './lib/firebase'
-import App from './components/App'
+import { init, onAuthStateChangedWithClaims } from './lib/firebase'
 import registerServiceWorker from './register-service-worker'
+import loadable from 'loadable-components'
+
+const App = loadable(() => import('./components/App'))
+const Login = loadable(() => import('./pages/login'))
+const root = document.getElementById('root')
 
 async function main() {
-  const root = document.getElementById('root')
-  try {
-    await firestore.enablePersistence()
-  } catch (e) {
-    if (
-      !e.message.includes('Firestore has already been started and persistence')
-    ) {
-      console.log({ e1: e })
-    }
-  } finally {
-    render(<App />, root)
-  }
+  await init()
+  onAuthStateChangedWithClaims(['activeCompany'], (user, claims) => {
+    // todo: render something else if no claims present
+    render(user ? <App /> : <Login />, root)
+  })
 }
 main()
 registerServiceWorker()
