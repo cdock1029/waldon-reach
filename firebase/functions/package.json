@@ -13,6 +13,7 @@
   "dependencies": {
     "@types/algoliasearch": "^3.27.5",
     "algoliasearch": "^3.30.0",
+    "array.prototype.flat": "^1.2.1",
     "axios": "^0.18.0",
     "body-parser": "^1.18.3",
     "cookie-parser": "^1.4.3",

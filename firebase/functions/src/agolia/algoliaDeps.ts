@@ -1,7 +1,7 @@
-import algoliaSearchDep, { Index } from 'algoliasearch'
+import algoliasearch, { Index } from 'algoliasearch'
 import { config } from '../deps'
 
-export const algoliasearch = algoliaSearchDep
+export default algoliasearch
 export const client = algoliasearch(
   config.algolia.app_id,
   config.algolia.admin_key,

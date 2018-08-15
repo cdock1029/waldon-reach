@@ -1,5 +1,8 @@
 import glob from 'glob'
 
+const flat = require('array.prototype.flat')
+flat.shim()
+
 const files = glob.sync('./**/*.function.js', { cwd: __dirname })
 
 for (const file of files) {

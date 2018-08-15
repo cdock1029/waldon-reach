@@ -1,5 +1,5 @@
 import { functions, config } from '../deps'
-import { client } from './deps'
+import { client } from './algoliaDeps'
 
 exports = module.exports = functions.https.onCall(
   (data: any, context): { key: string } => {

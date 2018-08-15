@@ -1,5 +1,5 @@
 import { functions } from '../../deps'
-import { index } from '../deps'
+import { index } from '../algoliaDeps'
 import { PROPERTY } from './deps'
 
 export const onPropertyUpdated = functions.firestore
