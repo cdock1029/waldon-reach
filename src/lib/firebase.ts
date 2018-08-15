@@ -47,7 +47,7 @@ export function onAuthStateChangedWithClaims(
     .onAuthStateChanged(async user => {
       let claims = {}
       if (user) {
-        const token = await user.getIdTokenResult(true)
+        const token = await user.getIdTokenResult()
         claims = claimsKeys.reduce((acc, claim) => {
           acc[claim] = token.claims[claim]
           return acc
