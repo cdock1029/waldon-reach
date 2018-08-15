@@ -1,13 +1,16 @@
 import React from 'react'
 import { Button } from 'reactstrap'
-import { SharedValue } from '../components/SharedValue'
+// import { SharedValue } from '../components/SharedValue'
 import { app } from '../lib/firebase'
-// import 'firebase/functions'
 const getAlgoliaSecuredKey = app()
   .functions()
   .httpsCallable('getAlgoliaSecuredKey')
+
+const uploadAllData = app()
+  .functions()
+  .httpsCallable('uploadAllData')
+
 declare const intuit: any
-// css class: .intuitPlatformConnectButton
 
 const AUTH_URL =
   'https://us-central1-wpmfirebaseproject.cloudfunctions.net/qbo/auth/hello'
@@ -17,6 +20,7 @@ class QboInternal extends React.Component<
   {
     authCheck: { value: string; loading: boolean; time: string }
     algoliaKey: { value: string; loading: boolean; time: string }
+    uploadAllData: { value: string; loading: boolean; time: string }
     pageLoaded: boolean
   }
 > {
@@ -24,6 +28,7 @@ class QboInternal extends React.Component<
     pageLoaded: false,
     authCheck: { value: '', loading: false, time: '' },
     algoliaKey: { value: '', loading: false, time: '' },
+    uploadAllData: { value: '', loading: false, time: '' },
   }
   componentDidMount() {
     console.log('componentDidMount qbo')
@@ -105,9 +110,33 @@ class QboInternal extends React.Component<
       console.log('*ERROR*:', e)
     }
   }
+  handleUploadClick = async () => {
+    this.setState(() => ({
+      uploadAllData: { value: '', loading: true, time: '' },
+    }))
+    const t0 = performance.now()
+    try {
+      const result = await uploadAllData()
+      const t1 = performance.now()
+      this.setState(() => ({
+        uploadAllData: {
+          value: JSON.stringify(result.data, null, 2),
+          loading: false,
+          time: `${(t1 - t0).toFixed(1)} ms`,
+        },
+      }))
+    } catch (e) {
+      console.log('*ERROR*:', e)
+    }
+  }
   render() {
-    const { pageLoaded, authCheck, algoliaKey } = this.state
-    console.log('render qbo:', { pageLoaded, authCheck, algoliaKey })
+    const { pageLoaded, authCheck, algoliaKey, uploadAllData } = this.state
+    console.log('render qbo:', {
+      pageLoaded,
+      authCheck,
+      algoliaKey,
+      uploadAllData,
+    })
     return (
       <div
         css={`
@@ -180,6 +209,22 @@ class QboInternal extends React.Component<
             </div>
           )}
           <button onClick={this.handleCallable}>Get Algolia Key</button>
+        </div>
+        <br />
+        <h3>Upload data to algolia</h3>
+        <div>
+          {uploadAllData.loading ? (
+            <h5>Uploading now...</h5>
+          ) : (
+            <div>
+              <p>Response:</p>
+              <pre> {uploadAllData.value}</pre>
+              <p>time: {uploadAllData.time}</p>
+            </div>
+          )}
+          <div>
+            <button onClick={this.handleUploadClick}>Start upload</button>
+          </div>
         </div>
       </div>
     )

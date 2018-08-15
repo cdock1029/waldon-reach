@@ -20,6 +20,7 @@ const ZenConsumer = loadable(() => import('./Zen').then(mod => mod.ZenConsumer))
 const Dash = loadable(() => import('../pages/dash'))
 const Lease = loadable(() => import('../pages/lease'))
 const Qbo = loadable(() => import('../pages/qbo'))
+const Search = loadable(() => import('../pages/search'))
 
 class Header extends React.Component<{}, { isOpen: boolean }> {
   state = {
@@ -44,24 +45,28 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
             <Form inline>
               <ZenConsumer>
                 {({ value, toggle }) => (
-                  <Button outline onClick={toggle}>
+                  <Button className="mx-2" size="sm" outline onClick={toggle}>
                     Zen is {value ? 'on' : 'off'}
                   </Button>
                 )}
               </ZenConsumer>
             </Form>
-            <React.Fragment>
-              <NavItem>
-                <NavLink tag={Link} to="/qbo">
-                  QBO
-                </NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink href="#" onClick={this.signOut}>
-                  Sign Out
-                </NavLink>
-              </NavItem>
-            </React.Fragment>
+            <NavItem>
+              <NavLink tag={Link} to="/search">
+                Search
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <NavLink tag={Link} to="/qbo">
+                QBO
+              </NavLink>
+            </NavItem>
+
+            <NavItem>
+              <NavLink href="#" onClick={this.signOut}>
+                Sign Out
+              </NavLink>
+            </NavItem>
           </Nav>
         </Collapse>
       </Navbar>
@@ -84,6 +89,7 @@ class App extends React.Component {
               <Switch>
                 <Route path="/" exact component={Dash} />
                 <Route path="/lease" component={Lease} />
+                <Route path="/search" component={Search} />
                 <Route path="/qbo" component={Qbo} />
               </Switch>
             </Main>
