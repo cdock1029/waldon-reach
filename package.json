@@ -6,7 +6,7 @@
   "scripts": {
     "start": "parcel src/index.html",
     "prebuild": "npm run clean",
-    "build": "parcel build src/index.html --no-cache && cp src/static/robots.txt dist/",
+    "build": "parcel build --no-source-maps --no-cache src/index.html && cp src/static/robots.txt dist/",
     "clean": "rm -rf .cache && rm -rf dist",
     "serve": "serve dist"
   },
