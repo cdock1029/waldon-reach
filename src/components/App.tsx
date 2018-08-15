@@ -19,7 +19,7 @@ const ZenProvider = loadable(() => import('./Zen').then(mod => mod.ZenProvider))
 const ZenConsumer = loadable(() => import('./Zen').then(mod => mod.ZenConsumer))
 const Dash = loadable(() => import('../pages/dash'))
 const Lease = loadable(() => import('../pages/lease'))
-const Qbo = loadable(() => import('../pages/qbo').then(mod => mod.Qbo))
+const Qbo = loadable(() => import('../pages/qbo'))
 
 class Header extends React.Component<{}, { isOpen: boolean }> {
   state = {

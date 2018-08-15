@@ -26,6 +26,7 @@ class QboInternal extends React.Component<
     algoliaKey: { value: '', loading: false, time: '' },
   }
   componentDidMount() {
+    console.log('componentDidMount qbo')
     const qbo = document.getElementById('qbo')
     if (!qbo) {
       console.log('not found, building..')
@@ -106,6 +107,7 @@ class QboInternal extends React.Component<
   }
   render() {
     const { pageLoaded, authCheck, algoliaKey } = this.state
+    console.log('render qbo:', { pageLoaded, authCheck, algoliaKey })
     return (
       <div
         css={`
@@ -134,7 +136,7 @@ class QboInternal extends React.Component<
           )}
         </div>
         <br />
-        <div>
+        {/* <div>
           <SharedValue<boolean> storageKey="qboBool">
             {({ value, set }) => {
               console.log({ value1: value })
@@ -165,7 +167,7 @@ class QboInternal extends React.Component<
               )
             }}
           </SharedValue>
-        </div>
+        </div> */}
         <br />
         <div>
           <label>Callable</label>
@@ -210,7 +212,7 @@ class QboErrorBoundary extends React.Component {
   }
 }
 
-export const Qbo = () => (
+export default () => (
   <QboErrorBoundary>
     <QboInternal />
   </QboErrorBoundary>
