@@ -12,7 +12,7 @@ declare const intuit: any
 const AUTH_URL =
   'https://us-central1-wpmfirebaseproject.cloudfunctions.net/qbo/auth/hello'
 
-export class Qbo extends React.Component<
+class QboInternal extends React.Component<
   {},
   {
     authCheck: { value: string; loading: boolean; time: string }
@@ -183,3 +183,35 @@ export class Qbo extends React.Component<
     )
   }
 }
+
+class QboErrorBoundary extends React.Component {
+  state: any = {
+    error: null,
+    errorInfo: null,
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    this.setState({ error, errorInfo })
+  }
+  render() {
+    const { error, errorInfo } = this.state
+    if (error) {
+      console.log({ error })
+      return (
+        <div>
+          <pre>
+            There was an error:
+            {error.toString()}
+            {errorInfo.componentStack}
+          </pre>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
+export const Qbo = () => (
+  <QboErrorBoundary>
+    <QboInternal />
+  </QboErrorBoundary>
+)
