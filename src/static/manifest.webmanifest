@@ -4,17 +4,17 @@
   "description": "Simple property management app",
   "icons": [
     {
-      "src": "http://res.cloudinary.com/idaeo/image/upload/wpm/W.png",
+      "src": "https://res.cloudinary.com/idaeo/image/upload/wpm/W.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "http://res.cloudinary.com/idaeo/image/upload/w_256/wpm/W.png",
+      "src": "https://res.cloudinary.com/idaeo/image/upload/w_256/wpm/W.png",
       "sizes": "256x256",
       "type": "image/png"
     },
     {
-      "src": "http://res.cloudinary.com/idaeo/image/upload/w_32/wpm/W.png",
+      "src": "https://res.cloudinary.com/idaeo/image/upload/w_32/wpm/W.png",
       "sizes": "32x32",
       "type": "image/png"
     }
