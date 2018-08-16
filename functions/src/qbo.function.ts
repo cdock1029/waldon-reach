@@ -1,4 +1,4 @@
-import { functions, admin } from './deps'
+import { functions, admin } from './globalDeps'
 import express from 'express'
 import QuickBooks from 'node-quickbooks'
 import axios from 'axios'

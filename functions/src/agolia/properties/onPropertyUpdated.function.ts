@@ -1,4 +1,4 @@
-import { functions } from '../../deps'
+import { functions } from '../../globalDeps'
 import { index } from '../algoliaDeps'
 import { PROPERTY } from './deps'
 

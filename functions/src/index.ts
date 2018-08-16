@@ -18,8 +18,6 @@ for (const file of files) {
   }
 }
 
-// import { wasCalled } from './deps'
-
 // if (wasCalled('pubSubMonthlyLateFeesRent')) {
 //   const monthlyJob = require('./monthly-job')
 //   exports.pubSubMonthlyLateFeesRent = monthlyJob.pubSubMonthlyLateFeesRent

@@ -1,4 +1,4 @@
-import { functions, config, admin } from '../deps'
+import { functions, config, admin } from '../globalDeps'
 import { client } from './algoliaDeps'
 
 exports = module.exports = functions.https.onCall(

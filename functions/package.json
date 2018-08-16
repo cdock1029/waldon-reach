@@ -11,6 +11,7 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@google-cloud/logging": "^2.0.0",
     "@types/algoliasearch": "^3.27.5",
     "algoliasearch": "^3.30.0",
     "array.prototype.flat": "^1.2.1",

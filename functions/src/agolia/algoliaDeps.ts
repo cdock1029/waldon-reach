@@ -1,5 +1,5 @@
 import algoliasearch, { Index } from 'algoliasearch'
-import { config } from '../deps'
+import { config } from '../globalDeps'
 
 export default algoliasearch
 export const client = algoliasearch(

@@ -1,4 +1,4 @@
-import { functions, admin } from '../deps'
+import { functions, admin, reportError } from '../globalDeps'
 import { index } from './algoliaDeps'
 
 function serialize(obj: object): object {
@@ -131,6 +131,7 @@ exports = module.exports = functions.https.onCall(
       return { success: true, content }
     } catch (e) {
       console.log('Algolia addObjects error: ', e)
+      await reportError(e, { user: context.auth.uid })
       return { success: false, error: e.mssage }
     }
   },
