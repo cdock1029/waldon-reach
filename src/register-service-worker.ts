@@ -26,7 +26,8 @@ export default function register() {
     }
     console.log('adding event listener load..')
     window.addEventListener('load', () => {
-      const swUrl = `/service-worker.js`
+      // const swUrl = `/service-worker.js`
+      const swUrl = `/sw.js`
 
       if (isLocalhost) {
         // 'This is running on localhost. Lets check if a service worker still exists or not.',
@@ -65,6 +66,7 @@ function registerValidSW(swUrl: string) {
                 // It's the perfect time to display a "New content is
                 // available; please refresh." message in your web app.
                 console.log('New content is available; please refresh.')
+                alert('New content is available. Please refresh the page!')
               } else {
                 // At this point, everything has been precached.
                 // It's the perfect time to display a

@@ -12,9 +12,12 @@ registerServiceWorker()
 
 async function main() {
   await init()
-  onAuthStateChangedWithClaims(['activeCompany'], (user, claims) => {
-    // todo: render something else if no claims present
-    render(user ? <App /> : <Login />, root)
-  })
+  onAuthStateChangedWithClaims(
+    ['activeCompany', 'algoliaSecuredApiKey'],
+    (user, claims) => {
+      // todo: render something else if no claims present
+      render(user ? <App /> : <Login />, root)
+    },
+  )
 }
 main()

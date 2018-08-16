@@ -77,10 +77,6 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
 class App extends React.Component {
   render() {
     return (
-      // <AuthProvider claims={['activeCompany']}>
-      //   <AuthConsumer>
-      //     {({ user }) =>
-      //       user ? (
       <BrowserRouter>
         <ZenProvider>
           <AppContainer>
@@ -96,12 +92,6 @@ class App extends React.Component {
           </AppContainer>
         </ZenProvider>
       </BrowserRouter>
-      //       ) : (
-      //         <Login />
-      //       )
-      //     }
-      //   </AuthConsumer>
-      // </AuthProvider>
     )
   }
 }
