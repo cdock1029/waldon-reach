@@ -35,10 +35,13 @@ export class Algolia extends React.Component<object, AlgoliaState> {
       this.searchClient = algoliasearch(process.env.ALGOLIA_APP_ID!, claim)
       this.setState(() => ({ clientLoaded: true, error: undefined }))
     } else {
+      console.log('loading form server..')
       try {
         const { data } = await getAlgoliaSecuredKey()
         if (data.key) {
-          console.log({ data, appId: process.env.ALGOLIA_APP_ID })
+          app()
+            .auth()
+            .currentUser!.getIdToken(true)
           this.searchClient = algoliasearch(
             process.env.ALGOLIA_APP_ID!,
             data.key,

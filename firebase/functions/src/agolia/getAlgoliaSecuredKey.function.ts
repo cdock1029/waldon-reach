@@ -1,8 +1,8 @@
-import { functions, config } from '../deps'
+import { functions, config, admin } from '../deps'
 import { client } from './algoliaDeps'
 
 exports = module.exports = functions.https.onCall(
-  (data: any, context): { key: string } => {
+  async (data: any, context): Promise<{ key: string }> => {
     context.rawRequest.res!.setHeader('Access-Control-Max-Age', 86400)
     context.rawRequest.res!.setHeader('connection', 'keep-alive')
 
@@ -27,9 +27,14 @@ exports = module.exports = functions.https.onCall(
       filters: `companyId:${activeCompany}`,
       userToken: uid,
     }
-    const key = client.generateSecuredApiKey(config.algolia.search_key, params)
+    const algoliaSecuredApiKey = client.generateSecuredApiKey(
+      config.algolia.search_key,
+      params,
+    )
     // todo: can we check if this exists on the user (since tied to activeCompany, if not loade here.. then save.)
-    // admin.auth().setCustomUserClaims(uid, {searchKey: key})
-    return { key }
+    await admin
+      .auth()
+      .setCustomUserClaims(uid, { activeCompany, algoliaSecuredApiKey })
+    return { key: algoliaSecuredApiKey }
   },
 )
