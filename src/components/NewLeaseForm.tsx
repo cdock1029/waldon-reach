@@ -1,12 +1,17 @@
 import React, { Fragment } from 'react'
-import { Formik, Field, Form, FieldArray, FormikProps } from 'formik'
-import Downshift from 'downshift'
+import {
+  Formik,
+  Field,
+  Form,
+  FieldArray,
+  FormikProps,
+  FormikErrors,
+} from 'formik'
 import Dinero from 'dinero.js'
 import { Collection, Document } from './FirestoreData'
 import * as Yup from 'yup'
 import { newDoc } from '../lib/firebase'
 import { sortUnits } from '../lib'
-import { BooleanValue } from 'react-values'
 import {
   Alert,
   FormGroup,
@@ -36,21 +41,26 @@ const UnitDownshift = getDownshift<Unit>()
 
 const validationSchema = Yup.object().shape({
   propertyId: Yup.string().required(),
-  tenantIds: Yup.array()
+  rent: Yup.number()
     .required()
-    .min(1)
-    .max(1),
-  unitIds: Yup.array()
-    .required()
-    .min(1)
-    .max(1),
+    .min(1, 'Must be greater than 0'),
 })
 
-// const price = Dinero({ amount: 55000 })
-//   .add(Dinero({ amount: 34 }))
-//   .toFormat('$0,0.00')
+declare type MyErrors<Values> = { [K in keyof Values]?: any }
 
-const toggleNoop = () => {}
+const validateSets = ({ unitIds, tenantIds }: LeaseFormValues) => {
+  const errors: MyErrors<LeaseFormValues> = {}
+
+  if (!unitIds.size || unitIds.size > 1) {
+    errors.unitIds = 'Must choose 1 Unit'
+  }
+  if (!tenantIds.size || tenantIds.size > 1) {
+    errors.tenantIds = 'Must choose 1 Tenant'
+  }
+  return errors
+}
+
+const noOp = () => {}
 function alertData(data: any) {
   alert(JSON.stringify(data, null, 2))
 }
@@ -68,6 +78,7 @@ interface LeaseFormValues {
   propertyId?: string
   unitIds: Set<string>
   tenantIds: Set<string>
+  rent: number
 }
 const initialLeaseFormValues = ({
   propertyId,
@@ -78,6 +89,7 @@ const initialLeaseFormValues = ({
     propertyId,
     unitIds: new Set<string>(),
     tenantIds: new Set<string>(),
+    rent: 0,
   }
   if (unitId) {
     values.unitIds.add(unitId)
@@ -95,6 +107,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
       <Formik
         enableReinitialize
         initialValues={initialValues}
+        validate={validateSets}
         validationSchema={validationSchema}
         onSubmit={(
           { propertyId, unitIds, tenantIds }: LeaseFormValues,
@@ -129,63 +142,89 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
             : 'properties'
           console.log({ values, touched, errors })
           return (
-            <Modal isOpen={isModalOpen} toggle={closeModal}>
+            <Modal
+              isOpen={isModalOpen}
+              toggle={noOp}
+              backdrop="static"
+              size="lg">
               <Form>
                 <ModalHeader>New Lease</ModalHeader>
                 <ModalBody>
+                  <pre>
+                    {JSON.stringify(
+                      {
+                        ...values,
+                        unitIds: [...values.unitIds],
+                        tenantIds: [...values.tenantIds],
+                        rent: Dinero({ amount: values.rent * 100 }).toFormat(
+                          '$0,0.00',
+                        ),
+                      },
+                      null,
+                      2,
+                    )}
+                  </pre>
                   {isModalOpen ? (
                     <Fragment>
+                      {touched.propertyId &&
+                        errors.propertyId && (
+                          <FormText color="danger">
+                            {errors.propertyId}
+                          </FormText>
+                        )}
                       <Collection<Property> authPath={authPath}>
                         {(properties, hasLoaded: boolean) => {
                           if (!hasLoaded) {
                             return null
                           }
                           return (
-                            <Fragment>
-                              {touched.propertyId &&
-                                errors.propertyId && (
-                                  <FormText color="danger">
-                                    {errors.propertyId}
-                                  </FormText>
-                                )}
-                              <PropertyDownshift
-                                setFieldTouched={() =>
-                                  setFieldTouched('propertyId')
-                                }
-                                label={<Label>Choose Property</Label>}
-                                input={
-                                  <Field
-                                    name="propertyId"
-                                    placeholder="Pick a property"
-                                    component={Input}
-                                  />
-                                }
-                                items={properties}
-                                downshiftProps={{
-                                  onChange: selection => {
-                                    // this is right, because "value" only matters
-                                    // if we selected an item.. not just "typed"
-                                    setFieldValue('propertyId', selection.id)
-                                  },
-                                  itemToString: p => (p ? p.name : ''),
-                                }}>
-                                {({ getItemProps, items }) => {
-                                  return items.map((item, index) => (
-                                    <DropdownItem
-                                      {...getItemProps!({
-                                        key: item.id,
-                                        item,
-                                        index,
-                                      })}>
-                                      {item.name}
-                                    </DropdownItem>
-                                  ))
-                                }}
-                              </PropertyDownshift>
-                            </Fragment>
+                            <PropertyDownshift
+                              focusOnMount
+                              setFieldTouched={() =>
+                                setFieldTouched('propertyId')
+                              }
+                              label={<Label>Choose Property</Label>}
+                              input={
+                                <Field
+                                  name="propertyId"
+                                  placeholder="Pick a property"
+                                  component={Input}
+                                />
+                              }
+                              items={properties}
+                              downshiftProps={{
+                                // "value" only matters
+                                // if we selected an item.. not just "typed"
+                                onChange: selection => {
+                                  // unit is dependent on property, so alway reset
+                                  setValues({
+                                    ...values,
+                                    propertyId: selection.id,
+                                    unitIds: new Set<string>(),
+                                  })
+                                },
+                                itemToString: p => (p ? p.name : ''),
+                              }}>
+                              {({ getItemProps, items }) => {
+                                return items.map((item, index) => (
+                                  <DropdownItem
+                                    {...getItemProps!({
+                                      key: item.id,
+                                      item,
+                                      index,
+                                    })}>
+                                    {item.name}
+                                  </DropdownItem>
+                                ))
+                              }}
+                            </PropertyDownshift>
                           )
                         }}
                       </Collection>
+                      {touched.unitIds &&
+                        errors.unitIds && (
+                          <FormText color="danger">{errors.unitIds}</FormText>
+                        )}
                       {propertyId ? (
                         <Collection<Unit>
                           authPath={`properties/${propertyId}/units`}>
@@ -195,83 +234,30 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                             }
                             let disabled = !units.length
                             return (
-                              <Fragment>
-                                {touched.unitIds &&
-                                  errors.unitIds && (
-                                    <FormText color="danger">
-                                      {errors.unitIds}
-                                    </FormText>
-                                  )}
-                                <UnitDownshift
-                                  setFieldTouched={() =>
-                                    setFieldTouched('unitIds')
-                                  }
-                                  label={<Label>Choose Unit</Label>}
-                                  input={
-                                    <Input
-                                      disabled={disabled}
-                                      placeholder={
-                                        disabled ? 'No Units' : undefined
-                                      }
-                                    />
-                                  }
-                                  items={sortUnits(units)}
-                                  downshiftProps={{
-                                    onChange: selection => {
-                                      setFieldValue(
-                                        'unitIds',
-                                        values.unitIds.add(selection.id),
-                                      )
-                                    },
-                                    itemToString: u => (u ? u.label : ''),
-                                  }}>
-                                  {({ getItemProps, items }) => {
-                                    return items.map((item, index) => (
-                                      <DropdownItem
-                                        {...getItemProps!({
-                                          key: item.id,
-                                          item,
-                                          index,
-                                        })}>
-                                        {item.label}
-                                      </DropdownItem>
-                                    ))
-                                  }}
-                                </UnitDownshift>
-                              </Fragment>
-                            )
-                          }}
-                        </Collection>
-                      ) : null}
-                      <Collection<Tenant> authPath="tenants">
-                        {(tenants, hasLoaded) => {
-                          if (!hasLoaded) {
-                            return null
-                          }
-                          return (
-                            <Fragment>
-                              {touched.tenantIds &&
-                                errors.tenantIds && (
-                                  <FormText color="danger">
-                                    {errors.tenantIds}
-                                  </FormText>
-                                )}
-                              <TenantDownshift
+                              <UnitDownshift
                                 setFieldTouched={() =>
-                                  setFieldTouched('tenantIds')
+                                  setFieldTouched('unitIds')
                                 }
-                                label={<Label>Choose Tenant</Label>}
-                                input={<Input />}
-                                items={tenants}
+                                label={<Label>Choose Unit</Label>}
+                                input={
+                                  <Input
+                                    disabled={disabled}
+                                    placeholder={
+                                      disabled ? 'No Units' : undefined
+                                    }
+                                  />
+                                }
+                                items={sortUnits(units)}
                                 downshiftProps={{
                                   onChange: selection => {
                                     setFieldValue(
-                                      'tenantIds',
-                                      values.tenantIds.add(selection.id),
+                                      'unitIds',
+                                      // TODO: add instead of replace when
+                                      // accepting multiple units later..
+                                      new Set([selection.id]),
                                     )
                                   },
-                                  itemToString: t =>
-                                    t ? `${t.firstName} ${t.lastName}` : '',
+                                  itemToString: u => (u ? u.label : ''),
                                 }}>
                                 {({ getItemProps, items }) => {
                                   return items.map((item, index) => (
@@ -281,15 +267,68 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                                         item,
                                         index,
                                       })}>
-                                      {item.firstName} {item.lastName}
+                                      {item.label}
                                     </DropdownItem>
                                   ))
                                 }}
-                              </TenantDownshift>
-                            </Fragment>
+                              </UnitDownshift>
+                            )
+                          }}
+                        </Collection>
+                      ) : null}
+                      {touched.tenantIds &&
+                        errors.tenantIds && (
+                          <FormText color="danger">{errors.tenantIds}</FormText>
+                        )}
+                      <Collection<Tenant> authPath="tenants">
+                        {(tenants, hasLoaded) => {
+                          if (!hasLoaded) {
+                            return null
+                          }
+                          return (
+                            <TenantDownshift
+                              setFieldTouched={() =>
+                                setFieldTouched('tenantIds')
+                              }
+                              label={<Label>Choose Tenant</Label>}
+                              input={<Input />}
+                              items={tenants}
+                              downshiftProps={{
+                                onChange: selection => {
+                                  setFieldValue(
+                                    'tenantIds',
+                                    new Set([selection.id]),
+                                  )
+                                },
+                                itemToString: t =>
+                                  t ? `${t.firstName} ${t.lastName}` : '',
+                              }}>
+                              {({ getItemProps, items }) => {
+                                return items.map((item, index) => (
+                                  <DropdownItem
+                                    {...getItemProps!({
+                                      key: item.id,
+                                      item,
+                                      index,
+                                    })}>
+                                    {item.firstName} {item.lastName}
+                                  </DropdownItem>
+                                ))
+                              }}
+                            </TenantDownshift>
                           )
                         }}
                       </Collection>
+                      <MyInput
+                        name="rent"
+                        label="Rent"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        // onChange={(e: any) =>
+                        //   console.log(typeof e.target.value)
+                        // }
+                      />
                     </Fragment>
                   ) : null}
                 </ModalBody>
@@ -316,5 +355,32 @@ const DropdownMenu = styled(UnmodifiedMenu)`
   overflow-y: scroll;
   width: 100%;
 `
+
+const MyInput = ({
+  name,
+  label,
+  ...rest
+}: {
+  name: string
+  label: string
+  [key: string]: any
+}) => {
+  return (
+    <Field
+      name={name}
+      {...rest}
+      render={({ field, form }: any) => (
+        <FormGroup>
+          {form.errors[name] &&
+            form.touched[name] && (
+              <FormText color="danger">{form.errors[name]}</FormText>
+            )}
+          <Label for={name}>{label}</Label>
+          <Input {...field} />
+        </FormGroup>
+      )}
+    />
+  )
+}
 
 export default NewLeaseForm

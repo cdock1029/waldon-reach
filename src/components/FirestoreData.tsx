@@ -36,12 +36,12 @@ export class Collection<T extends Doc> extends React.Component<
   // unsubAuth: firebase.Unsubscribe = () => {}
   unsubData: firebase.Unsubscribe = () => {}
   componentDidMount() {
-    console.log('collection component did mount:', { props: this.props })
+    // console.log('collection component did mount:', { props: this.props })
     // this.setupAuth()
     this.setupData()
   }
   componentWillUnmount() {
-    console.log('coll comp unmount:', this.props.authPath)
+    //console.log('coll comp unmount:', this.props.authPath)
     this.unsubData()
     // this.unsubAuth()
   }

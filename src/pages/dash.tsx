@@ -72,7 +72,6 @@ const ComposedData = adopt<CombinedRenderProps, ComposedProps>({
     </PropertiesCollection>
   ),
   u: ({ render, propertyId }: any) => {
-    // console.log('propertyId inside Composed data/u:', { propertyId })
     return propertyId ? (
       <UnitsCollection propertyId={propertyId}>
         {(units, hasLoaded) => render({ units, hasUnitsLoaded: hasLoaded })}
@@ -84,7 +83,6 @@ const ComposedData = adopt<CombinedRenderProps, ComposedProps>({
 })
 
 const Dash: SFC<RouteProps> = ({ match, location }: any) => {
-  console.log({ match, location })
   const path = match.path
   const { p: propertyId, u: unitId, t: tenantId } = qs.parse(location.search)
   const currentRouteParams = { propertyId, unitId, tenantId }
@@ -95,7 +93,6 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
         u: { units, hasUnitsLoaded },
         t: { tenants, hasTenantsLoaded },
       }) => {
-        console.log({ properties, units, tenants })
         return (
           <Dashboard
             leaseContainer={<LeaseContainer {...currentRouteParams} />}

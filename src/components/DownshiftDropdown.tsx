@@ -13,14 +13,14 @@ import {
   InputGroup,
   InputGroupAddon,
   Button,
+  ButtonGroup,
 } from 'reactstrap'
 
 interface Props<T> {
   setFieldTouched(): void
-  downshiftProps: Pick<
-    DownshiftProps<T>,
-    'onChange' | 'itemToString' | 'onInputValueChange'
-  >
+  downshiftProps: Partial<DownshiftProps<T>>
+  focusOnMount?: boolean
+  focusOnUpdate?: boolean
   label: JSX.Element
   input: JSX.Element
   items: T[]
@@ -37,7 +37,7 @@ export function getDownshift<T>(): ComponentClass<Props<T>> {
   const TDownshift: DownshiftInterface<T> = Downshift
 
   return class DownshiftDropdown extends React.Component<Props<T>> {
-    static defaultProps: Pick<Props<T>, 'itemsTransform'> = {
+    static defaultProps: Partial<Props<T>> = {
       itemsTransform: (items, { inputValue, itemToString }) => {
         return items.filter(
           item =>
@@ -47,8 +47,24 @@ export function getDownshift<T>(): ComponentClass<Props<T>> {
               .includes(inputValue.toUpperCase()),
         )
       },
+      focusOnUpdate: false,
+      focusOnMount: false,
     }
-
+    input: React.RefObject<HTMLInputElement>
+    constructor(props: Props<T>) {
+      super(props)
+      this.input = React.createRef()
+    }
+    componentDidMount() {
+      if (this.props.focusOnMount) {
+        this.input.current!.focus()
+      }
+    }
+    componentDidUpdate() {
+      if (this.props.focusOnUpdate) {
+        this.input.current!.focus()
+      }
+    }
     noOp() {}
     render() {
       const {
@@ -69,6 +85,7 @@ export function getDownshift<T>(): ComponentClass<Props<T>> {
             getMenuProps,
             openMenu,
             closeMenu,
+            toggleMenu,
             isOpen,
             inputValue,
             highlightedIndex,
@@ -91,57 +108,42 @@ export function getDownshift<T>(): ComponentClass<Props<T>> {
                     <FormGroup>
                       {React.cloneElement(label, { ...getLabelProps() })}
                       <InputGroup>
+                        <InputGroupAddon addonType="prepend">
+                          <Button
+                            className="dropdown-toggle"
+                            tabIndex={-1}
+                            type="button"
+                            disabled={items.length < 1}
+                            onClick={toggleMenu as any}>
+                            <span className="sr-only">Toggle Dropdown</span>
+                          </Button>
+                        </InputGroupAddon>
                         {React.cloneElement(input, {
                           ...getInputProps({
-                            onFocus: () => {
-                              openMenu()
-                            },
+                            // onFocus: () => {
+                            //   openMenu()
+                            // },
                             onBlur: () => {
                               // validate()
                               setFieldTouched()
                               closeMenu()
                             },
                           }),
+                          innerRef: this.input,
                         })}
                         <InputGroupAddon addonType="append">
-                          <Button>Add New</Button>
+                          <Button type="button" tabIndex={-1}>
+                            New
+                          </Button>
                         </InputGroupAddon>
                       </InputGroup>
                     </FormGroup>
                   </DropdownToggle>
-                  {/* <DropdownMenu
-                  tag={TagWithRef}
-                  {...getMenuProps({ refKey: 'innerRef' })}
-                  css={{
-                    maxHeight: '20em',
-                    overflowY: 'scroll',
-                  }}>
-                  {children({
-                    getItemProps: params =>
-                      getItemProps({
-                        style: {
-                          backgroundColor:
-                            highlightedIndex === params.index
-                              ? 'lightgray'
-                              : 'white',
-                          fontWeight:
-                            selectedItem === params.item ? 'bold' : 'normal',
-                        },
-                        ...params,
-                      }),
-                    inputValue,
-                    highlightedIndex,
-                    selectedItem,
-                    items: itemsTransform!(items, {
-                      itemToString,
-                      inputValue,
-                    }),
-                  })}
-                </DropdownMenu> */}
                   <DropdownMenu
                     css={{
                       maxHeight: '20em',
                       overflowY: 'scroll',
+                      marginLeft: '38px',
                     }}>
                     <div {...getMenuProps()}>
                       {children({
