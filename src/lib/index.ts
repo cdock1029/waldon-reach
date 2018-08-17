@@ -3,6 +3,9 @@ export const collator = new Intl.Collator(undefined, {
   sensitivity: 'base',
 })
 
+export const sortUnits = (uns: Unit[]) =>
+  uns.sort((a, b) => collator.compare(a.label, b.label))
+
 export function notEmpty(...strs: string[]) {
   return strs.every(str => !!str)
 }

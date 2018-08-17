@@ -3,7 +3,7 @@ import { Collection } from '../components/FirestoreData'
 import { NavLink as Link } from 'react-router-dom'
 import { ListHeader } from '../components/ListHeader'
 import { ListGroup, ListGroupItem, Card, CardText, CardTitle } from 'reactstrap'
-import { collator } from '../lib/index'
+import { sortUnits } from '../lib/index'
 import { NewPropertyForm } from '../components/NewPropertyForm'
 import NewUnitForm from '../components/NewUnitForm'
 import NewTenantForm from '../components/NewTenantForm'
@@ -32,7 +32,7 @@ const UnitsCollection: SFC<{
     <Collection<Unit>
       key="units"
       authPath={`properties/${propertyId}/units`}
-      transform={uns => uns.sort((a, b) => collator.compare(a.label, b.label))}
+      transform={sortUnits}
       children={children}
     />
   )

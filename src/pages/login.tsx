@@ -45,7 +45,11 @@ class Login extends React.Component<{}, LoginState> {
     const { error, isModalOpen } = this.state
     return (
       <div>
-        <Modal className={loginStyle} isOpen={isModalOpen} toggle={this.noop}>
+        <Modal
+          className={loginStyle}
+          isOpen={isModalOpen}
+          toggle={this.noop}
+          backdrop="static">
           <ModalHeader className="title">Login</ModalHeader>
           <ModalBody>
             <Form

@@ -8,13 +8,19 @@ import Downshift, {
 import {
   Dropdown,
   DropdownToggle,
-  DropdownItem,
   DropdownMenu,
   FormGroup,
+  InputGroup,
+  InputGroupAddon,
+  Button,
 } from 'reactstrap'
 
 interface Props<T> {
-  downshiftProps: Pick<DownshiftProps<T>, 'onChange' | 'itemToString'>
+  setFieldTouched(): void
+  downshiftProps: Pick<
+    DownshiftProps<T>,
+    'onChange' | 'itemToString' | 'onInputValueChange'
+  >
   label: JSX.Element
   input: JSX.Element
   items: T[]
@@ -52,6 +58,7 @@ export function getDownshift<T>(): ComponentClass<Props<T>> {
         children,
         items,
         itemsTransform,
+        setFieldTouched,
       } = this.props
       return (
         <TDownshift {...downshiftProps}>
@@ -67,57 +74,109 @@ export function getDownshift<T>(): ComponentClass<Props<T>> {
             highlightedIndex,
             selectedItem,
             itemToString,
-          }) => (
-            <div>
-              <Dropdown isOpen={isOpen} toggle={this.noOp}>
-                <DropdownToggle
-                  tag="div"
-                  data-toggle="dropdown"
-                  aria-expanded={isOpen}>
-                  <FormGroup>
-                    {React.cloneElement(label, { ...getLabelProps() })}
-                    {React.cloneElement(input, {
-                      ...getInputProps({
-                        onFocus: () => openMenu(),
-                        onBlur: () => closeMenu(),
-                      }),
-                    })}
-                  </FormGroup>
-                </DropdownToggle>
-                <DropdownMenu
+          }) => {
+            const transformedItems = itemsTransform!(items, {
+              itemToString,
+              inputValue,
+            })
+            return (
+              <div>
+                <Dropdown
+                  isOpen={isOpen && transformedItems.length > 0}
+                  toggle={this.noOp}>
+                  <DropdownToggle
+                    tag="div"
+                    data-toggle="dropdown"
+                    aria-expanded={isOpen}>
+                    <FormGroup>
+                      {React.cloneElement(label, { ...getLabelProps() })}
+                      <InputGroup>
+                        {React.cloneElement(input, {
+                          ...getInputProps({
+                            onFocus: () => {
+                              openMenu()
+                            },
+                            onBlur: () => {
+                              // validate()
+                              setFieldTouched()
+                              closeMenu()
+                            },
+                          }),
+                        })}
+                        <InputGroupAddon addonType="append">
+                          <Button>Add New</Button>
+                        </InputGroupAddon>
+                      </InputGroup>
+                    </FormGroup>
+                  </DropdownToggle>
+                  {/* <DropdownMenu
+                  tag={TagWithRef}
+                  {...getMenuProps({ refKey: 'innerRef' })}
                   css={{
                     maxHeight: '20em',
                     overflowY: 'scroll',
                   }}>
-                  <div {...getMenuProps()}>
-                    {children({
-                      getItemProps: params =>
-                        getItemProps({
-                          style: {
-                            backgroundColor:
-                              highlightedIndex === params.index
-                                ? 'lightgray'
-                                : 'white',
-                            fontWeight:
-                              selectedItem === params.item ? 'bold' : 'normal',
-                          },
-                          ...params,
-                        }),
-                      inputValue,
-                      highlightedIndex,
-                      selectedItem,
-                      items: itemsTransform!(items, {
-                        itemToString,
-                        inputValue,
+                  {children({
+                    getItemProps: params =>
+                      getItemProps({
+                        style: {
+                          backgroundColor:
+                            highlightedIndex === params.index
+                              ? 'lightgray'
+                              : 'white',
+                          fontWeight:
+                            selectedItem === params.item ? 'bold' : 'normal',
+                        },
+                        ...params,
                       }),
-                    })}
-                  </div>
-                </DropdownMenu>
-              </Dropdown>
-            </div>
-          )}
+                    inputValue,
+                    highlightedIndex,
+                    selectedItem,
+                    items: itemsTransform!(items, {
+                      itemToString,
+                      inputValue,
+                    }),
+                  })}
+                </DropdownMenu> */}
+                  <DropdownMenu
+                    css={{
+                      maxHeight: '20em',
+                      overflowY: 'scroll',
+                    }}>
+                    <div {...getMenuProps()}>
+                      {children({
+                        getItemProps: params =>
+                          getItemProps({
+                            style: {
+                              backgroundColor:
+                                highlightedIndex === params.index
+                                  ? 'lightgray'
+                                  : 'white',
+                              fontWeight:
+                                selectedItem === params.item
+                                  ? 'bold'
+                                  : 'normal',
+                            },
+                            ...params,
+                          }),
+                        inputValue,
+                        highlightedIndex,
+                        selectedItem,
+                        items: transformedItems,
+                      })}
+                    </div>
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
+            )
+          }}
         </TDownshift>
       )
     }
   }
 }
+
+const Fuck = DropdownMenu as any
+const ForwardMenu = React.forwardRef((props, ref) => (
+  <Fuck {...props} ref={ref} />
+))
