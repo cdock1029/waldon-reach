@@ -18,6 +18,7 @@ interface MoneyInputProps {
       fractionInputParams: FractionInputParams,
     ): FractionInputRenderProps
   }): JSX.Element | JSX.Element[] | null
+  onChange?(updatedState: MoneyInputState): void
 }
 interface MoneyInputState {
   whole: string
@@ -127,12 +128,39 @@ export class MoneyInput extends React.Component<
     this.fractionRef = React.createRef()
   }
 
+  internalSetState = (
+    data:
+      | Partial<MoneyInputState>
+      | ((curr: Readonly<MoneyInputState>) => Partial<MoneyInputState> | null),
+    cb?: () => void,
+  ): void => {
+    let stateToSet: Partial<MoneyInputState> | null
+    this.setState(
+      state => {
+        if (typeof data === 'function') {
+          stateToSet = data(state)
+        } else {
+          stateToSet = data
+        }
+        return stateToSet as Pick<MoneyInputState, 'fraction' | 'whole'>
+      },
+      () => {
+        if (cb) {
+          cb()
+        }
+        if (this.props.onChange && stateToSet !== null) {
+          this.props.onChange(this.state)
+        }
+      },
+    )
+  }
+
   handleWholeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let { value } = e.target
     // undo Dinero
     value = value.toString().replace(MoneyInput.commasAndSpaces, '')
     if (value === '') {
-      return this.setState({ whole: '0' })
+      return this.internalSetState({ whole: '0' })
     }
 
     if (!value.match(MoneyInput.wholeRegex)) {
@@ -143,7 +171,7 @@ export class MoneyInput extends React.Component<
     if (value.indexOf('.') !== -1) {
       const parts = value.split('.')
       const money = to$(parts[0])
-      return this.setState(
+      return this.internalSetState(
         ({ fraction }) => ({
           whole: money,
           fraction: parts.length > 1 ? parts[1] : fraction,
@@ -163,20 +191,20 @@ export class MoneyInput extends React.Component<
     }
     const money = to$(fixed)
     console.log({ fixed, money })
-    this.setState({ whole: money })
+    this.internalSetState({ whole: money })
   }
   handleFractionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
     // console.log({fraction: value})
     if (value.trim() === '') {
-      return this.setState({ fraction: value.trim() }, () => {
+      return this.internalSetState({ fraction: value.trim() }, () => {
         this.wholeRef.current!.focus()
       })
     }
     if (!value.match(MoneyInput.fractionRegex)) {
       return
     }
-    this.setState({ fraction: value })
+    this.internalSetState({ fraction: value })
   }
   fractionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { value } = this.fractionRef.current!
@@ -190,20 +218,6 @@ export class MoneyInput extends React.Component<
     // const node = this.wholeRef.current!
     // node.focus()
     // node.setSelectionRange(1000, 1000)
-
-    // this.setState(
-    //   ({ whole }) => ({ whole: `${whole}${''}` }),
-    //   () => {
-    //     this.wholeRef.current!.setSelectionRange(1000, 1000)
-    //   },
-    // )
-  }
-  wholeOnClick = (e: React.MouseEvent<HTMLInputElement>) => {
-    console.log('clicked')
-    const node = this.wholeRef.current!
-    node.focus()
-    node.setSelectionRange(1000, 1000)
-    node.classList.remove('touched')
   }
   wholeOnMouseDown = (e: React.MouseEvent<HTMLInputElement>) => {
     console.log('mouse down')
@@ -213,7 +227,13 @@ export class MoneyInput extends React.Component<
     // node caret-color: red;
     node.setSelectionRange(1000, 1000)
   }
-
+  wholeOnClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    console.log('clicked')
+    const node = this.wholeRef.current!
+    node.focus()
+    node.setSelectionRange(1000, 1000)
+    node.classList.remove('touched')
+  }
   getWholeInputProps = ({
     id = 'whole',
     name = 'whole',

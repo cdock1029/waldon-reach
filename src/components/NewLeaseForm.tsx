@@ -157,7 +157,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                         ...values,
                         unitIds: [...values.unitIds],
                         tenantIds: [...values.tenantIds],
-                        rent: Dinero({ amount: values.rent * 100 }).toFormat(
+                        rent: Dinero({ amount: values.rent }).toFormat(
                           '$0,0.00',
                         ),
                       },
@@ -320,7 +320,13 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                           )
                         }}
                       </Collection>
-                      <MoneyInput>
+                      <MoneyInput
+                        onChange={({ whole, fraction }) => {
+                          const amount =
+                            100 * parseInt(whole) + parseInt(fraction || '0')
+                          console.log({ whole, fraction, amount })
+                          setFieldValue('rent', amount)
+                        }}>
                         {({
                           money,
                           getWholeInputProps,
