@@ -1,4 +1,1 @@
 cron:
-- description: Pub to monthly-late-fee-rent-job every 1 day
-  url: /publish/monthly-late-fee-rent-job
-  schedule: every 24 hours
