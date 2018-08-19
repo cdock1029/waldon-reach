@@ -1,5 +1,6 @@
 import React, { RefObject } from 'react'
 import Dinero from 'dinero.js'
+import styled from 'react-emotion'
 
 Dinero.globalLocale = 'en-US'
 const FORMAT = '0,0'
@@ -35,6 +36,9 @@ interface WholeInputParams {
 interface WholeInputRenderProps {
   value: string
   onChange(e: React.ChangeEvent<HTMLInputElement>): void
+  onFocus?(e: React.FocusEvent<HTMLInputElement>): void
+  onClick?(e: React.MouseEvent<HTMLInputElement>): void
+  onMouseDown?(e: React.MouseEvent<HTMLInputElement>): void
   className: string
   id: string
   name: string
@@ -68,6 +72,23 @@ function to$(whole: string, fraction = '0', fmt = FORMAT) {
   }).toFormat(fmt)
 }
 
+const StyledInput = styled.input({
+  fontSize: '2em',
+  textAlign: 'right',
+  display: 'inline-flex',
+  padding: 0,
+  maxWidth: '5em',
+  border: 'none',
+  borderBottom: '1px solid black',
+  marginRight: '0.5em',
+  '&.touched': {
+    caretColor: 'transparent',
+  },
+  // '&.untouched': {
+  //   caretColor: 'black',
+  // },
+})
+
 export class MoneyInput extends React.Component<
   MoneyInputProps,
   MoneyInputState
@@ -77,20 +98,7 @@ export class MoneyInput extends React.Component<
   static commasAndSpaces = /[,\s]/g
 
   static Whole = React.forwardRef<HTMLInputElement>((props: any, ref) => (
-    <input
-      style={{
-        fontSize: '2em',
-        textAlign: 'right',
-        display: 'inline-flex',
-        padding: 0,
-        maxWidth: '5em',
-        border: 'none',
-        borderBottom: '1px solid black',
-        marginRight: '0.5em',
-      }}
-      {...props}
-      ref={ref}
-    />
+    <StyledInput {...props} innerRef={ref} />
   ))
   static Fraction = React.forwardRef<HTMLInputElement>((props: any, ref) => (
     <input
@@ -177,6 +185,34 @@ export class MoneyInput extends React.Component<
       this.wholeRef.current!.focus()
     }
   }
+  wholeOnFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    console.log('focused')
+    // const node = this.wholeRef.current!
+    // node.focus()
+    // node.setSelectionRange(1000, 1000)
+
+    // this.setState(
+    //   ({ whole }) => ({ whole: `${whole}${''}` }),
+    //   () => {
+    //     this.wholeRef.current!.setSelectionRange(1000, 1000)
+    //   },
+    // )
+  }
+  wholeOnClick = (e: React.MouseEvent<HTMLInputElement>) => {
+    console.log('clicked')
+    const node = this.wholeRef.current!
+    node.focus()
+    node.setSelectionRange(1000, 1000)
+    node.classList.remove('touched')
+  }
+  wholeOnMouseDown = (e: React.MouseEvent<HTMLInputElement>) => {
+    console.log('mouse down')
+    const node = this.wholeRef.current!
+    node.classList.add('touched')
+    node.focus()
+    // node caret-color: red;
+    node.setSelectionRange(1000, 1000)
+  }
 
   getWholeInputProps = ({
     id = 'whole',
@@ -189,6 +225,9 @@ export class MoneyInput extends React.Component<
     const {
       state: { whole },
       handleWholeChange: onChange,
+      wholeOnFocus: onFocus,
+      wholeOnClick: onClick,
+      wholeOnMouseDown: onMouseDown,
       wholeRef: ref,
     } = this
     return {
@@ -199,6 +238,9 @@ export class MoneyInput extends React.Component<
       name,
       placeholder,
       autoFocus,
+      onClick,
+      onFocus,
+      onMouseDown,
       ref,
       // TODO should we?
       ...rest,
@@ -237,6 +279,7 @@ export class MoneyInput extends React.Component<
     const { whole, fraction } = this.state
     const { getWholeInputProps, getFractionInputProps } = this
     const money = to$(whole.replace(',', ''), fraction, PRETTY)
+    console.log('render: ', whole)
     return children({
       whole,
       fraction,
