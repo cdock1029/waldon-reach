@@ -32,6 +32,7 @@ import {
 } from 'reactstrap'
 import styled from 'react-emotion'
 import { getDownshift } from './DownshiftDropdown'
+import { MoneyInput } from './MoneyInput'
 
 Dinero.globalLocale = 'en-US'
 
@@ -319,16 +320,34 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                           )
                         }}
                       </Collection>
-                      <MyInput
-                        name="rent"
-                        label="Rent"
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        // onChange={(e: any) =>
-                        //   console.log(typeof e.target.value)
-                        // }
-                      />
+                      <MoneyInput>
+                        {({
+                          money,
+                          getWholeInputProps,
+                          getFractionInputProps,
+                        }) => {
+                          return (
+                            <div>
+                              <h5>{money}</h5>
+                              <label htmlFor="rent-whole">Rent</label>
+                              <div css={{ display: 'flex' }}>
+                                <MoneyInput.Whole
+                                  {...getWholeInputProps({
+                                    id: 'rent-whole',
+                                    name: 'rent-whole',
+                                  })}
+                                />
+                                <MoneyInput.Fraction
+                                  {...getFractionInputProps({
+                                    id: 'rent-fraction',
+                                    name: 'rent-fraction',
+                                  })}
+                                />
+                              </div>
+                            </div>
+                          )
+                        }}
+                      </MoneyInput>
                     </Fragment>
                   ) : null}
                 </ModalBody>

@@ -53,7 +53,7 @@ interface FractionInputParams {
 interface FractionInputRenderProps {
   value: string
   onChange(e: React.ChangeEvent<HTMLInputElement>): void
-  onKeydown(e: React.KeyboardEvent<HTMLInputElement>): void
+  onKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void
   className: string
   id: string
   name: string
@@ -76,77 +76,35 @@ export class MoneyInput extends React.Component<
   static fractionRegex = /^\d{1,2}$/
   static commasAndSpaces = /[,\s]/g
 
-  static Whole = React.forwardRef<HTMLInputElement>(
-    (
-      {
-        value,
-        onChange,
-        className = 'whole',
-        id = 'whole',
-        name = 'whole',
-        placeholder = '0',
-        autoFocus = false,
-      }: {
-        value: string
-        onChange(): void
-        children?: React.ReactNode
-        className?: string
-        id?: string
-        name?: string
-        placeholder?: string
-        autoFocus?: boolean
-      },
-      ref,
-    ) => (
-      <input
-        id={id}
-        name={name}
-        value={value}
-        onChange={onChange}
-        className={className}
-        autoFocus={autoFocus}
-        placeholder={placeholder}
-        ref={ref}
-      />
-    ),
-  )
-  static Fraction = React.forwardRef<HTMLInputElement>(
-    (
-      {
-        value,
-        onChange,
-        onKeydown,
-        className = 'fraction',
-        id = 'fraction',
-        name = 'fraction',
-        placeholder = '00',
-        autoFocus = false,
-      }: {
-        value: string
-        onChange(): void
-        onKeydown(): void
-        children?: React.ReactNode
-        className?: string
-        id?: string
-        name?: string
-        placeholder?: string
-        autoFocus?: boolean
-      },
-      ref,
-    ) => (
-      <input
-        id={id}
-        name={name}
-        value={value}
-        onChange={onChange}
-        onKeyDown={onKeydown}
-        className={className}
-        placeholder={placeholder}
-        autoFocus={autoFocus}
-        ref={ref}
-      />
-    ),
-  )
+  static Whole = React.forwardRef<HTMLInputElement>((props: any, ref) => (
+    <input
+      style={{
+        fontSize: '2em',
+        textAlign: 'right',
+        display: 'inline-flex',
+        padding: 0,
+        maxWidth: '5em',
+        border: 'none',
+        borderBottom: '1px solid black',
+        marginRight: '0.5em',
+      }}
+      {...props}
+      ref={ref}
+    />
+  ))
+  static Fraction = React.forwardRef<HTMLInputElement>((props: any, ref) => (
+    <input
+      style={{
+        maxWidth: '2em',
+        display: 'inline-flex',
+        fontSize: '1.4em',
+        border: 'none',
+        borderBottom: '1px solid black',
+      }}
+      {...props}
+      ref={ref}
+    />
+  ))
 
   wholeRef: RefObject<HTMLInputElement>
   fractionRef: RefObject<HTMLInputElement>
@@ -214,7 +172,8 @@ export class MoneyInput extends React.Component<
   }
   fractionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     const { value } = this.fractionRef.current!
-    if (value === '' && e.keyCode === 8) {
+    const { keyCode } = e
+    if (value === '' && keyCode === 8) {
       this.wholeRef.current!.focus()
     }
   }
@@ -256,7 +215,7 @@ export class MoneyInput extends React.Component<
     const {
       state: { fraction },
       handleFractionChange: onChange,
-      fractionKeyDown: onKeydown,
+      fractionKeyDown: onKeyDown,
       fractionRef: ref,
     } = this
     return {
@@ -264,11 +223,12 @@ export class MoneyInput extends React.Component<
       id,
       name,
       onChange,
-      onKeydown,
+      onKeyDown,
       className,
       placeholder,
       autoFocus,
       ref,
+      ...rest,
     }
   }
 
