@@ -21,6 +21,7 @@ const Dash = loadable(() => import('../pages/dash'))
 const Lease = loadable(() => import('../pages/lease'))
 const Qbo = loadable(() => import('../pages/qbo'))
 const Search = loadable(() => import('../pages/search'))
+const Todos = loadable(() => import('../pages/todos'))
 
 class Header extends React.Component<{}, { isOpen: boolean }> {
   state = {
@@ -51,6 +52,11 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
                 )}
               </ZenConsumer>
             </Form>
+            <NavItem>
+              <NavLink tag={Link} to="/todos">
+                Todos
+              </NavLink>
+            </NavItem>
             <NavItem>
               <NavLink tag={Link} to="/search">
                 Search
@@ -87,6 +93,7 @@ class App extends React.Component {
                 <Route path="/lease" component={Lease} />
                 <Route path="/search" component={Search} />
                 <Route path="/qbo" component={Qbo} />
+                <Route path="/todos" component={Todos} />
               </Switch>
             </Main>
           </AppContainer>

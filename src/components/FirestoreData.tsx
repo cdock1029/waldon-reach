@@ -73,9 +73,17 @@ export class Collection<T extends Doc> extends React.Component<
   setupData = async () => {
     const { authPath, orderBy, where } = this.props
     const activeCompany = getClaim('activeCompany') // await auth().activeCompany()
+
+    let resolvedPath: string
+    if (authPath.charAt(0) === '/') {
+      resolvedPath = authPath
+    } else {
+      resolvedPath = `companies/${activeCompany}/${authPath}`
+    }
+
     let collectionRef: firebase.firestore.Query = app()
       .firestore()
-      .collection(`companies/${activeCompany}/${authPath}`)
+      .collection(resolvedPath)
     if (where) {
       where.forEach(([fp, filtOp, val]) => {
         collectionRef = collectionRef.where(fp, filtOp, val)
