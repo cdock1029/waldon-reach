@@ -2,7 +2,9 @@
   "name": "functions",
   "scripts": {
     "lint": "tslint --project tsconfig.json",
+    "prebuild": "npm run clean",
     "build": "tsc",
+    "clean": "rm -rf lib",
     "serve": "NODE_ENV=development npm run build && firebase serve --only functions",
     "shell": "NODE_ENV=development npm run build && firebase functions:shell",
     "start": "npm run shell",
@@ -29,6 +31,7 @@
     "firebase-admin": "~5.13.1",
     "firebase-functions": "^2.0.2",
     "glob": "^7.1.2",
+    "googleapis": "^32.0.0",
     "node-quickbooks": "^2.0.24",
     "query-string": "^6.1.0"
   },

@@ -2,7 +2,7 @@ import { functions } from '../../globalDeps'
 import { index } from '../algoliaDeps'
 import { PROPERTY } from './deps'
 
-export const onPropertyCreated = functions.firestore
+export = (module.exports = functions.firestore
   .document(PROPERTY)
   .onCreate(async (snap, context) => {
     const property = {
@@ -17,4 +17,4 @@ export const onPropertyCreated = functions.firestore
       console.log(`Error saving Property=[${snap.id}] to algolia:`, e)
       return false
     }
-  })
+  }))

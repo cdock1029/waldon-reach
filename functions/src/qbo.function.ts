@@ -137,7 +137,7 @@ app.get(
 )
 
 app.get('/callback', async (req: Request, res: Response) => {
-  const authToken = new Buffer(`${consumerKey}:${consumerSecret}`).toString(
+  const authToken = Buffer.from(`${consumerKey}:${consumerSecret}`).toString(
     'base64',
   )
 

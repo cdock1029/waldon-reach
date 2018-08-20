@@ -2,7 +2,7 @@ import { functions } from '../../globalDeps'
 import { index } from '../algoliaDeps'
 import { PROPERTY } from './deps'
 
-export const onPropertyDeleted = functions.firestore
+exports = module.exports = functions.firestore
   .document(PROPERTY)
   .onDelete(async (snap, context) => {
     try {
