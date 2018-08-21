@@ -242,10 +242,19 @@ class TransactionsSubComponent extends React.Component<{
       <div
         css={`
           display: flex;
-          flex-direction: column;
-          padding: 2em;
+          flex-direction: row-reverse;
+          align-items: stretch;
+          flex-wrap: wrap;
+          padding: 1em 0.5em 1em 0.5em;
+          .transactions {
+            flex: 2;
+            margin: 0 0.5em 1em 0.5em;
+          }
           .controls {
-            margin-bottom: 1em;
+            min-width: 400px;
+            display: flex;
+            flex: 1;
+            margin: 0 0.5em 1em 0.5em;
             .content {
               display: flex;
               justify-content: flex-end;
@@ -261,7 +270,7 @@ class TransactionsSubComponent extends React.Component<{
         `}>
         <Card className="controls">
           <CardBody>
-            <CardTitle>Payment Action Row</CardTitle>
+            <CardTitle>Actions</CardTitle>
           </CardBody>
           <CardBody>
             <div className="content">
@@ -307,7 +316,7 @@ class TransactionsSubComponent extends React.Component<{
           authPath={`leases/${lease.id}/transactions`}
           orderBy={{ field: 'date', direction: 'desc' }}>
           {(transactions, hasLoaded) => (
-            <div>
+            <div className="transactions">
               <ListHeader label="transactions" className="transactions-header">
                 <NewTenantForm />
               </ListHeader>
