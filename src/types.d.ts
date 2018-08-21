@@ -44,9 +44,9 @@ interface Lease extends Doc {
 
 interface Transaction extends Doc {
   amount: number
-  date: { toDate(): Date }
+  date: firebase.firestore.Timestamp
   type: 'PAYMENT' | 'CHARGE'
-  subtype: string
+  subType?: 'RENT' | 'LATE_FEE' | string
 }
 
 type WhereParam = [

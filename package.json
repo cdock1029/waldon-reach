@@ -20,7 +20,7 @@
     "date-fns": "^2.0.0-alpha.16",
     "dinero.js": "^1.4.0",
     "dotenv": "^6.0.0",
-    "downshift": "^2.1.1",
+    "downshift": "^2.1.4",
     "emotion": "^9.2.6",
     "firebase": "^5.4.0",
     "formik": "^1.0.3",
@@ -68,7 +68,7 @@
     "babel-jest": "^23.4.2",
     "parcel-plugin-bundle-visualiser": "^1.1.2",
     "react-testing-library": "^5.0.0",
-    "serve": "^9.6.0"
+    "serve": "^10.0.0"
   },
   "browserslist": [
     "chrome 69"

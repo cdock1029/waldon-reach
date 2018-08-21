@@ -10,6 +10,7 @@ export function notEmpty(...strs: string[]) {
   return strs.every(str => !!str)
 }
 
+// todo use dinero.js here ?
 export const CurrencyAddDecimals = (num: number) => {
   const dec = num / 100.0
   return dec.toLocaleString('en-US', {

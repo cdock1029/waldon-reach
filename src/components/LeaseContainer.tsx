@@ -12,7 +12,7 @@ import {
   CardSubtitle,
   Badge,
 } from 'reactstrap'
-import styled, { css } from 'react-emotion'
+import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
 import { format } from 'date-fns'
 import { Document, Collection } from '../components/FirestoreData'
@@ -21,6 +21,8 @@ import { NavLink as Link } from 'react-router-dom'
 import { ListHeader } from '../components/ListHeader'
 import { NewLeaseForm } from '../components/NewLeaseForm'
 import NewTenantForm from '../components/NewTenantForm'
+import { CurrencyCell } from '../components/CurrencyCell'
+import { MoneyInput } from '../components/MoneyInput'
 
 type CollectionReference = firebase.firestore.CollectionReference
 
@@ -111,7 +113,6 @@ class LeaseContainer extends React.Component<
                       <TabPane tabId={LeaseActiveFilter.ACTIVE}>
                         <LeasesView
                           key="active"
-                          tab="active"
                           /* leases={hasLoaded ? leases : []} */
                           leases={leases}
                           showProperties={!Boolean(propertyId)}
@@ -124,7 +125,6 @@ class LeaseContainer extends React.Component<
                       <TabPane tabId={LeaseActiveFilter.INACTIVE}>
                         <LeasesView
                           key="inactive"
-                          tab="inactive"
                           /* leases={hasLoaded ? leases : []}*/
                           leases={leases}
                           showProperties={!Boolean(propertyId)}
@@ -150,18 +150,17 @@ interface LeasesProps {
   showProperties: boolean
   showUnits: boolean
 }
-const LeasesView: SFC<LeasesProps & { tab?: string }> = ({
+const LeasesView: SFC<LeasesProps> = ({
   leases,
   showProperties,
   showUnits,
   loading = false,
-  tab,
 }) => {
-  const columns = [
+  const columns: any = [
     {
       Header: 'Tenants',
-      id: 'tenants',
-      accessor: (l: Lease) => (
+      accessor: 'tenants',
+      Cell: ({ original: l }: { original: Lease }) => (
         <StringStack>
           {Object.entries(l.tenants)
             .map<string>(([id, { exists, name }]) => name)
@@ -171,16 +170,19 @@ const LeasesView: SFC<LeasesProps & { tab?: string }> = ({
     },
     {
       Header: 'Rent',
-      id: 'rent',
-      accessor: (l: Lease) => {
-        return CurrencyAddDecimals(l.rent)
-      },
-      aggregate: (vals: any[]) => vals[0],
+      accessor: 'rent',
+      Cell: ({ original: l }: { original: Lease }) => (
+        <CurrencyCell amount={l.rent} />
+      ),
+      // todo: what is this for?
+      // aggregate: (vals: any[]) => vals[0],
     },
     {
       Header: 'Balance',
-      id: 'balance',
-      accessor: (l: Lease) => CurrencyAddDecimals(l.balance),
+      accessor: 'balance',
+      Cell: ({ original: l }: { original: Lease }) => (
+        <CurrencyCell amount={l.balance} />
+      ), //CurrencyAddDecimals(l.balance),
     },
     {
       Header: 'Link',
@@ -237,75 +239,144 @@ class TransactionsSubComponent extends React.Component<{
   render() {
     const { lease } = this.props
     return (
-      <Collection<Transaction>
-        authPath={`leases/${lease.id}/transactions`}
-        orderBy={{ field: 'date', direction: 'desc' }}>
-        {(transactions, hasLoaded) => (
-          <div
-            css={{
-              padding: '2em',
-              /*'.transactions-header': {
-                border: '1px solid rgba(0,0,0,.1)',
-                borderBottom: 'none',
-              },*/
-            }}>
-            <ListHeader label="transactions" className="transactions-header">
-              <NewTenantForm />
-            </ListHeader>
-            <ReactTable
-              className={transactionTableStyle}
-              loading={!hasLoaded}
-              data={transactions}
-              defaultPageSize={5}
-              columns={[
-                {
-                  Header: 'type',
-                  accessor: 'type',
-                  Cell: ({
-                    value,
-                    original: { type },
-                  }: {
-                    original: Transaction
-                    value: number
-                  }) => (
-                    <Badge
-                      pill
-                      color={type === 'CHARGE' ? 'secondary' : 'success'}>
-                      {value}
-                    </Badge>
-                  ),
-                },
-                {
-                  Header: 'amount',
-                  accessor: 'amount',
-                  Cell: ({
-                    value,
-                    original: { type },
-                  }: {
-                    original: Transaction
-                    value: number
-                  }) => {
-                    return (
-                      <span
-                        className={
-                          type === 'PAYMENT' ? 'text-success' : undefined
-                        }>
-                        {value}
-                      </span>
-                    )
+      <div
+        css={`
+          display: flex;
+          flex-direction: column;
+          padding: 2em;
+          .controls {
+            margin-bottom: 1em;
+            .content {
+              display: flex;
+              justify-content: flex-end;
+              .payment-container {
+                padding: 1em;
+                background-color: beige;
+                .money {
+                  display: flex;
+                }
+              }
+            }
+          }
+        `}>
+        <Card className="controls">
+          <CardBody>
+            <CardTitle>Payment Action Row</CardTitle>
+          </CardBody>
+          <CardBody>
+            <div className="content">
+              <MoneyInput
+                defaultValue={lease.balance > 0 ? lease.balance : undefined}>
+                {({
+                  money,
+                  getWholeInputProps,
+                  getFractionInputProps,
+                  clear,
+                }) => {
+                  return (
+                    <div className="payment-container">
+                      <label
+                        css={'display: flex; justify-content: space-between'}
+                        htmlFor="payment-whole">
+                        Make payment
+                        <button onClick={clear}>x</button>
+                      </label>
+                      <div className="money">
+                        <span>$</span>
+                        <MoneyInput.Whole
+                          {...getWholeInputProps({
+                            id: 'payment-whole',
+                            name: 'payment-whole',
+                          })}
+                        />
+                        <MoneyInput.Fraction
+                          {...getFractionInputProps({
+                            id: 'payment-fraction',
+                            name: 'payment-fraction',
+                          })}
+                        />
+                      </div>
+                    </div>
+                  )
+                }}
+              </MoneyInput>
+            </div>
+          </CardBody>
+        </Card>
+        <Collection<Transaction>
+          authPath={`leases/${lease.id}/transactions`}
+          orderBy={{ field: 'date', direction: 'desc' }}>
+          {(transactions, hasLoaded) => (
+            <div>
+              <ListHeader label="transactions" className="transactions-header">
+                <NewTenantForm />
+              </ListHeader>
+              <ReactTable
+                className={transactionTableStyle}
+                loading={!hasLoaded}
+                data={transactions}
+                defaultPageSize={5}
+                columns={[
+                  {
+                    Header: 'type',
+                    accessor: 'type',
+                    Cell: ({
+                      original: { type, subType },
+                    }: {
+                      original: Transaction
+                    }) => {
+                      return (
+                        <div
+                          css={'display: flex; & > * {margin-right: 0.5em;}'}>
+                          <Badge
+                            pill
+                            color={type === 'CHARGE' ? 'secondary' : 'success'}>
+                            {type}
+                          </Badge>
+                          {subType ? (
+                            <Badge pill color="primary">
+                              {subType}
+                            </Badge>
+                          ) : null}
+                        </div>
+                      )
+                    },
                   },
-                },
-                {
-                  Header: 'date',
-                  id: 'date',
-                  accessor: (t: Transaction) =>
-                    format(t.date.toDate(), 'EEE d MMM YYYY'),
-                },
-              ]}
-            />
-          </div>
-        )}
-      </Collection>
+                  {
+                    Header: 'amount',
+                    accessor: 'amount',
+                    Cell: ({
+                      value,
+                      original: { type },
+                    }: {
+                      original: Transaction
+                      value: number
+                    }) => {
+                      return (
+                        <div
+                          className={cx({
+                            'text-success': type === 'PAYMENT',
+                          })}>
+                          <CurrencyCell amount={value} />
+                        </div>
+                      )
+                    },
+                  },
+                  {
+                    Header: 'date',
+                    id: 'date',
+                    accessor: (t: Transaction) =>
+                      format(t.date.toDate(), 'EEE d MMM YYYY'),
+                    Cell: ({ value }: any) => (
+                      <div css={'text-align: right;'}>{value}</div>
+                    ),
+                  },
+                ]}
+              />
+            </div>
+          )}
+        </Collection>
+      </div>
     )
   }
 }

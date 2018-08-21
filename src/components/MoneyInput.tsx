@@ -6,7 +6,14 @@ Dinero.globalLocale = 'en-US'
 const FORMAT = '0,0'
 const PRETTY = '$0,0.00'
 
+function split(amount: number): { whole: number; fraction: number } {
+  const fraction = amount % 100
+  const whole = (amount - fraction) / 100
+  return { whole, fraction }
+}
+
 interface MoneyInputProps {
+  defaultValue?: number
   children(moneyRenderProps: {
     whole: string
     fraction: string
@@ -17,6 +24,7 @@ interface MoneyInputProps {
     getFractionInputProps(
       fractionInputParams: FractionInputParams,
     ): FractionInputRenderProps
+    clear(): void
   }): JSX.Element | JSX.Element[] | null
   onChange?(updatedState: MoneyInputState): void
 }
@@ -73,21 +81,27 @@ function to$(whole: string, fraction = '0', fmt = FORMAT) {
   }).toFormat(fmt)
 }
 
-const StyledInput = styled.input({
-  fontSize: '2em',
-  textAlign: 'right',
+const StyledInput = styled.input((props: any) => ({
+  backgroundColor: props.bg || 'inherit',
   display: 'inline-flex',
   padding: 0,
   maxWidth: '5em',
   border: 'none',
   borderBottom: '1px solid black',
+}))
+
+const WholeStyledInput = styled(StyledInput)({
+  textAlign: 'right',
+  fontSize: '2em',
   marginRight: '0.5em',
   '&.touched': {
     caretColor: 'transparent',
   },
-  // '&.untouched': {
-  //   caretColor: 'black',
-  // },
+})
+
+const FractionStyledInput = styled(StyledInput)({
+  maxWidth: '2em',
+  fontSize: '1.4em',
 })
 
 export class MoneyInput extends React.Component<
@@ -99,30 +113,25 @@ export class MoneyInput extends React.Component<
   static commasAndSpaces = /[,\s]/g
 
   static Whole = React.forwardRef<HTMLInputElement>((props: any, ref) => (
-    <StyledInput {...props} innerRef={ref} />
+    <WholeStyledInput {...props} innerRef={ref} />
   ))
   static Fraction = React.forwardRef<HTMLInputElement>((props: any, ref) => (
-    <input
-      style={{
-        maxWidth: '2em',
-        display: 'inline-flex',
-        fontSize: '1.4em',
-        border: 'none',
-        borderBottom: '1px solid black',
-      }}
-      {...props}
-      ref={ref}
-    />
+    <FractionStyledInput {...props} ref={ref} />
   ))
+
+  static defaultProps: Pick<MoneyInputProps, 'defaultValue'> = {
+    defaultValue: 0,
+  }
 
   wholeRef: RefObject<HTMLInputElement>
   fractionRef: RefObject<HTMLInputElement>
 
-  constructor(props: any) {
+  constructor(props: MoneyInputProps) {
     super(props)
+    const initial = split(props.defaultValue!)
     this.state = {
-      whole: '0',
-      fraction: '',
+      whole: initial.whole.toString(),
+      fraction: initial.fraction ? initial.fraction.toString() : '',
     }
     this.wholeRef = React.createRef()
     this.fractionRef = React.createRef()
@@ -293,11 +302,19 @@ export class MoneyInput extends React.Component<
       ...rest,
     }
   }
+  clear = () => {
+    this.internalSetState(
+      () => ({ whole: '0', fraction: '' }),
+      () => {
+        this.wholeRef.current!.focus()
+      },
+    )
+  }
 
   render() {
     const { children } = this.props
     const { whole, fraction } = this.state
-    const { getWholeInputProps, getFractionInputProps } = this
+    const { getWholeInputProps, getFractionInputProps, clear } = this
     const money = to$(whole.replace(',', ''), fraction, PRETTY)
     console.log('render: ', whole)
     return children({
@@ -306,6 +323,7 @@ export class MoneyInput extends React.Component<
       money,
       getWholeInputProps,
       getFractionInputProps,
+      clear,
     })
   }
 }
