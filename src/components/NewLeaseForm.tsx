@@ -141,7 +141,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
           const authPath = this.props.propertyId
             ? `properties/${propertyId}`
             : 'properties'
-          console.log({ values, touched, errors })
+          // console.log({ values, touched, errors })
           return (
             <Modal
               isOpen={isModalOpen}
@@ -324,7 +324,6 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                         onChange={({ whole, fraction }) => {
                           const amount =
                             100 * parseInt(whole) + parseInt(fraction || '0')
-                          console.log({ whole, fraction, amount })
                           setFieldValue('rent', amount)
                         }}>
                         {({

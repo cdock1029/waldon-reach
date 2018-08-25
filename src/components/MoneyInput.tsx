@@ -117,10 +117,10 @@ export class MoneyInput extends React.Component<
   static commasAndSpaces = /[,\s]/g
 
   static Whole = React.forwardRef<HTMLInputElement>((props: any, ref) => (
-    <WholeStyledInput {...props} innerRef={ref} />
+    <WholeStyledInput type="tel" {...props} innerRef={ref} />
   ))
   static Fraction = React.forwardRef<HTMLInputElement>((props: any, ref) => (
-    <FractionStyledInput {...props} ref={ref} />
+    <FractionStyledInput type="tel" {...props} innerRef={ref} />
   ))
 
   static defaultProps: Pick<MoneyInputProps, 'defaultValue'> = {
@@ -172,10 +172,11 @@ export class MoneyInput extends React.Component<
 
   handleWholeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let { value } = e.target
+    console.log('whole Change', { value })
     // undo Dinero
     value = value.toString().replace(MoneyInput.commasAndSpaces, '')
     if (value === '') {
-      return this.internalSetState({ whole: '0' })
+      return this.internalSetState(() => ({ whole: '0' }))
     }
 
     if (!value.match(MoneyInput.wholeRegex)) {
@@ -186,12 +187,14 @@ export class MoneyInput extends React.Component<
     if (value.indexOf('.') !== -1) {
       const parts = value.split('.')
       const money = to$(parts[0])
+      console.log({ parts, money, fraction: this.state.fraction })
       return this.internalSetState(
         ({ fraction }) => ({
           whole: money,
-          fraction: parts.length > 1 ? parts[1] : fraction,
+          fraction: parts[1] ? parts[1] : fraction,
         }),
         () => {
+          console.log({ fRef: this.fractionRef })
           this.fractionRef.current!.focus()
         },
       )
@@ -205,31 +208,40 @@ export class MoneyInput extends React.Component<
       }
     }
     const money = to$(fixed)
-    console.log({ fixed, money })
-    this.internalSetState({ whole: money })
+    this.internalSetState(() => ({ whole: money }))
   }
   handleFractionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target
-    // console.log({fraction: value})
+    console.log('fracChange', { value })
     if (value.trim() === '') {
-      return this.internalSetState({ fraction: value.trim() }, () => {
-        this.wholeRef.current!.focus()
-      })
+      console.log('fraction is empty.. setting then jumping to whole')
+      return this.internalSetState(
+        () => ({ fraction: '' }),
+        () => {
+          this.wholeRef.current!.focus()
+        },
+      )
     }
-    if (!value.match(MoneyInput.fractionRegex)) {
-      return
+    if (value.match(MoneyInput.fractionRegex)) {
+      this.internalSetState(() => ({ fraction: value }))
     }
-    this.internalSetState({ fraction: value })
   }
   fractionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    const { value } = this.fractionRef.current!
-    const { keyCode } = e
-    if (value === '' && keyCode === 8) {
-      this.wholeRef.current!.focus()
+    const node = this.fractionRef.current!
+    const { key } = e
+    console.log('fracKeyDown', { value: node.value, key })
+    if (node.value === '' && key === 'Backspace') {
+      // hack: TODO: FIX?: without timeout, immediately after focus
+      // the "whole" input value gets a digit removed
+      // ....backspace is applied to it, instead of *just* to this input
+      // shows up in vanilla html in chrome and safari so... whatever.
+      setTimeout(() => {
+        this.wholeRef.current!.focus()
+      }, 0)
     }
   }
   wholeOnFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    console.log('focused')
+    console.log('whole onFocus')
     // const node = this.wholeRef.current!
     // node.focus()
     // node.setSelectionRange(1000, 1000)

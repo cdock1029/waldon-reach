@@ -285,7 +285,7 @@ class TransactionsSubComponent extends React.Component<{
                 leaseId={lease.id}
                 amount={lease.balance > 0 ? lease.balance : undefined}>
                 {({ values, setFieldValue, handleSubmit, errors, touched }) => {
-                  console.log({ values })
+                  // console.log({ values })
                   return (
                     <Form onSubmit={handleSubmit} className="payment-container">
                       <MoneyInput
@@ -327,7 +327,11 @@ class TransactionsSubComponent extends React.Component<{
                                   })}
                                 />
                                 <div css={'margin-left: 0.5em;'}>
-                                  <Button outline onClick={clear} size="sm">
+                                  <Button
+                                    tabIndex={-1}
+                                    outline
+                                    onClick={clear}
+                                    size="sm">
                                     x
                                   </Button>
                                 </div>

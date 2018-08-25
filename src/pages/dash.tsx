@@ -190,12 +190,12 @@ const NoItems: React.SFC<{ label: string }> = ({ label }) => (
   <div
     css={{
       padding: '1em',
-      h6: { display: 'inline-block', color: `var(--color-${label})` },
+      '.new': { display: 'inline-block', color: `var(--color-${label})` },
     }}>
     <Card body>
       <CardTitle>No {label}</CardTitle>
       <CardText>
-        click <h6>New</h6> to add a new one
+        click <span className="new">New</span> to add a new one
       </CardText>
     </Card>
   </div>
