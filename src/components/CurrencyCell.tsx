@@ -17,7 +17,6 @@ export const CurrencyCell: SFC<CurrencyCellProps> = ({
   amount,
   format = '0,0.00',
 }) => {
-  console.log({ amount })
   const money: string = Dinero({ amount }).toFormat(format)
   return (
     <CurrencyCellStyled>

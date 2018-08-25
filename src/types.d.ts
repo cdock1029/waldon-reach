@@ -42,11 +42,14 @@ interface Lease extends Doc {
   status: 'ACTIVE' | 'INACTIVE' | 'COLLECTIONS'
 }
 
+type TransactionType = 'PAYMENT' | 'CHARGE'
+type TransactionSubType = 'RENT' | 'LATE_FEE' | string
+
 interface Transaction extends Doc {
   amount: number
-  date: firebase.firestore.Timestamp
-  type: 'PAYMENT' | 'CHARGE'
-  subType?: 'RENT' | 'LATE_FEE' | string
+  date: firebase.firestore.Timestamp // | firebase.firestore.FieldValue
+  type: TransactionType
+  subType?: TransactionSubType
 }
 
 type WhereParam = [

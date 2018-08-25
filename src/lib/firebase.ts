@@ -22,6 +22,8 @@ export const init = async () => {
   }
 }
 export const app: () => firebase.app.App = () => _app
+export const serverTimestamp = () =>
+  firebase.firestore.FieldValue.serverTimestamp()
 
 export const newDoc = async (collectionPath: string, data: Fs.DocumentData) => {
   if (app().auth().currentUser) {

@@ -26,7 +26,7 @@ interface MoneyInputProps {
     ): FractionInputRenderProps
     clear(): void
   }): JSX.Element | JSX.Element[] | null
-  onChange?(updatedState: MoneyInputState): void
+  onChange?(updatedState: MoneyInputState & { total: number }): void
 }
 interface MoneyInputState {
   whole: string
@@ -75,9 +75,13 @@ interface FractionInputRenderProps {
   ref: React.RefObject<HTMLInputElement>
 }
 
+function stringToTotalInt(whole: string, fraction: string): number {
+  return 100 * parseInt(whole || '0') + parseInt(fraction || '0')
+}
+
 function to$(whole: string, fraction = '0', fmt = FORMAT) {
   return Dinero({
-    amount: 100 * parseInt(whole || '0') + parseInt(fraction || '0'),
+    amount: stringToTotalInt(whole, fraction),
   }).toFormat(fmt)
 }
 
@@ -158,7 +162,9 @@ export class MoneyInput extends React.Component<
           cb()
         }
         if (this.props.onChange && stateToSet !== null) {
-          this.props.onChange(this.state)
+          const { whole, fraction } = this.state
+          const total = stringToTotalInt(whole, fraction)
+          this.props.onChange({ whole, fraction, total })
         }
       },
     )
@@ -316,7 +322,6 @@ export class MoneyInput extends React.Component<
     const { whole, fraction } = this.state
     const { getWholeInputProps, getFractionInputProps, clear } = this
     const money = to$(whole.replace(',', ''), fraction, PRETTY)
-    console.log('render: ', whole)
     return children({
       whole,
       fraction,

@@ -11,6 +11,12 @@ import {
   CardText,
   CardSubtitle,
   Badge,
+  Alert,
+  Form,
+  FormGroup,
+  Label,
+  Input,
+  Button,
 } from 'reactstrap'
 import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
@@ -21,6 +27,7 @@ import { NavLink as Link } from 'react-router-dom'
 import { ListHeader } from '../components/ListHeader'
 import { NewLeaseForm } from '../components/NewLeaseForm'
 import NewTenantForm from '../components/NewTenantForm'
+import { NewTransactionForm } from '../components/forms/NewTransactionForm'
 import { CurrencyCell } from '../components/CurrencyCell'
 import { MoneyInput } from '../components/MoneyInput'
 
@@ -274,41 +281,70 @@ class TransactionsSubComponent extends React.Component<{
           </CardBody>
           <CardBody>
             <div className="content">
-              <MoneyInput
-                defaultValue={lease.balance > 0 ? lease.balance : undefined}>
-                {({
-                  money,
-                  getWholeInputProps,
-                  getFractionInputProps,
-                  clear,
-                }) => {
+              <NewTransactionForm
+                leaseId={lease.id}
+                amount={lease.balance > 0 ? lease.balance : undefined}>
+                {({ values, setFieldValue, handleSubmit, errors, touched }) => {
+                  console.log({ values })
                   return (
-                    <div className="payment-container">
-                      <label
-                        css={'display: flex; justify-content: space-between'}
-                        htmlFor="payment-whole">
-                        Make payment
-                        <button onClick={clear}>x</button>
-                      </label>
-                      <div className="money">
-                        <span>$</span>
-                        <MoneyInput.Whole
-                          {...getWholeInputProps({
-                            id: 'payment-whole',
-                            name: 'payment-whole',
-                          })}
-                        />
-                        <MoneyInput.Fraction
-                          {...getFractionInputProps({
-                            id: 'payment-fraction',
-                            name: 'payment-fraction',
-                          })}
-                        />
-                      </div>
-                    </div>
+                    <Form onSubmit={handleSubmit} className="payment-container">
+                      <MoneyInput
+                        defaultValue={
+                          lease.balance > 0 ? lease.balance : undefined
+                        }
+                        onChange={({ total }) =>
+                          setFieldValue('amount', total)
+                        }>
+                        {({
+                          money,
+                          getWholeInputProps,
+                          getFractionInputProps,
+                          clear,
+                        }) => {
+                          return (
+                            <Fragment>
+                              <FormGroup
+                                css={
+                                  'display: flex; justify-content: space-between'
+                                }>
+                                <Label htmlFor="payment-whole">Payment</Label>
+                                {/* <Button onClick={clear} size="sm">
+                                  x
+                                </Button> */}
+                              </FormGroup>
+                              <FormGroup className="money">
+                                <Label>Amount $</Label>
+                                <MoneyInput.Whole
+                                  {...getWholeInputProps({
+                                    id: 'payment-whole',
+                                    name: 'payment-whole',
+                                  })}
+                                />
+                                <MoneyInput.Fraction
+                                  {...getFractionInputProps({
+                                    id: 'payment-fraction',
+                                    name: 'payment-fraction',
+                                  })}
+                                />
+                                <div css={'margin-left: 0.5em;'}>
+                                  <Button outline onClick={clear} size="sm">
+                                    x
+                                  </Button>
+                                </div>
+                              </FormGroup>
+                            </Fragment>
+                          )
+                        }}
+                      </MoneyInput>
+                      <FormGroup>
+                        <Button type="submit" color="primary">
+                          Submit
+                        </Button>
+                      </FormGroup>
+                    </Form>
                   )
                 }}
-              </MoneyInput>
+              </NewTransactionForm>
             </div>
           </CardBody>
         </Card>
@@ -324,7 +360,7 @@ class TransactionsSubComponent extends React.Component<{
                 className={transactionTableStyle}
                 loading={!hasLoaded}
                 data={transactions}
-                defaultPageSize={5}
+                defaultPageSize={10}
                 columns={[
                   {
                     Header: 'type',
