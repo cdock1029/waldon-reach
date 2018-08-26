@@ -27,6 +27,7 @@ interface MoneyInputProps {
     clear(): void
   }): JSX.Element | JSX.Element[] | null
   onChange?(updatedState: MoneyInputState & { total: number }): void
+  onBlur?(e: React.FocusEvent<HTMLInputElement>): void
 }
 interface MoneyInputState {
   whole: string
@@ -48,6 +49,7 @@ interface WholeInputRenderProps {
   onFocus?(e: React.FocusEvent<HTMLInputElement>): void
   onClick?(e: React.MouseEvent<HTMLInputElement>): void
   onMouseDown?(e: React.MouseEvent<HTMLInputElement>): void
+  onBlur?(e: React.FocusEvent<HTMLInputElement>): void
   className: string
   id: string
   name: string
@@ -67,6 +69,7 @@ interface FractionInputRenderProps {
   value: string
   onChange(e: React.ChangeEvent<HTMLInputElement>): void
   onKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void
+  onBlur?(e: React.FocusEvent<HTMLInputElement>): void
   className: string
   id: string
   name: string
@@ -276,6 +279,7 @@ export class MoneyInput extends React.Component<
       wholeOnClick: onClick,
       wholeOnMouseDown: onMouseDown,
       wholeRef: ref,
+      handleBothInputBlurs: onBlur,
     } = this
     return {
       value: whole,
@@ -288,9 +292,15 @@ export class MoneyInput extends React.Component<
       onClick,
       onFocus,
       onMouseDown,
+      onBlur,
       ref,
       // TODO should we?
       ...rest,
+    }
+  }
+  handleBothInputBlurs = (e: React.FocusEvent<HTMLInputElement>) => {
+    if (this.props.onBlur) {
+      this.props.onBlur(e)
     }
   }
   getFractionInputProps = ({
@@ -306,6 +316,7 @@ export class MoneyInput extends React.Component<
       handleFractionChange: onChange,
       fractionKeyDown: onKeyDown,
       fractionRef: ref,
+      handleBothInputBlurs: onBlur,
     } = this
     return {
       value: fraction,
@@ -316,6 +327,7 @@ export class MoneyInput extends React.Component<
       className,
       placeholder,
       autoFocus,
+      onBlur,
       ref,
       ...rest,
     }

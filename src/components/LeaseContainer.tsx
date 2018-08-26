@@ -18,6 +18,7 @@ import {
   Input,
   Button,
 } from 'reactstrap'
+import { Field } from 'formik'
 import styled, { css, cx } from 'react-emotion'
 import ReactTable from 'react-table'
 import { format } from 'date-fns'
@@ -284,7 +285,14 @@ class TransactionsSubComponent extends React.Component<{
               <NewTransactionForm
                 leaseId={lease.id}
                 amount={lease.balance > 0 ? lease.balance : undefined}>
-                {({ values, setFieldValue, handleSubmit, errors, touched }) => {
+                {({
+                  values,
+                  setFieldValue,
+                  setFieldTouched,
+                  handleSubmit,
+                  errors,
+                  touched,
+                }) => {
                   // console.log({ values })
                   return (
                     <Form onSubmit={handleSubmit} className="payment-container">
@@ -292,9 +300,10 @@ class TransactionsSubComponent extends React.Component<{
                         defaultValue={
                           lease.balance > 0 ? lease.balance : undefined
                         }
-                        onChange={({ total }) =>
+                        onBlur={e => setFieldTouched('amount')}
+                        onChange={({ total }) => {
                           setFieldValue('amount', total)
-                        }>
+                        }}>
                         {({
                           money,
                           getWholeInputProps,
@@ -303,14 +312,15 @@ class TransactionsSubComponent extends React.Component<{
                         }) => {
                           return (
                             <Fragment>
+                              {errors.amount &&
+                                touched.amount && (
+                                  <Alert color="danger">{errors.amount}</Alert>
+                                )}
                               <FormGroup
                                 css={
                                   'display: flex; justify-content: space-between'
                                 }>
                                 <Label htmlFor="payment-whole">Payment</Label>
-                                {/* <Button onClick={clear} size="sm">
-                                  x
-                                </Button> */}
                               </FormGroup>
                               <FormGroup className="money">
                                 <Label>Amount $</Label>
