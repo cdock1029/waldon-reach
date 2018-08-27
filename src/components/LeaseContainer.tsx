@@ -31,6 +31,8 @@ import NewTenantForm from '../components/NewTenantForm'
 import { NewTransactionForm } from '../components/forms/NewTransactionForm'
 import { CurrencyCell } from '../components/CurrencyCell'
 import { MoneyInput } from '../components/MoneyInput'
+import { PaymentForm } from './forms/PaymentForm'
+import { ChargeForm } from './forms/ChargeForm'
 
 type CollectionReference = firebase.firestore.CollectionReference
 
@@ -227,6 +229,7 @@ const LeasesView: SFC<LeasesProps> = ({
   return (
     <div key="react-table" className="lease-table">
       <ReactTable
+        collapseOnDataChange={false}
         loading={loading}
         data={leases}
         columns={columns}
@@ -282,83 +285,12 @@ class TransactionsSubComponent extends React.Component<{
           </CardBody>
           <CardBody>
             <div className="content">
-              <NewTransactionForm
-                leaseId={lease.id}
-                amount={lease.balance > 0 ? lease.balance : undefined}>
-                {({
-                  values,
-                  setFieldValue,
-                  setFieldTouched,
-                  handleSubmit,
-                  errors,
-                  touched,
-                }) => {
-                  // console.log({ values })
-                  return (
-                    <Form onSubmit={handleSubmit} className="payment-container">
-                      <MoneyInput
-                        defaultValue={
-                          lease.balance > 0 ? lease.balance : undefined
-                        }
-                        onBlur={e => setFieldTouched('amount')}
-                        onChange={({ total }) => {
-                          setFieldValue('amount', total)
-                        }}>
-                        {({
-                          money,
-                          getWholeInputProps,
-                          getFractionInputProps,
-                          clear,
-                        }) => {
-                          return (
-                            <Fragment>
-                              {errors.amount &&
-                                touched.amount && (
-                                  <Alert color="danger">{errors.amount}</Alert>
-                                )}
-                              <FormGroup
-                                css={
-                                  'display: flex; justify-content: space-between'
-                                }>
-                                <Label htmlFor="payment-whole">Payment</Label>
-                              </FormGroup>
-                              <FormGroup className="money">
-                                <Label>Amount $</Label>
-                                <MoneyInput.Whole
-                                  {...getWholeInputProps({
-                                    id: 'payment-whole',
-                                    name: 'payment-whole',
-                                  })}
-                                />
-                                <MoneyInput.Fraction
-                                  {...getFractionInputProps({
-                                    id: 'payment-fraction',
-                                    name: 'payment-fraction',
-                                  })}
-                                />
-                                <div css={'margin-left: 0.5em;'}>
-                                  <Button
-                                    tabIndex={-1}
-                                    outline
-                                    onClick={clear}
-                                    size="sm">
-                                    x
-                                  </Button>
-                                </div>
-                              </FormGroup>
-                            </Fragment>
-                          )
-                        }}
-                      </MoneyInput>
-                      <FormGroup>
-                        <Button type="submit" color="primary">
-                          Submit
-                        </Button>
-                      </FormGroup>
-                    </Form>
-                  )
-                }}
-              </NewTransactionForm>
+              <PaymentForm lease={lease} />
+            </div>
+          </CardBody>
+          <CardBody>
+            <div className="content">
+              <ChargeForm lease={lease} />
             </div>
           </CardBody>
         </Card>
@@ -371,6 +303,7 @@ class TransactionsSubComponent extends React.Component<{
                 <NewTenantForm />
               </ListHeader>
               <ReactTable
+                collapseOnDataChange={false}
                 className={transactionTableStyle}
                 loading={!hasLoaded}
                 data={transactions}
@@ -393,7 +326,11 @@ class TransactionsSubComponent extends React.Component<{
                             {type}
                           </Badge>
                           {subType ? (
-                            <Badge pill color="primary">
+                            <Badge
+                              pill
+                              color={
+                                subType === 'LATE_FEE' ? 'danger' : 'primary'
+                              }>
                               {subType}
                             </Badge>
                           ) : null}
@@ -416,7 +353,10 @@ class TransactionsSubComponent extends React.Component<{
                           className={cx({
                             'text-success': type === 'PAYMENT',
                           })}>
-                          <CurrencyCell amount={value} />
+                          <CurrencyCell
+                            amount={value}
+                            formatNegative={type === 'PAYMENT'}
+                          />
                         </div>
                       )
                     },

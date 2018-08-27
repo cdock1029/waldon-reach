@@ -62,7 +62,8 @@ exports = module.exports = functions.pubsub
           // this lease is done, no new fee applied
           return
         }
-        l.ref
+        // todo: fixed tsc errors by just returning this
+        return l.ref
           .collection('transactions')
           .doc()
           .set({

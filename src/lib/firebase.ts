@@ -32,7 +32,11 @@ export const newDoc = async (collectionPath: string, data: Fs.DocumentData) => {
       .firestore()
       .collection(`companies/${activeCompany}/${collectionPath}`)
       .doc()
-      .set(data)
+      .set({
+        ...data,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      })
   }
 }
 

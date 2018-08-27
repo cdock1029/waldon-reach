@@ -10,5 +10,6 @@
     "dist": true,
     ".vscode": true,
     ".firebase": true
-  }
+  },
+  "git.ignoreLimitWarning": true
 }

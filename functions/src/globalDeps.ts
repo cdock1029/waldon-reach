@@ -1,5 +1,5 @@
 import * as firebaseFunctions from 'firebase-functions'
-import firebaseAdmin, { auth as authTypes } from 'firebase-admin'
+import * as firebaseAdmin from 'firebase-admin'
 import Logging from '@google-cloud/logging'
 
 firebaseAdmin.initializeApp()
@@ -7,7 +7,6 @@ firebaseAdmin.firestore().settings({ timestampsInSnapshots: true })
 
 export const logging = new Logging()
 export const admin = firebaseAdmin
-export const auth = authTypes
 export function wasCalled(functionName: string): boolean {
   return (
     !process.env.FUNCTION_NAME || process.env.FUNCTION_NAME === functionName

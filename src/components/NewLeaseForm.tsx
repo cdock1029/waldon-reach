@@ -10,7 +10,7 @@ import {
 import Dinero from 'dinero.js'
 import { Collection, Document } from './FirestoreData'
 import * as Yup from 'yup'
-import { newDoc } from '../lib/firebase'
+// import { newDoc } from '../lib/firebase'
 import { sortUnits } from '../lib'
 import {
   Alert,

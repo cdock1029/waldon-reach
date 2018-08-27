@@ -8,15 +8,15 @@
 
 html {
   box-sizing: border-box;
-  // font-size: 15px;
+  font-size: 14px;
 }
 
 *,
 *:before,
 *:after {
   box-sizing: inherit;
-  text-transform: uppercase !important;
-  font-variant-caps: all-small-caps !important;
+  // text-transform: uppercase !important;
+  // font-variant-caps: all-small-caps !important;
 }
 html,
 body,

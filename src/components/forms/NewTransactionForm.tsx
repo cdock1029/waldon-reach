@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react'
 import * as Yup from 'yup'
-import { app, serverTimestamp, newDoc } from '../../lib/firebase'
+import { newDoc } from '../../lib/firebase'
 import {
   Formik,
   Field,
@@ -16,7 +16,7 @@ interface NewTransactionFormProps {
   leaseId: string
   type?: TransactionType
   subType?: TransactionSubType
-  amount?: number
+  initialAmount?: number
   children(
     props: FormikProps<NewTransactionFormState>,
   ): JSX.Element | JSX.Element[] | null
@@ -42,24 +42,42 @@ const transactionSchema = Yup.object().shape({
 export class NewTransactionForm extends React.Component<
   NewTransactionFormProps
 > {
-  static defaultProps: Pick<NewTransactionFormProps, 'type' | 'amount'> = {
+  static defaultProps: Pick<
+    NewTransactionFormProps,
+    'type' | 'initialAmount'
+  > = {
     type: 'PAYMENT',
-    amount: 0,
+    initialAmount: 0,
+  }
+  initialValues: NewTransactionFormState
+  constructor(props: NewTransactionFormProps) {
+    super(props)
+    const { leaseId, type, subType, initialAmount } = props
+    this.initialValues = {
+      leaseId,
+      type: type!,
+      date: new Date(),
+      amount: initialAmount!,
+    }
+    if (subType) {
+      this.initialValues.subType = subType
+    }
   }
   render() {
-    const { children, leaseId, type, subType, amount } = this.props
+    const { children } = this.props
     return (
       <Formik<NewTransactionFormState>
         validationSchema={transactionSchema}
-        initialValues={{
-          leaseId,
-          type: type!,
-          subType,
-          date: new Date(),
-          amount: amount!,
-        }}
-        onSubmit={values => {
-          alert(JSON.stringify(values, null, 2))
+        initialValues={this.initialValues}
+        onSubmit={async values => {
+          // alert(JSON.stringify(values, null, 2))
+          const transactionsPath = `leases/${values.leaseId}/transactions`
+          delete values.leaseId
+          newDoc(transactionsPath, values)
+            .then(() => {
+              alert('Transaction Saved!')
+            })
+            .catch(e => alert(`Error: ${e.message}`))
         }}>
         {({ values, ...rest }) => children({ values, ...rest })}
       </Formik>

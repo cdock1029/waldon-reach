@@ -17,6 +17,8 @@ interface RouteProps {
 
 interface Doc {
   id: string
+  createdAt?: firebase.firestore.Timestamp
+  updatedAt?: firebase.firestore.Timestamp
 }
 interface Property extends Doc {
   name: string
@@ -43,7 +45,7 @@ interface Lease extends Doc {
 }
 
 type TransactionType = 'PAYMENT' | 'CHARGE'
-type TransactionSubType = 'RENT' | 'LATE_FEE' | string
+type TransactionSubType = 'RENT' | 'LATE_FEE' // todo: allow for more charge types
 
 interface Transaction extends Doc {
   amount: number
