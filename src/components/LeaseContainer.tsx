@@ -30,6 +30,7 @@ import { NewLeaseForm } from '../components/NewLeaseForm'
 import NewTenantForm from '../components/NewTenantForm'
 import { NewTransactionForm } from '../components/forms/NewTransactionForm'
 import { CurrencyCell } from '../components/CurrencyCell'
+import { Cell } from '../components/Cell'
 import { MoneyInput } from '../components/MoneyInput'
 import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
@@ -172,6 +173,7 @@ interface LeasesProps {
   showProperties: boolean
   showUnits: boolean
 }
+
 const LeasesView: SFC<LeasesProps> = ({
   leases,
   showProperties,
@@ -182,12 +184,14 @@ const LeasesView: SFC<LeasesProps> = ({
     {
       Header: 'Tenants',
       accessor: 'tenants',
-      Cell: ({ original: l }: { original: Lease }) => (
-        <StringStack>
-          {Object.entries(l.tenants)
-            .map<string>(([id, { exists, name }]) => name)
-            .join('\n')}
-        </StringStack>
+      Cell: (row: { original: Lease; isExpanded: any }) => (
+        <Cell highlight={row.isExpanded}>
+          <StringStack>
+            {Object.entries(row.original.tenants)
+              .map<string>(([id, { exists, name }]) => name)
+              .join('\n')}
+          </StringStack>
+        </Cell>
       ),
     },
     {
@@ -202,9 +206,15 @@ const LeasesView: SFC<LeasesProps> = ({
     {
       Header: 'Balance',
       accessor: 'balance',
-      Cell: ({ original: l }: { original: Lease }) => (
-        <CurrencyCell amount={l.balance} css={'font-weight: bold;'} />
-      ), //CurrencyAddDecimals(l.balance),
+      Cell: (row: { original: Lease; isExpanded: boolean }) => {
+        return (
+          <CurrencyCell
+            highlight={row.isExpanded}
+            amount={row.original.balance}
+            css={'font-weight: bold;'}
+          />
+        )
+      }, //CurrencyAddDecimals(l.balance),
     },
     // {
     //   Header: 'Link',
@@ -241,6 +251,20 @@ const LeasesView: SFC<LeasesProps> = ({
   return (
     <div key="react-table" className="lease-table">
       <ReactTable
+        getTrProps={(state: any, rowInfo: any) => {
+          console.log({ state, rowInfo })
+          const index = rowInfo ? rowInfo.index : -1
+          let result: any = {}
+          if (index >= 0) {
+            const isExpanded = !!state.expanded[index]
+            if (isExpanded) {
+              result.style = {
+                backgroundColor: '#E1F5FE',
+              }
+            }
+          }
+          return result
+        }}
         collapseOnDataChange={false}
         loading={loading}
         data={leases}
@@ -286,13 +310,6 @@ class TransactionsSubComponent extends React.Component<{
               .content {
                 display: flex;
                 justify-content: center;
-                .payment-container {
-                  padding: 1em;
-                  background-color: beige;
-                  .money {
-                    display: flex;
-                  }
-                }
               }
             }
           }

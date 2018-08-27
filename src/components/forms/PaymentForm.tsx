@@ -2,10 +2,19 @@ import React, { Fragment } from 'react'
 import { Form, FormGroup, Label, Alert, Button } from 'reactstrap'
 import { MoneyInput } from '../MoneyInput'
 import { NewTransactionForm } from './NewTransactionForm'
+import styled from 'react-emotion'
 
 interface PaymentFormProps {
   lease: Lease
 }
+
+const StyledPaymentFormComponent = styled(Form)`
+  background-color: #ddffdd;
+  padding: 1em;
+  .money {
+    display: flex;
+  }
+`
 
 export class PaymentForm extends React.Component<PaymentFormProps> {
   render() {
@@ -24,7 +33,9 @@ export class PaymentForm extends React.Component<PaymentFormProps> {
           touched,
         }) => {
           return (
-            <Form onSubmit={handleSubmit} className="payment-container">
+            <StyledPaymentFormComponent
+              onSubmit={handleSubmit}
+              className="payment-container">
               <MoneyInput
                 defaultValue={lease.balance > 0 ? lease.balance : undefined}
                 onBlur={e => setFieldTouched('amount')}
@@ -75,11 +86,11 @@ export class PaymentForm extends React.Component<PaymentFormProps> {
                 }}
               </MoneyInput>
               <FormGroup>
-                <Button type="submit" color="success">
+                <Button type="submit" color="secondary">
                   Submit
                 </Button>
               </FormGroup>
-            </Form>
+            </StyledPaymentFormComponent>
           )
         }}
       </NewTransactionForm>

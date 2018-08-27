@@ -2,10 +2,19 @@ import React, { Fragment } from 'react'
 import { Form, FormGroup, Label, Alert, Button } from 'reactstrap'
 import { MoneyInput } from '../MoneyInput'
 import { NewTransactionForm } from './NewTransactionForm'
+import styled from 'react-emotion'
 
 interface ChargeFormProps {
   lease: Lease
 }
+
+const StyledChargeFormComponent = styled(Form)`
+  background-color: #ffeeee;
+  padding: 1em;
+  .money {
+    display: flex;
+  }
+`
 
 const DUMMY_LATE_FEE = 3000
 
@@ -26,7 +35,9 @@ export class ChargeForm extends React.Component<ChargeFormProps> {
           touched,
         }) => {
           return (
-            <Form onSubmit={handleSubmit} className="payment-container">
+            <StyledChargeFormComponent
+              onSubmit={handleSubmit}
+              className="payment-container">
               <MoneyInput
                 defaultValue={DUMMY_LATE_FEE}
                 onBlur={e => setFieldTouched('amount')}
@@ -77,11 +88,11 @@ export class ChargeForm extends React.Component<ChargeFormProps> {
                 }}
               </MoneyInput>
               <FormGroup>
-                <Button type="submit" color="danger">
+                <Button type="submit" color="secondary">
                   Submit
                 </Button>
               </FormGroup>
-            </Form>
+            </StyledChargeFormComponent>
           )
         }}
       </NewTransactionForm>
