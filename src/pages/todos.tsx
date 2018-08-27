@@ -4,7 +4,6 @@ import { Collection } from '../components/FirestoreData'
 interface Todo {
   id: string
   completed: boolean
-  createdAt: { toDate(): Date }
   tags?: Array<string | { name: string; id: string }>
   text: string
 }

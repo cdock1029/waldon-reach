@@ -1,5 +1,7 @@
-import { app, getClaim } from '../lib/firebase'
+import { getClaim } from '../lib/firebase'
 import React from 'react'
+
+declare const firebase: typeof import('firebase')
 
 export interface CollectionProps<T extends Doc> {
   authPath: string
@@ -64,12 +66,6 @@ export class Collection<T extends Doc> extends React.Component<
       this.setupData()
     }
   }
-  // setupAuth = () => {
-  //   this.unsubAuth = app()auth().onAuthStateChanged(user => {
-  //     this.unsubData()
-  //     this.setupData()
-  //   })
-  // }
   setupData = async () => {
     const { authPath, orderBy, where } = this.props
     const activeCompany = getClaim('activeCompany') // await auth().activeCompany()
@@ -81,7 +77,7 @@ export class Collection<T extends Doc> extends React.Component<
       resolvedPath = `companies/${activeCompany}/${authPath}`
     }
 
-    let collectionRef: firebase.firestore.Query = app()
+    let collectionRef: firebase.firestore.Query = firebase
       .firestore()
       .collection(resolvedPath)
     if (where) {
@@ -160,7 +156,7 @@ export class Document<T extends Doc> extends React.Component<
     // console.log('setting up data', { currentUser: auth.currentUser })
 
     const activeCompany = getClaim('activeCompany') //await auth().activeCompany()
-    const documentRef = app()
+    const documentRef = firebase
       .firestore()
       .doc(`companies/${activeCompany}/${this.props.authPath}`)
     this.unsubData = documentRef.onSnapshot(this.handleSnap)

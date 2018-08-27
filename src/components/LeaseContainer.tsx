@@ -20,7 +20,7 @@ import {
 } from 'reactstrap'
 import { Field } from 'formik'
 import styled, { css, cx } from 'react-emotion'
-import ReactTable from 'react-table'
+import UnstyledReactTable from 'react-table'
 import { format } from 'date-fns'
 import { Document, Collection } from '../components/FirestoreData'
 import { CurrencyAddDecimals } from '../lib/index'
@@ -37,6 +37,18 @@ import { ChargeForm } from './forms/ChargeForm'
 type CollectionReference = firebase.firestore.CollectionReference
 
 class LeaseCollection extends Collection<Lease> {}
+
+const ReactTable = styled(UnstyledReactTable)`
+  /* *,
+  *:before,
+  *:after {
+    font-family: var(--font-family-monospace);
+  }*/
+  /* table > * {
+    font-family: var(--font-family-monospace);
+  }*/
+  font-family: var(--font-family-monospace);
+`
 
 const enum LeaseActiveFilter {
   ACTIVE = 'ACTIVE',
@@ -191,15 +203,15 @@ const LeasesView: SFC<LeasesProps> = ({
       Header: 'Balance',
       accessor: 'balance',
       Cell: ({ original: l }: { original: Lease }) => (
-        <CurrencyCell amount={l.balance} />
+        <CurrencyCell amount={l.balance} css={'font-weight: bold;'} />
       ), //CurrencyAddDecimals(l.balance),
     },
-    {
-      Header: 'Link',
-      id: 'link',
-      accessor: (l: Lease) => l.id,
-      Cell: (row: any) => <Link to={`/lease/${row.value}`}>#</Link>,
-    },
+    // {
+    //   Header: 'Link',
+    //   id: 'link',
+    //   accessor: (l: Lease) => l.id,
+    //   Cell: (row: any) => <Link to={`/lease/${row.value}`}>#</Link>,
+    // },
   ]
   if (showUnits) {
     columns.splice(1, 0, {
@@ -262,18 +274,24 @@ class TransactionsSubComponent extends React.Component<{
             margin: 0 0.5em 1em 0.5em;
           }
           .controls {
-            min-width: 400px;
+            border: none;
+            min-width: 350px;
             display: flex;
+            flex-direction: column;
             flex: 1;
-            margin: 0 0.5em 1em 0.5em;
-            .content {
+            .control-forms {
               display: flex;
-              justify-content: flex-end;
-              .payment-container {
-                padding: 1em;
-                background-color: beige;
-                .money {
-                  display: flex;
+              flex-direction: column;
+              justify-content: space-evenly;
+              .content {
+                display: flex;
+                justify-content: center;
+                .payment-container {
+                  padding: 1em;
+                  background-color: beige;
+                  .money {
+                    display: flex;
+                  }
                 }
               }
             }
@@ -281,18 +299,27 @@ class TransactionsSubComponent extends React.Component<{
         `}>
         <Card className="controls">
           <CardBody>
-            <CardTitle>Actions</CardTitle>
+            <CardTitle
+              css={{
+                textTransform: 'uppercase',
+                fontVariantCaps: 'small-caps',
+                fontSize: '1em',
+              }}>
+              Actions
+            </CardTitle>
           </CardBody>
-          <CardBody>
-            <div className="content">
-              <PaymentForm lease={lease} />
-            </div>
-          </CardBody>
-          <CardBody>
-            <div className="content">
-              <ChargeForm lease={lease} />
-            </div>
-          </CardBody>
+          <div className="control-forms">
+            <CardBody>
+              <div className="content">
+                <PaymentForm lease={lease} />
+              </div>
+            </CardBody>
+            <CardBody>
+              <div className="content">
+                <ChargeForm lease={lease} />
+              </div>
+            </CardBody>
+          </div>
         </Card>
         <Collection<Transaction>
           authPath={`leases/${lease.id}/transactions`}
@@ -331,7 +358,7 @@ class TransactionsSubComponent extends React.Component<{
                               color={
                                 subType === 'LATE_FEE' ? 'danger' : 'primary'
                               }>
-                              {subType}
+                              {subType.replace('_', ' ')}
                             </Badge>
                           ) : null}
                         </div>

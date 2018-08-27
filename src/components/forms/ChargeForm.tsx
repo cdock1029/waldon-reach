@@ -42,7 +42,11 @@ export class ChargeForm extends React.Component<ChargeFormProps> {
                         )}
                       <FormGroup
                         css={'display: flex; justify-content: space-between'}>
-                        <Label htmlFor="payment-whole">Charge</Label>
+                        <Label
+                          css={'font-weight: bold;'}
+                          htmlFor="payment-whole">
+                          Charge
+                        </Label>
                       </FormGroup>
                       <FormGroup className="money">
                         <Label>Amount $</Label>

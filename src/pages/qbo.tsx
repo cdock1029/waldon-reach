@@ -1,14 +1,12 @@
 import React from 'react'
 import { Button } from 'reactstrap'
-// import { SharedValue } from '../components/SharedValue'
-import { app } from '../lib/firebase'
-const getAlgoliaSecuredKey = app()
+declare const firebase: typeof import('firebase')
+
+const getAlgoliaSecuredKey = firebase
   .functions()
   .httpsCallable('getAlgoliaSecuredKey')
 
-const uploadAllData = app()
-  .functions()
-  .httpsCallable('uploadAllData')
+const uploadAllData = firebase.functions().httpsCallable('uploadAllData')
 
 declare const intuit: any
 
@@ -63,7 +61,7 @@ class QboInternal extends React.Component<
     this.setState(() => ({
       authCheck: { value: '', loading: true, time: '' },
     }))
-    app()
+    firebase
       .auth()
       .currentUser!.getIdToken()
       .then(token => {

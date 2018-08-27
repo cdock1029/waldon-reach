@@ -40,7 +40,11 @@ export class PaymentForm extends React.Component<PaymentFormProps> {
                         )}
                       <FormGroup
                         css={'display: flex; justify-content: space-between'}>
-                        <Label htmlFor="payment-whole">Payment</Label>
+                        <Label
+                          css={'font-weight: bold;'}
+                          htmlFor="payment-whole">
+                          Payment
+                        </Label>
                       </FormGroup>
                       <FormGroup className="money">
                         <Label>Amount $</Label>

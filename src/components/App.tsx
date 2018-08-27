@@ -13,7 +13,8 @@ import {
 } from 'reactstrap'
 import styled from 'react-emotion'
 import loadable from 'loadable-components'
-import { app } from '../lib/firebase'
+
+declare const firebase: typeof import('firebase')
 
 const ZenProvider = loadable(() => import('./Zen').then(mod => mod.ZenProvider))
 const ZenConsumer = loadable(() => import('./Zen').then(mod => mod.ZenConsumer))
@@ -30,9 +31,7 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
   toggle = () => this.setState(({ isOpen }) => ({ isOpen: !isOpen }))
   signOut = (e: any) => {
     e.preventDefault()
-    app()
-      .auth()
-      .signOut()
+    firebase.auth().signOut()
   }
   render() {
     return (

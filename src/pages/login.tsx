@@ -11,7 +11,7 @@ import {
   ModalBody,
   Label,
 } from 'reactstrap'
-import { app } from '../lib/firebase'
+declare const firebase: typeof import('firebase')
 
 interface LoginState {
   error?: string
@@ -32,7 +32,7 @@ class Login extends React.Component<{}, LoginState> {
       email: { value: email },
       password: { value: password },
     } = e.target.elements
-    app()
+    firebase
       .auth()
       .signInWithEmailAndPassword(email, password)
       .then(() => this.setState({ isModalOpen: false }))

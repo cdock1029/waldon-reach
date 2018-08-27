@@ -1,15 +1,14 @@
-import firebase, { firestore as Fs } from 'firebase/app'
-import 'firebase/auth'
-import 'firebase/firestore'
-import 'firebase/functions'
 import config from './firebaseConfig'
 
-let _app: firebase.app.App
+declare const firebase: typeof import('firebase')
+
 export const init = async () => {
-  _app = firebase.apps.length ? firebase.app() : firebase.initializeApp(config)
-  _app.firestore().settings({ timestampsInSnapshots: true })
+  if (!firebase.apps.length) {
+    firebase.initializeApp(config)
+  }
+  firebase.firestore().settings({ timestampsInSnapshots: true })
   try {
-    await _app
+    await firebase
       .firestore()
       .enablePersistence()
       .then(() => console.log('enabled!!'))
@@ -21,14 +20,17 @@ export const init = async () => {
     }
   }
 }
-export const app: () => firebase.app.App = () => _app
+// export const app: () => firebase.app.App = () => firebase.app()
 export const serverTimestamp = () =>
   firebase.firestore.FieldValue.serverTimestamp()
 
-export const newDoc = async (collectionPath: string, data: Fs.DocumentData) => {
-  if (app().auth().currentUser) {
+export const newDoc = async (
+  collectionPath: string,
+  data: firebase.firestore.DocumentData,
+) => {
+  if (firebase.auth().currentUser) {
     const activeCompany = getClaim('activeCompany')
-    return app()
+    return firebase
       .firestore()
       .collection(`companies/${activeCompany}/${collectionPath}`)
       .doc()
@@ -48,19 +50,17 @@ export function onAuthStateChangedWithClaims(
     claims: { [key: string]: string },
   ) => void,
 ) {
-  return app()
-    .auth()
-    .onAuthStateChanged(async user => {
-      let claims = {}
-      if (user) {
-        const token = await user.getIdTokenResult()
-        claims = claimsKeys.reduce((acc, claim) => {
-          acc[claim] = token.claims[claim]
-          return acc
-        }, claims)
-      }
-      _claims = claims
-      callback(user, claims)
-    })
+  return firebase.auth().onAuthStateChanged(async user => {
+    let claims = {}
+    if (user) {
+      const token = await user.getIdTokenResult()
+      claims = claimsKeys.reduce((acc, claim) => {
+        acc[claim] = token.claims[claim]
+        return acc
+      }, claims)
+    }
+    _claims = claims
+    callback(user, claims)
+  })
 }
 export const getClaim = (key: string) => _claims[key]

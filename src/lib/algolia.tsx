@@ -9,11 +9,13 @@ import {
   CurrentRefinements,
   ClearRefinements,
 } from 'react-instantsearch-dom'
-import { app, getClaim } from './firebase'
+import { getClaim } from './firebase'
 import 'instantsearch.css/themes/reset.css'
 import 'instantsearch.css/themes/algolia.css'
 
-const getAlgoliaSecuredKey = app()
+declare const firebase: typeof import('firebase')
+
+const getAlgoliaSecuredKey = firebase
   .functions()
   .httpsCallable('getAlgoliaSecuredKey')
 
@@ -39,9 +41,7 @@ export class Algolia extends React.Component<object, AlgoliaState> {
       try {
         const { data } = await getAlgoliaSecuredKey()
         if (data.key) {
-          app()
-            .auth()
-            .currentUser!.getIdToken(true)
+          firebase.auth().currentUser!.getIdToken(true)
           this.searchClient = algoliasearch(
             process.env.ALGOLIA_APP_ID!,
             data.key,

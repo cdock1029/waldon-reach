@@ -8,8 +8,6 @@ const App = loadable(() => import('./components/App'))
 const Login = loadable(() => import('./pages/login'))
 const root = document.getElementById('root')
 
-registerServiceWorker()
-
 async function main() {
   await init()
   onAuthStateChangedWithClaims(
@@ -21,3 +19,4 @@ async function main() {
   )
 }
 main()
+registerServiceWorker()
