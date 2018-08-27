@@ -259,6 +259,7 @@ const LeasesView: SFC<LeasesProps> = ({
             const isExpanded = !!state.expanded[index]
             if (isExpanded) {
               result.style = {
+                fontSize: '1.5em',
                 backgroundColor: '#E1F5FE',
               }
             }
