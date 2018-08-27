@@ -9,6 +9,7 @@ import {
   FormikProps,
   FormikErrors,
 } from 'formik'
+import Dinero from 'dinero.js'
 
 type PaymentType = 'PAYMENT' | 'CHARGE'
 
@@ -70,14 +71,24 @@ export class NewTransactionForm extends React.Component<
         validationSchema={transactionSchema}
         initialValues={this.initialValues}
         onSubmit={async values => {
-          // alert(JSON.stringify(values, null, 2))
-          const transactionsPath = `leases/${values.leaseId}/transactions`
-          delete values.leaseId
-          newDoc(transactionsPath, values)
-            .then(() => {
-              alert('Transaction Saved!')
-            })
-            .catch(e => alert(`Error: ${e.message}`))
+          const money = Dinero({ amount: values.amount }).toFormat('$0,0.00')
+          const result = confirm(
+            `Confirm Transaction:\n
+            - Type:\t\t${values.type}
+            ${values.subType ? `- Sub type:\t${values.subType}` : ''}
+            - Amount:\t${money}\n
+            Proceed ?\n`,
+          )
+
+          if (result) {
+            const transactionsPath = `leases/${values.leaseId}/transactions`
+            delete values.leaseId
+            newDoc(transactionsPath, values)
+              .then(() => {
+                alert('Transaction Saved!')
+              })
+              .catch(e => alert(`Error: ${e.message}`))
+          }
         }}>
         {({ values, ...rest }) => children({ values, ...rest })}
       </Formik>
