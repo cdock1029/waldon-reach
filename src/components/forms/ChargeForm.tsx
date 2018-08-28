@@ -1,8 +1,13 @@
 import React, { Fragment } from 'react'
-import { Form, FormGroup, Label, Alert, Button } from 'reactstrap'
+import { Form, FormGroup, Label, Alert, Button, Input } from 'reactstrap'
 import { MoneyInput } from '../MoneyInput'
 import { NewTransactionForm } from './NewTransactionForm'
 import styled from 'react-emotion'
+
+enum ChargeTypes {
+  LATE_FEE = 'LATE_FEE',
+  RENT = 'RENT',
+}
 
 interface ChargeFormProps {
   lease: Lease
@@ -14,6 +19,10 @@ const StyledChargeFormComponent = styled(Form)`
   .money {
     display: flex;
   }
+`
+const InlineFormGroup = styled(FormGroup)`
+  display: flex;
+  justify-content: space-between;
 `
 
 const DUMMY_LATE_FEE = 3000
@@ -33,11 +42,27 @@ export class ChargeForm extends React.Component<ChargeFormProps> {
           handleSubmit,
           errors,
           touched,
+          values,
         }) => {
           return (
             <StyledChargeFormComponent
               onSubmit={handleSubmit}
               className="payment-container">
+              <FormGroup>
+                <Label css={'font-weight: bold;'}>Charge</Label>
+              </FormGroup>
+              <FormGroup>
+                <Label for="subType">Type</Label>
+                <Input
+                  type="select"
+                  value={values.subType}
+                  name="subType"
+                  id="subType"
+                  onChange={e => setFieldValue('subType', e.target.value)}>
+                  <option value={ChargeTypes.LATE_FEE}>Late Fee</option>
+                  <option value={ChargeTypes.RENT}>Rent</option>
+                </Input>
+              </FormGroup>
               <MoneyInput
                 defaultValue={DUMMY_LATE_FEE}
                 onBlur={e => setFieldTouched('amount')}
@@ -51,36 +76,31 @@ export class ChargeForm extends React.Component<ChargeFormProps> {
                         touched.amount && (
                           <Alert color="danger">{errors.amount}</Alert>
                         )}
-                      <FormGroup
-                        css={'display: flex; justify-content: space-between'}>
-                        <Label
-                          css={'font-weight: bold;'}
-                          htmlFor="payment-whole">
-                          Charge
-                        </Label>
-                      </FormGroup>
-                      <FormGroup className="money">
-                        <Label>Amount $</Label>
-                        <MoneyInput.Whole
-                          {...getWholeInputProps({
-                            id: 'payment-whole',
-                            name: 'payment-whole',
-                          })}
-                        />
-                        <MoneyInput.Fraction
-                          {...getFractionInputProps({
-                            id: 'payment-fraction',
-                            name: 'payment-fraction',
-                          })}
-                        />
-                        <div css={'margin-left: 0.5em;'}>
-                          <Button
-                            tabIndex={-1}
-                            outline
-                            onClick={clear}
-                            size="sm">
-                            x
-                          </Button>
+                      <FormGroup>
+                        <Label>Amount</Label>
+                        <div className="money">
+                          <Label>$</Label>
+                          <MoneyInput.Whole
+                            {...getWholeInputProps({
+                              id: 'payment-whole',
+                              name: 'payment-whole',
+                            })}
+                          />
+                          <MoneyInput.Fraction
+                            {...getFractionInputProps({
+                              id: 'payment-fraction',
+                              name: 'payment-fraction',
+                            })}
+                          />
+                          <div css={'margin-left: 0.5em;'}>
+                            <Button
+                              tabIndex={-1}
+                              outline
+                              onClick={clear}
+                              size="sm">
+                              x
+                            </Button>
+                          </div>
                         </div>
                       </FormGroup>
                     </Fragment>
@@ -88,7 +108,7 @@ export class ChargeForm extends React.Component<ChargeFormProps> {
                 }}
               </MoneyInput>
               <FormGroup>
-                <Button type="submit" color="secondary">
+                <Button type="submit" size="sm" color="secondary">
                   Submit
                 </Button>
               </FormGroup>

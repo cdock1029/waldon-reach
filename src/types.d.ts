@@ -2,6 +2,7 @@ declare module '@reach/router'
 declare module '@reactions/component'
 declare module 'dinero.js'
 declare module 'react-instantsearch-dom'
+declare module '@reach/menu-button'
 
 declare module '*.mdx' {
   let MDXComponent: (props: any) => JSX.Element
