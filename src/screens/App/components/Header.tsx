@@ -1,5 +1,4 @@
-import * as React from 'react'
-import { BrowserRouter, Switch, Route, NavLink as Link } from 'react-router-dom'
+import React from 'react'
 import {
   Collapse,
   NavbarToggler,
@@ -11,20 +10,16 @@ import {
   Button,
   Form,
 } from 'reactstrap'
-import styled from 'react-emotion'
+import { NavLink as Link } from 'react-router-dom'
 import loadable from 'loadable-components'
+
+const ZenConsumer = loadable(() =>
+  import('../shared/components/Zen').then(mod => mod.ZenConsumer),
+)
 
 declare const firebase: typeof import('firebase')
 
-const ZenProvider = loadable(() => import('./Zen').then(mod => mod.ZenProvider))
-const ZenConsumer = loadable(() => import('./Zen').then(mod => mod.ZenConsumer))
-const Dash = loadable(() => import('../pages/dash'))
-const Lease = loadable(() => import('../pages/lease'))
-const Qbo = loadable(() => import('../pages/qbo'))
-const Search = loadable(() => import('../pages/search'))
-const Todos = loadable(() => import('../pages/todos'))
-
-class Header extends React.Component<{}, { isOpen: boolean }> {
+export class Header extends React.Component<{}, { isOpen: boolean }> {
   state = {
     isOpen: false,
   }
@@ -78,35 +73,3 @@ class Header extends React.Component<{}, { isOpen: boolean }> {
     )
   }
 }
-
-class App extends React.Component {
-  render() {
-    return (
-      <BrowserRouter>
-        <ZenProvider>
-          <AppContainer>
-            <Header />
-            <Main>
-              <Switch>
-                <Route path="/" exact component={Dash} />
-                <Route path="/lease" component={Lease} />
-                <Route path="/search" component={Search} />
-                <Route path="/qbo" component={Qbo} />
-                <Route path="/todos" component={Todos} />
-              </Switch>
-            </Main>
-          </AppContainer>
-        </ZenProvider>
-      </BrowserRouter>
-    )
-  }
-}
-const AppContainer = styled.div`
-  height: 100vh;
-`
-const Main = styled.main`
-  padding-top: 56px;
-  height: 100%;
-`
-
-export default App

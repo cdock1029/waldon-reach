@@ -9,7 +9,7 @@ import {
   CurrentRefinements,
   ClearRefinements,
 } from 'react-instantsearch-dom'
-import { getClaim } from './firebase'
+import { getClaim } from '../../../../../shared/firebase'
 import 'instantsearch.css/themes/reset.css'
 import 'instantsearch.css/themes/algolia.css'
 

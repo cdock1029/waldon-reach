@@ -8,10 +8,13 @@ import {
   FormikErrors,
 } from 'formik'
 import Dinero from 'dinero.js'
-import { Collection, Document } from './FirestoreData'
+import {
+  Collection,
+  Document,
+} from '../../../../App/shared/components/FirestoreData'
 import * as Yup from 'yup'
 // import { newDoc } from '../lib/firebase'
-import { sortUnits } from '../lib'
+import { sortUnits } from '../../../../shared/utils'
 import {
   Alert,
   FormGroup,

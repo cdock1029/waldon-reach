@@ -1,6 +1,6 @@
 import React, { SFC } from 'react'
 import styled, { css } from 'react-emotion'
-import { ZenConsumer as Zen } from './Zen'
+import { ZenConsumer as Zen } from '../../../shared/components/Zen'
 
 export const Dashboard: SFC<
   RouteProps & {

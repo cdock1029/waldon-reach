@@ -1,5 +1,5 @@
 import React from 'react'
-import { Collection } from '../components/FirestoreData'
+import { Collection } from '../shared/components/FirestoreData'
 
 interface Todo {
   id: string

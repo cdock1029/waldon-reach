@@ -1,7 +1,7 @@
 import React from 'react'
 import { Formik, FormikProps } from 'formik'
 import * as Yup from 'yup'
-import { newDoc } from '../lib/firebase'
+import { newDoc } from '../../../../../shared/firebase'
 import {
   Form,
   FormGroup,

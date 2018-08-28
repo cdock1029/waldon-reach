@@ -1,6 +1,6 @@
 import React from 'react'
 import styled from 'react-emotion'
-import { Algolia } from '../lib/algolia'
+import { Algolia } from './components/Algolia'
 // import downshift from 'downshift'
 
 const Page = styled.div`

@@ -1,5 +1,5 @@
 import React, { SFC } from 'react'
-import NewLeaseForm from '../components/NewLeaseForm'
+// import NewLeaseForm from '../../../components/NewLeaseForm'
 
 const Lease: SFC<RouteProps> = () => {
   return (

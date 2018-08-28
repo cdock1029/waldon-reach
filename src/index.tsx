@@ -1,11 +1,11 @@
 import React from 'react'
 import { render } from 'react-dom'
-import { init, onAuthStateChangedWithClaims } from './lib/firebase'
+import { init, onAuthStateChangedWithClaims } from './shared/firebase'
 import registerServiceWorker from './register-service-worker'
 import loadable from 'loadable-components'
 
-const App = loadable(() => import('./components/App'))
-const Login = loadable(() => import('./pages/login'))
+const App = loadable(() => import('./screens/App'))
+const Login = loadable(() => import('./screens/Login'))
 const root = document.getElementById('root')
 
 async function main() {

@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react'
 import * as Yup from 'yup'
-import { newDoc } from '../../lib/firebase'
+import { newDoc } from '../../../../../../shared/firebase'
 import {
   Formik,
   Field,

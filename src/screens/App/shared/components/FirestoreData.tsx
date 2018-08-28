@@ -1,4 +1,4 @@
-import { getClaim } from '../lib/firebase'
+import { getClaim } from '../../../../shared/firebase'
 import React from 'react'
 
 declare const firebase: typeof import('firebase')
