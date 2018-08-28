@@ -74,13 +74,18 @@ export class PaymentForm extends React.Component<PaymentFormProps> {
                             })}
                           />
                           <div css={'margin-left: 0.5em;'}>
-                            <Button
+                            <button
+                              css={`
+                                border: none;
+                                background: white;
+                                border-radius: 4px;
+                                text-transform: none !important;
+                                padding: 2px 6px;
+                              `}
                               tabIndex={-1}
-                              outline
-                              onClick={clear}
-                              size="sm">
+                              onClick={clear}>
                               x
-                            </Button>
+                            </button>
                           </div>
                         </div>
                       </FormGroup>
