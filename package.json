@@ -2,11 +2,11 @@
   "name": "waldon-reach",
   "version": "0.1.0",
   "private": true,
-  "main": "src/index.html",
+  "main": "app/index.html",
   "scripts": {
-    "start": "parcel src/index.html",
+    "start": "parcel app/index.html",
     "prebuild": "npm run clean",
-    "build": "parcel build --no-source-maps --no-cache src/index.html && cp src/static/robots.txt dist/",
+    "build": "parcel build --no-source-maps --no-cache app/index.html && cp app/static/robots.txt dist/",
     "clean": "rm -rf .cache && rm -rf dist",
     "serve": "serve dist"
   },

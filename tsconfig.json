@@ -8,7 +8,7 @@
     "lib": ["dom", "es2017"],
     "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./app",
     "allowJs": false,
     "sourceMap": false,
     "noImplicitReturns": true,
@@ -20,6 +20,6 @@
     "baseUrl": ".",
     "types": ["node"]
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", ".cache", "tmp", "firebase"]
+  "include": ["app"],
+  "exclude": ["node_modules", "dist", ".cache", "tmp", "functions"]
 }
