@@ -1,10 +1,8 @@
 import React, { Fragment } from 'react'
 import { Formik, Field, Form, FormikProps } from 'formik'
 import Dinero from 'dinero.js'
-import { Collection } from '../../../../App/shared/components/FirestoreData'
 import * as Yup from 'yup'
 // import { newDoc } from '../lib/firebase'
-import { sortUnits, DATE_INPUT_FORMAT } from '../../../../shared/utils'
 import {
   Alert,
   FormGroup,
@@ -16,7 +14,6 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  DropdownMenu as UnmodifiedMenu,
   DropdownItem as UnmodifiedItem,
 } from 'reactstrap'
 import styled from 'react-emotion'
@@ -31,6 +28,15 @@ import {
 } from 'date-fns'
 import { getDownshift } from './DownshiftDropdown'
 import { MoneyInput } from './MoneyInput'
+import {
+  sortUnits,
+  DATE_INPUT_FORMAT,
+  DATE_DISPLAY_FORMAT,
+} from '../../../../shared/utils'
+import { Collection } from '../../../../App/shared/components/FirestoreData'
+import { newDoc, getClaim } from '../../../../../shared/firebase'
+
+declare const firebase: typeof import('firebase')
 
 Dinero.globalLocale = 'en-US'
 
@@ -62,9 +68,9 @@ const validateSets = ({ unitIds, tenantIds }: LeaseFormValues) => {
 }
 
 const noOp = () => {}
-function alertData(data: any) {
-  alert(JSON.stringify(data, null, 2))
-}
+// function alertData(data: any) {
+//   alert(JSON.stringify(data, null, 2))
+// }
 
 function calculateYearLeaseEndDate(startDate: Date) {
   return subDays(addYears(startDate, 1), 1)
@@ -140,45 +146,104 @@ export class NewLeaseForm extends React.Component<
         initialValues={this.initialValues}
         validate={validateSets}
         validationSchema={validationSchema}
-        onSubmit={(
-          {
-            propertyId,
-            unitIds,
-            tenantIds,
-            rent,
-            startDate,
-            endDate,
-          }: LeaseFormValues,
+        onSubmit={async (
+          values: LeaseFormValues,
           { resetForm }: FormikProps<LeaseFormValues>,
         ) => {
-          alertData({
-            propertyId,
-            unitIds: Array.from(unitIds),
-            tenantIds: Array.from(tenantIds),
-            rent,
-            startDate,
-            endDate,
-          })
-          // const result = confirm(
-          //   `Confirm New Lease:\n
-          //   - Property:\t\t${values.type}
-          //   ${values.subType ? `- Sub type:\t${values.subType}` : ''}
-          //   - Amount:\t${money}\n
-          //   Proceed ?\n`,
-          // )
+          const fs = firebase.firestore()
+          const cid = await getClaim('activeCompany')
+          const authPath = `companies/${cid}`
+          const propertyP = fs
+            .doc(`${authPath}/properties/${values.propertyId}`)
+            .get()
+            .then(snap => ({ id: snap.id, ...snap.data() }))
+          const unitsP = Promise.all(
+            Array.from(values.unitIds).map(uid => {
+              return fs
+                .doc(`${authPath}/properties/${values.propertyId}/units/${uid}`)
+                .get()
+                .then(snap => ({ id: snap.id, ...snap.data() }))
+            }),
+          )
+          const tenantsP = Promise.all(
+            Array.from(values.tenantIds).map(tid => {
+              return fs
+                .doc(`${authPath}/tenants/${tid}`)
+                .get()
+                .then(snap => ({ id: snap.id, ...snap.data() }))
+            }),
+          )
+          const [property, units, tenants] = await Promise.all([
+            propertyP,
+            unitsP,
+            tenantsP,
+          ])
+          const result = confirm(
+            `Confirm New Lease:
+            - Property:\t\t${property['name']}
+            - Units:\t\t${units.map(u => u['label']).join(', ')}
+            - Tenants:\t\t${tenants
+              .map(t => `${t['lastName']}, ${t['firstName']}`)
+              .join(', ')}
+            - Rent:\t${Dinero({ amount: values.rent }).toFormat('$0,0.00')}
+            - Start Date:\t\t${format(values.startDate, DATE_DISPLAY_FORMAT)}
+            ${
+              values.endDate
+                ? `- End Date:\t\t${format(
+                    values.endDate,
+                    DATE_DISPLAY_FORMAT,
+                  )}`
+                : ''
+            } 
+            Proceed ?\n`,
+          )
 
-          // if (result) {
-          //   const transactionsPath = `leases/${values.leaseId}/transactions`
-          //   delete values.leaseId
-          //   newDoc(transactionsPath, values)
-          //     .then(() => {
-          //       alert('Transaction Saved!')
-          //     })
-          //     .catch(e => alert(`Error: ${e.message}`))
-          // }
+          if (result) {
+            console.log('confirmed')
+            const data = {
+              // TODO: default values here, hardcoded.. where should we handle this initilization?
+              balance: 0,
+              status: 'ACTIVE',
+              rent: values.rent,
+              startDate: values.startDate,
+              properties: {
+                [property.id]: {
+                  exists: true,
+                  name: property['name'],
+                },
+              },
+              units: {
+                ...units.reduce((acc, u) => {
+                  acc[u.id] = {
+                    exists: true,
+                    label: u['label'],
+                    address: u['address'],
+                  }
+                  return acc
+                }, {}),
+              },
+              tenants: {
+                ...tenants.reduce((acc, t) => {
+                  acc[t.id] = {
+                    exists: true,
+                    name: `${t['lastName']}, ${t['firstName']}`,
+                  }
+                  return acc
+                }, {}),
+              },
+            }
+            if (values.endDate) {
+              data['endDate'] = values.endDate
+            }
 
-          resetForm()
-          this.props.closeModal!()
+            newDoc('leases', data)
+              .then(() => {
+                alert('Lease Saved!')
+                resetForm()
+                this.props.closeModal!()
+              })
+              .catch(e => alert(`Error: ${e.message}`))
+          }
         }}>
         {({
           values,
@@ -383,6 +448,40 @@ export class NewLeaseForm extends React.Component<
                           )
                         }}
                       </Collection>
+                      <MoneyInput
+                        onBlur={() => {
+                          setFieldTouched('rent')
+                        }}
+                        onChange={({ total }) => {
+                          setFieldValue('rent', total)
+                        }}>
+                        {({ getWholeInputProps, getFractionInputProps }) => {
+                          return (
+                            <FormGroup>
+                              <Label htmlFor="rent-whole">Rent</Label>
+                              {errors.rent &&
+                                touched.rent && (
+                                  <Alert color="danger">{errors.rent}</Alert>
+                                )}
+                              <FormGroup css={{ display: 'flex' }}>
+                                <Label css={'margin-right: 0.5em;'}>$</Label>
+                                <MoneyInput.Whole
+                                  {...getWholeInputProps({
+                                    id: 'rent-whole',
+                                    name: 'rent-whole',
+                                  })}
+                                />
+                                <MoneyInput.Fraction
+                                  {...getFractionInputProps({
+                                    id: 'rent-fraction',
+                                    name: 'rent-fraction',
+                                  })}
+                                />
+                              </FormGroup>
+                            </FormGroup>
+                          )
+                        }}
+                      </MoneyInput>
                       <FormGroup>
                         <Label>Start Date</Label>
                         <Input
@@ -436,40 +535,6 @@ export class NewLeaseForm extends React.Component<
                           />
                         </FormGroup>
                       ) : null}
-                      <MoneyInput
-                        onBlur={() => {
-                          setFieldTouched('rent')
-                        }}
-                        onChange={({ total }) => {
-                          setFieldValue('rent', total)
-                        }}>
-                        {({ getWholeInputProps, getFractionInputProps }) => {
-                          return (
-                            <FormGroup>
-                              <Label htmlFor="rent-whole">Rent</Label>
-                              {errors.rent &&
-                                touched.rent && (
-                                  <Alert color="danger">{errors.rent}</Alert>
-                                )}
-                              <FormGroup css={{ display: 'flex' }}>
-                                <Label css={'margin-right: 0.5em;'}>$</Label>
-                                <MoneyInput.Whole
-                                  {...getWholeInputProps({
-                                    id: 'rent-whole',
-                                    name: 'rent-whole',
-                                  })}
-                                />
-                                <MoneyInput.Fraction
-                                  {...getFractionInputProps({
-                                    id: 'rent-fraction',
-                                    name: 'rent-fraction',
-                                  })}
-                                />
-                              </FormGroup>
-                            </FormGroup>
-                          )
-                        }}
-                      </MoneyInput>
                     </Fragment>
                   ) : null}
                 </ModalBody>

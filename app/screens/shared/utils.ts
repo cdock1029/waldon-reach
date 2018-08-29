@@ -24,3 +24,4 @@ export function notBuilding() {
 }
 
 export const DATE_INPUT_FORMAT = 'YYYY-MM-dd'
+export const DATE_DISPLAY_FORMAT = 'YYYY MMM dd'

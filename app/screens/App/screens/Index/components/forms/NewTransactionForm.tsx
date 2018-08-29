@@ -10,8 +10,8 @@ import {
   FormikErrors,
 } from 'formik'
 import Dinero from 'dinero.js'
-
-type PaymentType = 'PAYMENT' | 'CHARGE'
+import { format } from 'date-fns'
+import { DATE_DISPLAY_FORMAT } from '../../../../../shared/utils'
 
 interface NewTransactionFormProps {
   leaseId: string
@@ -76,6 +76,7 @@ export class NewTransactionForm extends React.Component<
             `Confirm Transaction:\n
             - Type:\t\t${values.type}
             ${values.subType ? `- Sub type:\t${values.subType}` : ''}
+            - Date:\t${format(values.date, DATE_DISPLAY_FORMAT)}\n
             - Amount:\t${money}\n
             Proceed ?\n`,
           )

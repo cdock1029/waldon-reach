@@ -207,7 +207,7 @@ const LeasesView: SFC<LeasesProps> = ({
         return (
           <CurrencyCell
             highlight={row.isExpanded}
-            amount={row.original.balance}
+            amount={row.original.balance || 0}
             css={'font-weight: bold;'}
           />
         )

@@ -3,6 +3,8 @@ import { Form, FormGroup, Label, Alert, Button, Input } from 'reactstrap'
 import { MoneyInput } from '../MoneyInput'
 import { NewTransactionForm } from './NewTransactionForm'
 import styled from 'react-emotion'
+import { toDate, format } from 'date-fns'
+import { DATE_INPUT_FORMAT } from '../../../../../shared/utils'
 
 enum ChargeTypes {
   LATE_FEE = 'LATE_FEE',
@@ -62,6 +64,18 @@ export class ChargeForm extends React.Component<ChargeFormProps> {
                   <option value={ChargeTypes.LATE_FEE}>Late Fee</option>
                   <option value={ChargeTypes.RENT}>Rent</option>
                 </Input>
+              </FormGroup>
+              <FormGroup>
+                <Label>Charge Date</Label>
+                <Input
+                  type="date"
+                  value={format(values.date, DATE_INPUT_FORMAT)}
+                  onChange={e => {
+                    const { value } = e.target
+                    setFieldValue('date', toDate(value))
+                  }}
+                  onBlur={e => setFieldTouched('date')}
+                />
               </FormGroup>
               <MoneyInput
                 defaultValue={DUMMY_LATE_FEE}
