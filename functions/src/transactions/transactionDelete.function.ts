@@ -20,15 +20,15 @@ interface Lease {
   balance: number
 }
 
-function addCharge(balance: number, chargeAmount: number): number {
-  const result = Dinero({ amount: balance }).add(
+function deleteCharge(balance: number, chargeAmount: number): number {
+  const result = Dinero({ amount: balance }).subtract(
     Dinero({ amount: chargeAmount }),
   )
   return result.getAmount()
 }
 
-function subtractPayment(balance: number, paymentAmount: number): number {
-  const result = Dinero({ amount: balance }).subtract(
+function deletePayment(balance: number, paymentAmount: number): number {
+  const result = Dinero({ amount: balance }).add(
     Dinero({ amount: paymentAmount }),
   )
   return result.getAmount()
@@ -38,25 +38,12 @@ exports = module.exports = functions.firestore
   .document(
     'companies/{companyId}/leases/{leaseId}/transactions/{transactionId}',
   )
-  .onCreate(
+  .onDelete(
     async (snap, context): Promise<boolean> => {
       const transaction: Transaction = {
         id: snap.id,
         ...snap.data(),
       } as Transaction
-
-      if (transaction.amount <= 0) {
-        console.log(
-          `Invalid transaction=[${transaction.id}] amount=[${
-            transaction.amount
-          }] (<= 0) Deleting..`,
-        )
-        await admin
-          .firestore()
-          .doc(snap.ref.path)
-          .delete()
-        return false
-      }
 
       const leaseRef = snap.ref.parent.parent
       if (!leaseRef) {
@@ -82,10 +69,10 @@ exports = module.exports = functions.firestore
           let newBalance: number
           switch (transaction.type) {
             case 'CHARGE':
-              newBalance = addCharge(currentBalance, amount)
+              newBalance = deleteCharge(currentBalance, amount)
               break
             case 'PAYMENT':
-              newBalance = subtractPayment(currentBalance, amount)
+              newBalance = deletePayment(currentBalance, amount)
               break
             default:
               throw new Error(
