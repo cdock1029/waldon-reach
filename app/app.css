@@ -1,7 +1,7 @@
 :root {
   --header-height: 3.5rem;
-  --color-properties: var(--cyan); // #0c5460;
-  --color-units: var(--teal); // #155724;
+  --color-properties: var(--cyan); /* #0c5460; */
+  --color-units: var(--teal); /* #155724; */
   --color-tenants: indigo;
   --primary: var(--color-tenants);
 }
@@ -16,7 +16,7 @@ html {
 *:after {
   box-sizing: inherit;
   text-transform: uppercase !important;
-  // font-variant-caps: all-small-caps !important;
+  /* font-variant-caps: all-small-caps !important; */
 }
 html,
 body,
