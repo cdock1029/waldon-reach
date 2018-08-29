@@ -22,3 +22,5 @@ export const CurrencyAddDecimals = (num: number) => {
 export function notBuilding() {
   return typeof document !== 'undefined'
 }
+
+export const DATE_INPUT_FORMAT = 'YYYY-MM-dd'

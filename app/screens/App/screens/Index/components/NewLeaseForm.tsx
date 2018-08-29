@@ -1,20 +1,10 @@
 import React, { Fragment } from 'react'
-import {
-  Formik,
-  Field,
-  Form,
-  FieldArray,
-  FormikProps,
-  FormikErrors,
-} from 'formik'
+import { Formik, Field, Form, FormikProps } from 'formik'
 import Dinero from 'dinero.js'
-import {
-  Collection,
-  Document,
-} from '../../../../App/shared/components/FirestoreData'
+import { Collection } from '../../../../App/shared/components/FirestoreData'
 import * as Yup from 'yup'
 // import { newDoc } from '../lib/firebase'
-import { sortUnits } from '../../../../shared/utils'
+import { sortUnits, DATE_INPUT_FORMAT } from '../../../../shared/utils'
 import {
   Alert,
   FormGroup,
@@ -26,14 +16,19 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  Dropdown,
-  DropdownToggle,
   DropdownMenu as UnmodifiedMenu,
   DropdownItem as UnmodifiedItem,
-  InputGroup,
-  InputGroupAddon,
 } from 'reactstrap'
 import styled from 'react-emotion'
+import {
+  toDate,
+  format,
+  addYears,
+  subDays,
+  addMonths,
+  setDate,
+  getDate,
+} from 'date-fns'
 import { getDownshift } from './DownshiftDropdown'
 import { MoneyInput } from './MoneyInput'
 
@@ -44,7 +39,7 @@ const TenantDownshift = getDownshift<Tenant>()
 const UnitDownshift = getDownshift<Unit>()
 
 const validationSchema = Yup.object().shape({
-  propertyId: Yup.string().required(),
+  propertyId: Yup.string().required('Property field is required'),
   startDate: Yup.date().required(),
   endDate: Yup.date(),
   rent: Yup.number()
@@ -58,10 +53,10 @@ const validateSets = ({ unitIds, tenantIds }: LeaseFormValues) => {
   const errors: MyErrors<LeaseFormValues> = {}
 
   if (!unitIds.size || unitIds.size > 1) {
-    errors.unitIds = 'Must choose 1 Unit'
+    errors.unitIds = 'Unit field is required'
   }
   if (!tenantIds.size || tenantIds.size > 1) {
-    errors.tenantIds = 'Must choose 1 Tenant'
+    errors.tenantIds = 'Tenant field is required'
   }
   return errors
 }
@@ -71,6 +66,10 @@ function alertData(data: any) {
   alert(JSON.stringify(data, null, 2))
 }
 
+function calculateYearLeaseEndDate(startDate: Date) {
+  return subDays(addYears(startDate, 1), 1)
+}
+
 interface NewLeaseFormProps {
   isModalOpen?: boolean
   toggleModal?: () => void
@@ -78,6 +77,9 @@ interface NewLeaseFormProps {
   propertyId?: string
   unitId?: string
   tenantId?: string
+}
+interface NewLeaseFormState {
+  includeEndDate: boolean
 }
 
 interface LeaseFormValues {
@@ -93,12 +95,18 @@ const initialLeaseFormValues = ({
   unitId,
   tenantId,
 }: NewLeaseFormProps) => {
+  let nearestFirstDate = new Date()
+  if (getDate(nearestFirstDate) > 1) {
+    nearestFirstDate = addMonths(nearestFirstDate, 1)
+    nearestFirstDate = setDate(nearestFirstDate, 1)
+  }
   const values: LeaseFormValues = {
     propertyId,
     unitIds: new Set<string>(),
     tenantIds: new Set<string>(),
     rent: 0,
-    startDate: new Date(),
+    startDate: nearestFirstDate,
+    endDate: calculateYearLeaseEndDate(nearestFirstDate),
   }
   if (unitId) {
     values.unitIds.add(unitId)
@@ -108,11 +116,21 @@ const initialLeaseFormValues = ({
   }
   return values
 }
-export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
+export class NewLeaseForm extends React.Component<
+  NewLeaseFormProps,
+  NewLeaseFormState
+> {
   initialValues: LeaseFormValues
   constructor(props: NewLeaseFormProps) {
     super(props)
     this.initialValues = initialLeaseFormValues(this.props)
+    this.state = {
+      includeEndDate: true,
+    }
+  }
+  handleEndDateCheckChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { checked } = e.target
+    this.setState(() => ({ includeEndDate: checked }))
   }
   render() {
     const { isModalOpen } = this.props
@@ -141,6 +159,24 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
             startDate,
             endDate,
           })
+          // const result = confirm(
+          //   `Confirm New Lease:\n
+          //   - Property:\t\t${values.type}
+          //   ${values.subType ? `- Sub type:\t${values.subType}` : ''}
+          //   - Amount:\t${money}\n
+          //   Proceed ?\n`,
+          // )
+
+          // if (result) {
+          //   const transactionsPath = `leases/${values.leaseId}/transactions`
+          //   delete values.leaseId
+          //   newDoc(transactionsPath, values)
+          //     .then(() => {
+          //       alert('Transaction Saved!')
+          //     })
+          //     .catch(e => alert(`Error: ${e.message}`))
+          // }
+
           resetForm()
           this.props.closeModal!()
         }}>
@@ -153,13 +189,11 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
           isValid,
           touched,
           errors,
-          validateForm,
         }: FormikProps<LeaseFormValues>) => {
           const closeModal = () => {
             resetForm()
             this.props.closeModal!()
           }
-          // const { propertyId } = values
           const authPath = 'properties'
           console.log({ values, touched, errors })
           return (
@@ -171,7 +205,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
               <Form>
                 <ModalHeader>New Lease</ModalHeader>
                 <ModalBody>
-                  <pre>
+                  {/* <pre>
                     {JSON.stringify(
                       {
                         ...values,
@@ -181,16 +215,16 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                       null,
                       2,
                     )}
-                  </pre>
+                  </pre> */}
                   {isModalOpen ? (
                     <Fragment>
                       {touched.propertyId &&
                         errors.propertyId && (
-                          <FormText color="danger">
-                            {errors.propertyId}
-                          </FormText>
+                          <Alert color="danger">{errors.propertyId}</Alert>
                         )}
-                      <Collection<Property> authPath={authPath}>
+                      <Collection<Property>
+                        authPath={authPath}
+                        orderBy={{ field: 'name', direction: 'asc' }}>
                         {(properties, hasLoaded: boolean) => {
                           if (!hasLoaded) {
                             return null
@@ -201,7 +235,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                               setFieldTouched={() =>
                                 setFieldTouched('propertyId')
                               }
-                              label={<Label>Choose Property</Label>}
+                              label={<Label>Property</Label>}
                               input={
                                 <Field
                                   name="propertyId"
@@ -246,7 +280,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                       </Collection>
                       {touched.unitIds &&
                         errors.unitIds && (
-                          <FormText color="danger">{errors.unitIds}</FormText>
+                          <Alert color="danger">{errors.unitIds}</Alert>
                         )}
                       {values.propertyId ? (
                         <Collection<Unit>
@@ -261,7 +295,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                                 setFieldTouched={() =>
                                   setFieldTouched('unitIds')
                                 }
-                                label={<Label>Choose Unit</Label>}
+                                label={<Label>Unit</Label>}
                                 input={
                                   <Input
                                     disabled={disabled}
@@ -306,9 +340,11 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                       ) : null}
                       {touched.tenantIds &&
                         errors.tenantIds && (
-                          <FormText color="danger">{errors.tenantIds}</FormText>
+                          <Alert color="danger">{errors.tenantIds}</Alert>
                         )}
-                      <Collection<Tenant> authPath="tenants">
+                      <Collection<Tenant>
+                        authPath="tenants"
+                        orderBy={{ field: 'lastName', direction: 'asc' }}>
                         {(tenants, hasLoaded) => {
                           if (!hasLoaded) {
                             return null
@@ -318,7 +354,7 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                               setFieldTouched={() =>
                                 setFieldTouched('tenantIds')
                               }
-                              label={<Label>Choose Tenant</Label>}
+                              label={<Label>Tenant</Label>}
                               input={<Input />}
                               items={tenants}
                               downshiftProps={{
@@ -347,23 +383,76 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                           )
                         }}
                       </Collection>
+                      <FormGroup>
+                        <Label>Start Date</Label>
+                        <Input
+                          type="date"
+                          name="startDate"
+                          value={format(values.startDate, DATE_INPUT_FORMAT)}
+                          onBlur={() => setFieldTouched('startDate')}
+                          onChange={e => {
+                            const { value } = e.target
+                            const dateValue = toDate(value)
+                            setFieldValue('startDate', dateValue)
+                          }}
+                        />
+                      </FormGroup>
+                      <FormGroup check>
+                        <Label check>
+                          <Input
+                            type="checkbox"
+                            checked={this.state.includeEndDate}
+                            onChange={e => {
+                              const { checked } = e.target
+                              this.setState(
+                                () => ({ includeEndDate: checked }),
+                                () => {
+                                  const endDateValue = checked
+                                    ? calculateYearLeaseEndDate(
+                                        values.startDate,
+                                      )
+                                    : undefined
+                                  setFieldValue('endDate', endDateValue)
+                                },
+                              )
+                            }}
+                          />{' '}
+                          Include End Date
+                        </Label>
+                      </FormGroup>
+                      {this.state.includeEndDate ? (
+                        <FormGroup>
+                          <Label>End Date</Label>
+                          <Input
+                            type="date"
+                            name="endDate"
+                            value={format(values.endDate!, DATE_INPUT_FORMAT)}
+                            onBlur={() => setFieldTouched('endDate')}
+                            onChange={e => {
+                              const { value } = e.target
+                              const dateValue = toDate(value)
+                              setFieldValue('endDate', dateValue)
+                            }}
+                          />
+                        </FormGroup>
+                      ) : null}
                       <MoneyInput
                         onBlur={() => {
                           setFieldTouched('rent')
                         }}
                         onChange={({ total }) => {
-                          // console.log({ total })
                           setFieldValue('rent', total)
                         }}>
                         {({ getWholeInputProps, getFractionInputProps }) => {
                           return (
-                            <div>
-                              <label htmlFor="rent-whole">Rent</label>
+                            <FormGroup>
+                              <Label htmlFor="rent-whole">Rent</Label>
                               {errors.rent &&
                                 touched.rent && (
                                   <Alert color="danger">{errors.rent}</Alert>
                                 )}
-                              <div css={{ display: 'flex' }}>
+                              <FormGroup css={{ display: 'flex' }}>
+                                <Label css={'margin-right: 0.5em;'}>$</Label>
                                 <MoneyInput.Whole
                                   {...getWholeInputProps({
                                     id: 'rent-whole',
@@ -376,8 +465,8 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                                     name: 'rent-fraction',
                                   })}
                                 />
-                              </div>
-                            </div>
+                              </FormGroup>
+                            </FormGroup>
                           )
                         }}
                       </MoneyInput>
@@ -401,11 +490,6 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
 
 const DropdownItem = styled(UnmodifiedItem)`
   white-space: normal;
-`
-const DropdownMenu = styled(UnmodifiedMenu)`
-  max-height: 18em;
-  overflow-y: scroll;
-  width: 100%;
 `
 
 const MyInput = ({
