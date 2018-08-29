@@ -83,7 +83,6 @@ const ComposedData = adopt<CombinedRenderProps, ComposedProps>({
 })
 
 const Index: SFC<RouteProps> = ({ location }: any) => {
-  console.log({ location })
   const { p: propertyId, u: unitId, t: tenantId } = qs.parse(location.search)
   const currentRouteParams = { propertyId, unitId, tenantId }
   return (

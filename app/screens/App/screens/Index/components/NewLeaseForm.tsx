@@ -45,6 +45,8 @@ const UnitDownshift = getDownshift<Unit>()
 
 const validationSchema = Yup.object().shape({
   propertyId: Yup.string().required(),
+  startDate: Yup.date().required(),
+  endDate: Yup.date(),
   rent: Yup.number()
     .required()
     .min(1, 'Must be greater than 0'),
@@ -83,6 +85,8 @@ interface LeaseFormValues {
   unitIds: Set<string>
   tenantIds: Set<string>
   rent: number
+  startDate: Date
+  endDate?: Date
 }
 const initialLeaseFormValues = ({
   propertyId,
@@ -94,6 +98,7 @@ const initialLeaseFormValues = ({
     unitIds: new Set<string>(),
     tenantIds: new Set<string>(),
     rent: 0,
+    startDate: new Date(),
   }
   if (unitId) {
     values.unitIds.add(unitId)
@@ -104,23 +109,37 @@ const initialLeaseFormValues = ({
   return values
 }
 export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
+  initialValues: LeaseFormValues
+  constructor(props: NewLeaseFormProps) {
+    super(props)
+    this.initialValues = initialLeaseFormValues(this.props)
+  }
   render() {
     const { isModalOpen } = this.props
-    const initialValues = initialLeaseFormValues(this.props)
     return (
       <Formik
         enableReinitialize
-        initialValues={initialValues}
+        initialValues={this.initialValues}
         validate={validateSets}
         validationSchema={validationSchema}
         onSubmit={(
-          { propertyId, unitIds, tenantIds }: LeaseFormValues,
+          {
+            propertyId,
+            unitIds,
+            tenantIds,
+            rent,
+            startDate,
+            endDate,
+          }: LeaseFormValues,
           { resetForm }: FormikProps<LeaseFormValues>,
         ) => {
           alertData({
             propertyId,
             unitIds: Array.from(unitIds),
             tenantIds: Array.from(tenantIds),
+            rent,
+            startDate,
+            endDate,
           })
           resetForm()
           this.props.closeModal!()
@@ -140,11 +159,9 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
             resetForm()
             this.props.closeModal!()
           }
-          const { propertyId } = values
-          const authPath = this.props.propertyId
-            ? `properties/${propertyId}`
-            : 'properties'
-          // console.log({ values, touched, errors })
+          // const { propertyId } = values
+          const authPath = 'properties'
+          console.log({ values, touched, errors })
           return (
             <Modal
               isOpen={isModalOpen}
@@ -160,9 +177,6 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                         ...values,
                         unitIds: [...values.unitIds],
                         tenantIds: [...values.tenantIds],
-                        rent: Dinero({ amount: values.rent }).toFormat(
-                          '$0,0.00',
-                        ),
                       },
                       null,
                       2,
@@ -199,6 +213,11 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                               downshiftProps={{
                                 // "value" only matters
                                 // if we selected an item.. not just "typed"
+                                defaultSelectedItem: this.props.propertyId
+                                  ? properties.find(
+                                      p => p.id === this.props.propertyId,
+                                    )
+                                  : undefined,
                                 onChange: selection => {
                                   // unit is dependent on property, so alway reset
                                   setValues({
@@ -229,9 +248,9 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                         errors.unitIds && (
                           <FormText color="danger">{errors.unitIds}</FormText>
                         )}
-                      {propertyId ? (
+                      {values.propertyId ? (
                         <Collection<Unit>
-                          authPath={`properties/${propertyId}/units`}>
+                          authPath={`properties/${values.propertyId}/units`}>
                           {(units, hasLoaded: boolean) => {
                             if (!hasLoaded) {
                               return null
@@ -253,6 +272,11 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                                 }
                                 items={sortUnits(units)}
                                 downshiftProps={{
+                                  defaultSelectedItem: this.props.unitId
+                                    ? units.find(
+                                        u => u.id === this.props.unitId,
+                                      )
+                                    : undefined,
                                   onChange: selection => {
                                     setFieldValue(
                                       'unitIds',
@@ -324,20 +348,21 @@ export class NewLeaseForm extends React.Component<NewLeaseFormProps> {
                         }}
                       </Collection>
                       <MoneyInput
-                        onChange={({ whole, fraction }) => {
-                          const amount =
-                            100 * parseInt(whole) + parseInt(fraction || '0')
-                          setFieldValue('rent', amount)
+                        onBlur={() => {
+                          setFieldTouched('rent')
+                        }}
+                        onChange={({ total }) => {
+                          // console.log({ total })
+                          setFieldValue('rent', total)
                         }}>
-                        {({
-                          money,
-                          getWholeInputProps,
-                          getFractionInputProps,
-                        }) => {
+                        {({ getWholeInputProps, getFractionInputProps }) => {
                           return (
                             <div>
-                              <h5>{money}</h5>
                               <label htmlFor="rent-whole">Rent</label>
+                              {errors.rent &&
+                                touched.rent && (
+                                  <Alert color="danger">{errors.rent}</Alert>
+                                )}
                               <div css={{ display: 'flex' }}>
                                 <MoneyInput.Whole
                                   {...getWholeInputProps({

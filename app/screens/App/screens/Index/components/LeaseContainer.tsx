@@ -79,7 +79,6 @@ class LeaseContainer extends React.Component<
   }
 
   render() {
-    // console.log('render LeaseContainer')
     const { propertyId, unitId, tenantId } = this.props
     const { activeTab } = this.state
     const where: Array<WhereParam> = [['status', '==', activeTab]]
@@ -127,7 +126,6 @@ class LeaseContainer extends React.Component<
             activeTab={this.state.activeTab}>
             <LeaseCollection authPath="leases" where={where}>
               {(leases, hasLoaded) => {
-                // console.log({ leases, hasLoaded })
                 const tab = this.state.activeTab
                 return (
                   <Fragment>
@@ -244,14 +242,13 @@ const LeasesView: SFC<LeasesProps> = ({
           .join(' | '),
     })
   }
-  // console.log('render Leases View', { tab })
   // TODO: look into why loading "fade animation" only seems to run in certain situations.
   // ... adds a flicker sometimes instead of smooth transition.
   return (
     <div key="react-table" className="lease-table">
       <ReactTable
         getTrProps={(state: any, rowInfo: any) => {
-          console.log({ state, rowInfo })
+          // console.log({ state, rowInfo })
           const index = rowInfo ? rowInfo.index : -1
           let result: any = {}
           if (index >= 0) {

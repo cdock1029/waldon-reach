@@ -4,12 +4,24 @@ import styled from 'react-emotion'
 
 Dinero.globalLocale = 'en-US'
 const FORMAT = '0,0'
-const PRETTY = '$0,0.00'
+// const PRETTY = '$0,0.00'
 
 function split(amount: number): { whole: number; fraction: number } {
   const fraction = amount % 100
   const whole = (amount - fraction) / 100
   return { whole, fraction }
+}
+function stringToTotalInt(whole: string, fraction: string): number {
+  return 100 * parseInt(whole || '0') + parseInt(fraction || '0')
+}
+
+function to$(whole: string, fraction = '0', fmt = FORMAT) {
+  return Dinero({
+    amount: stringToTotalInt(whole, fraction),
+  }).toFormat(fmt)
+}
+function removeCommasAndSpaces(whole: string): string {
+  return whole.replace(MoneyInput.commasAndSpaces, '')
 }
 
 interface MoneyInputProps {
@@ -17,7 +29,7 @@ interface MoneyInputProps {
   children(moneyRenderProps: {
     whole: string
     fraction: string
-    money: string
+    // money: string
     getWholeInputProps(
       wholeInputParams: WholeInputParams,
     ): WholeInputRenderProps
@@ -76,16 +88,6 @@ interface FractionInputRenderProps {
   placeholder: string
   autoFocus: boolean
   ref: React.RefObject<HTMLInputElement>
-}
-
-function stringToTotalInt(whole: string, fraction: string): number {
-  return 100 * parseInt(whole || '0') + parseInt(fraction || '0')
-}
-
-function to$(whole: string, fraction = '0', fmt = FORMAT) {
-  return Dinero({
-    amount: stringToTotalInt(whole, fraction),
-  }).toFormat(fmt)
 }
 
 const StyledInput = styled.input((props: any) => ({
@@ -166,7 +168,7 @@ export class MoneyInput extends React.Component<
         }
         if (this.props.onChange && stateToSet !== null) {
           const { whole, fraction } = this.state
-          const total = stringToTotalInt(whole, fraction)
+          const total = stringToTotalInt(removeCommasAndSpaces(whole), fraction)
           this.props.onChange({ whole, fraction, total })
         }
       },
@@ -177,7 +179,7 @@ export class MoneyInput extends React.Component<
     let { value } = e.target
     console.log('whole Change', { value })
     // undo Dinero
-    value = value.toString().replace(MoneyInput.commasAndSpaces, '')
+    value = removeCommasAndSpaces(value)
     if (value === '') {
       return this.internalSetState(() => ({ whole: '0' }))
     }
@@ -345,11 +347,11 @@ export class MoneyInput extends React.Component<
     const { children } = this.props
     const { whole, fraction } = this.state
     const { getWholeInputProps, getFractionInputProps, clear } = this
-    const money = to$(whole.replace(',', ''), fraction, PRETTY)
+    // const money = to$(whole.replace(',', ''), fraction, PRETTY)
     return children({
       whole,
       fraction,
-      money,
+      // money,
       getWholeInputProps,
       getFractionInputProps,
       clear,
