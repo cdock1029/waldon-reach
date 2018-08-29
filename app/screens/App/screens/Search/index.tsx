@@ -1,19 +1,21 @@
-import React from 'react'
+import React, { SFC } from 'react'
 import styled from 'react-emotion'
 import { Algolia } from './components/Algolia'
 // import downshift from 'downshift'
 
-const Page = styled.div`
+const PageStyled = styled.div`
   display: flex;
   max-width: 1100px;
   margin: 0 auto;
   padding: 2em;
 `
 
-export default () => {
+const Page: SFC<{ path: string }> = () => {
   return (
-    <Page>
+    <PageStyled>
       <Algolia />
-    </Page>
+    </PageStyled>
   )
 }
+
+export default Page

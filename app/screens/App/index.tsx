@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { BrowserRouter, Switch, Route } from 'react-router-dom'
+import { Router } from '@reach/router'
 import styled from 'react-emotion'
 import loadable from 'loadable-components'
 import { Header } from './components/Header'
@@ -8,7 +8,7 @@ const ZenProvider = loadable(() =>
   import('./shared/components/Zen').then(mod => mod.ZenProvider),
 )
 
-const Dash = loadable(() => import('./screens/Index'))
+const Index = loadable(() => import('./screens/Index'))
 const Lease = loadable(() => import('./screens/Lease'))
 const Qbo = loadable(() => import('./screens/Qbo'))
 const Search = loadable(() => import('./screens/Search'))
@@ -17,22 +17,20 @@ const Todos = loadable(() => import('./screens/Todos'))
 class App extends React.Component {
   render() {
     return (
-      <BrowserRouter>
-        <ZenProvider>
-          <AppContainer>
-            <Header />
-            <Main>
-              <Switch>
-                <Route path="/" exact component={Dash} />
-                <Route path="/lease" component={Lease} />
-                <Route path="/search" component={Search} />
-                <Route path="/qbo" component={Qbo} />
-                <Route path="/todos" component={Todos} />
-              </Switch>
-            </Main>
-          </AppContainer>
-        </ZenProvider>
-      </BrowserRouter>
+      <ZenProvider>
+        <AppContainer>
+          <Header />
+          <Main>
+            <Router>
+              <Index path="/" />
+              <Lease path="lease" />
+              <Search path="search" />
+              <Qbo path="qbo" />
+              <Todos path="todos" />
+            </Router>
+          </Main>
+        </AppContainer>
+      </ZenProvider>
     )
   }
 }

@@ -1,6 +1,6 @@
 import React, { SFC, Fragment } from 'react'
 import { Collection } from '../../shared/components/FirestoreData'
-import { NavLink as Link } from 'react-router-dom'
+import { Link } from '@reach/router'
 import { ListHeader } from './components/ListHeader'
 import { ListGroup, ListGroupItem, Card, CardText, CardTitle } from 'reactstrap'
 import { sortUnits } from '../../../shared/utils'
@@ -82,8 +82,8 @@ const ComposedData = adopt<CombinedRenderProps, ComposedProps>({
   },
 })
 
-const Dash: SFC<RouteProps> = ({ match, location }: any) => {
-  const path = match.path
+const Index: SFC<RouteProps> = ({ location }: any) => {
+  console.log({ location })
   const { p: propertyId, u: unitId, t: tenantId } = qs.parse(location.search)
   const currentRouteParams = { propertyId, unitId, tenantId }
   return (
@@ -111,9 +111,9 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
                         <ListGroupItem
                           action
                           key={p.id}
-                          to={`${path}?p=${p.id}`}
+                          to={`${location.pathname}?p=${p.id}`}
                           active={p.id === propertyId}
-                          tag={Link}>
+                          tag={props => <Link {...props} />}>
                           {p.name}
                         </ListGroupItem>
                       )
@@ -136,11 +136,11 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
                         <ListGroupItem
                           action
                           key={u.id}
-                          to={`${path}?p=${currentRouteParams.propertyId}&u=${
-                            u.id
-                          }`}
+                          to={`${location.pathname}?p=${
+                            currentRouteParams.propertyId
+                          }&u=${u.id}`}
                           active={currentRouteParams.unitId === u.id}
-                          tag={Link}>
+                          tag={props => <Link {...props} />}>
                           {u.label}
                         </ListGroupItem>
                       )
@@ -166,9 +166,9 @@ const Dash: SFC<RouteProps> = ({ match, location }: any) => {
                         <ListGroupItem
                           action
                           key={t.id}
-                          to={`${path}?t=${t.id}`}
+                          to={`${location.pathname}?t=${t.id}`}
                           active={currentRouteParams.tenantId === t.id}
-                          tag={Link}>
+                          tag={p => <Link {...p} />}>
                           {`${t.lastName}, ${t.firstName}`}
                         </ListGroupItem>
                       )
@@ -229,4 +229,4 @@ const tenantListWrapStyles = css`
   }
 `
 
-export default Dash
+export default Index

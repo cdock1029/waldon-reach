@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { SFC } from 'react'
 import { Button } from 'reactstrap'
 declare const firebase: typeof import('firebase')
 
@@ -255,8 +255,10 @@ class QboErrorBoundary extends React.Component {
   }
 }
 
-export default () => (
+const Qbo: SFC<{ path: string }> = () => (
   <QboErrorBoundary>
     <QboInternal />
   </QboErrorBoundary>
 )
+
+export default Qbo

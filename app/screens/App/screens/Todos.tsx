@@ -8,7 +8,7 @@ interface Todo {
   text: string
 }
 
-class Todos extends React.Component {
+class Todos extends React.Component<{ path: string }> {
   render() {
     return (
       <div css={{ padding: '3em' }}>

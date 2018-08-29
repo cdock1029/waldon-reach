@@ -10,7 +10,7 @@ import {
   Button,
   Form,
 } from 'reactstrap'
-import { NavLink as Link } from 'react-router-dom'
+import { Link } from '@reach/router'
 import loadable from 'loadable-components'
 
 const ZenConsumer = loadable(() =>
@@ -33,7 +33,7 @@ export class Header extends React.Component<{}, { isOpen: boolean }> {
       <Navbar color="dark" dark expand="md" fixed="top">
         <NavbarToggler className="ml-auto" onClick={this.toggle} />
         <Collapse isOpen={this.state.isOpen} navbar>
-          <NavbarBrand to="/" tag={Link}>
+          <NavbarBrand to="/" tag={props => <Link {...props} />}>
             WPM
           </NavbarBrand>
           <Nav className="ml-auto" navbar>
@@ -47,17 +47,17 @@ export class Header extends React.Component<{}, { isOpen: boolean }> {
               </ZenConsumer>
             </Form>
             <NavItem>
-              <NavLink tag={Link} to="/todos">
+              <NavLink tag={p => <Link {...p} />} to="todos">
                 Todos
               </NavLink>
             </NavItem>
             <NavItem>
-              <NavLink tag={Link} to="/search">
+              <NavLink tag={p => <Link {...p} />} to="search">
                 Search
               </NavLink>
             </NavItem>
             <NavItem>
-              <NavLink tag={Link} to="/qbo">
+              <NavLink tag={p => <Link {...p} />} to="qbo">
                 QBO
               </NavLink>
             </NavItem>
