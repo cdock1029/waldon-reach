@@ -167,7 +167,8 @@ export class MoneyInput extends React.Component<
           cb()
         }
         if (this.props.onChange && stateToSet !== null) {
-          const { whole, fraction } = this.state
+          let { whole, fraction } = this.state
+          fraction = fraction.padEnd(2, '0') // makes '.2' === 20 fraction units, not 2
           const total = stringToTotalInt(removeCommasAndSpaces(whole), fraction)
           this.props.onChange({ whole, fraction, total })
         }
@@ -205,7 +206,6 @@ export class MoneyInput extends React.Component<
       )
     }
 
-    console.log('down here', { value })
     let fixed = value
     if (fixed.length > 1) {
       if (fixed.charAt(0) === '0') {
@@ -216,7 +216,7 @@ export class MoneyInput extends React.Component<
     this.internalSetState(() => ({ whole: money }))
   }
   handleFractionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target
+    let { value } = e.target
     console.log('fracChange', { value })
     if (value.trim() === '') {
       console.log('fraction is empty.. setting then jumping to whole')

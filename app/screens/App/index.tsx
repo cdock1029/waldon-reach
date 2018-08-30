@@ -38,7 +38,7 @@ const AppContainer = styled.div`
   height: 100vh;
 `
 const Main = styled.main`
-  padding-top: 56px;
+  padding-top: 49px;
   height: 100%;
 `
 

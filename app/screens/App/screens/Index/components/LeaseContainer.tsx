@@ -277,9 +277,24 @@ const LeasesView: SFC<LeasesProps> = ({
   )
 }
 
-class TransactionsSubComponent extends React.Component<{
+interface TransactionsTableProps {
   lease: Lease
-}> {
+}
+interface TransactionsTableState {
+  type: TransactionType
+}
+class TransactionsSubComponent extends React.Component<
+  TransactionsTableProps,
+  TransactionsTableState
+> {
+  state: TransactionsTableState = {
+    type: 'PAYMENT',
+  }
+  handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target
+    const type = value as TransactionType
+    this.setState(() => ({ type }))
+  }
   render() {
     const { lease } = this.props
     return (
@@ -303,7 +318,7 @@ class TransactionsSubComponent extends React.Component<{
             .control-forms {
               display: flex;
               flex-direction: column;
-              justify-content: space-evenly;
+              justify-content: flex-start;
               .content {
                 display: flex;
                 justify-content: center;
@@ -321,28 +336,60 @@ class TransactionsSubComponent extends React.Component<{
               }}>
               Actions
             </CardTitle>
+            <Form inline>
+              <div className="form-check form-check-inline">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  value="PAYMENT"
+                  id="paymentRadio"
+                  onChange={this.handleTypeChange}
+                  checked={this.state.type === 'PAYMENT'}
+                />
+                <label className="form-check-label" htmlFor="paymentRadio">
+                  Payment
+                </label>
+              </div>
+              <div className="form-check form-check-inline">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  value="CHARGE"
+                  id="chargeRadio"
+                  onChange={this.handleTypeChange}
+                  checked={this.state.type === 'CHARGE'}
+                />
+                <label className="form-check-label" htmlFor="chargeRadio">
+                  Charge
+                </label>
+              </div>
+            </Form>
           </CardBody>
-          <div className="control-forms">
-            <CardBody>
-              <div className="content">
+          <CardBody>
+            <div className="content">
+              {this.state.type === 'PAYMENT' ? (
                 <PaymentForm lease={lease} />
-              </div>
-            </CardBody>
-            <CardBody>
-              <div className="content">
+              ) : (
                 <ChargeForm lease={lease} />
-              </div>
-            </CardBody>
-          </div>
+              )}
+            </div>
+          </CardBody>
         </Card>
         <Collection<Transaction>
           authPath={`leases/${lease.id}/transactions`}
           orderBy={{ field: 'date', direction: 'desc' }}>
           {(transactions, hasLoaded) => (
             <div className="transactions">
-              <ListHeader label="transactions" className="transactions-header">
-                <NewTenantForm />
-              </ListHeader>
+              <CardBody>
+                <CardTitle
+                  css={{
+                    textTransform: 'uppercase',
+                    fontVariantCaps: 'small-caps',
+                    fontSize: '1em',
+                  }}>
+                  Transactions
+                </CardTitle>
+              </CardBody>
               <ReactTable
                 collapseOnDataChange={false}
                 className={transactionTableStyle}
