@@ -1,38 +1,5 @@
 import { admin, functions } from '../globalDeps'
-import { firestore } from 'firebase-admin'
-import { Dinero } from './transactionDeps'
-
-Dinero.globalLocale = 'en-US'
-
-interface Transaction {
-  id: string
-  amount: number
-  type: 'PAYMENT' | 'CHARGE'
-  subType?: 'LATE_FEE' | 'RENT' | string
-  date: firestore.Timestamp
-  error?: {
-    exists: boolean
-    message: string
-  }
-}
-interface Lease {
-  id: string
-  balance: number
-}
-
-function addCharge(balance: number, chargeAmount: number): number {
-  const result = Dinero({ amount: balance }).add(
-    Dinero({ amount: chargeAmount }),
-  )
-  return result.getAmount()
-}
-
-function subtractPayment(balance: number, paymentAmount: number): number {
-  const result = Dinero({ amount: balance }).subtract(
-    Dinero({ amount: paymentAmount }),
-  )
-  return result.getAmount()
-}
+import { addToBalance, subtractFromBalance } from './transactionDeps'
 
 exports = module.exports = functions.firestore
   .document(
@@ -40,6 +7,13 @@ exports = module.exports = functions.firestore
   )
   .onCreate(
     async (snap, context): Promise<boolean> => {
+      const { eventId } = context
+      const eventDocRef = admin
+        .firestore()
+        .collection('changeEvents')
+        .doc(eventId)
+      console.log('transactionCreate eventId:', eventId)
+
       const transaction: Transaction = {
         id: snap.id,
         ...snap.data(),
@@ -69,32 +43,41 @@ exports = module.exports = functions.firestore
       return admin
         .firestore()
         .runTransaction(async trans => {
-          const leaseSnap = await trans.get(leaseRef)
-          const lease: Lease = {
-            id: leaseSnap.id,
-            ...leaseSnap.data(),
-          } as Lease
-
-          const { balance } = lease
+          const eventSnap = await trans.get(eventDocRef)
+          if (eventSnap.exists) {
+            // already processed..
+            throw new Error(
+              `Transaction create already processed eventId=[${
+                context.eventId
+              }]`,
+            )
+          }
           const { amount } = transaction
+          const { balance } = await trans
+            .get(leaseRef)
+            .then(l => ({ ...l.data() } as Lease))
 
-          const currentBalance = balance ? balance : 0
           let newBalance: number
           switch (transaction.type) {
+            // increase balance
             case 'CHARGE':
-              newBalance = addCharge(currentBalance, amount)
+              newBalance = addToBalance(balance, amount)
               break
+            // decrease balance
             case 'PAYMENT':
-              newBalance = subtractPayment(currentBalance, amount)
+              newBalance = subtractFromBalance(balance, amount)
               break
             default:
               throw new Error(
-                `unhandled Transaction type=[${transaction.type}] for id=${
+                `Unhandled Transaction type=[${transaction.type}] for id=${
                   transaction.id
                 }`,
               )
           }
           trans.update(leaseRef, { balance: newBalance })
+          trans.create(eventDocRef, {
+            dateCreated: admin.firestore.FieldValue.serverTimestamp(),
+          })
         })
         .then(() => {
           console.log('Transaction committed.')

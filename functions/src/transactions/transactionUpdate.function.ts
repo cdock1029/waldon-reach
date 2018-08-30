@@ -1,54 +1,20 @@
 import { admin, functions } from '../globalDeps'
-import { firestore } from 'firebase-admin'
-import { Dinero } from './transactionDeps'
-
-Dinero.globalLocale = 'en-US'
-
-interface Transaction {
-  id: string
-  amount: number
-  type: 'PAYMENT' | 'CHARGE'
-  subType?: 'LATE_FEE' | 'RENT' | string
-  date: firestore.Timestamp
-  error?: {
-    exists: boolean
-    message: string
-  }
-}
-interface Lease {
-  id: string
-  balance: number
-}
-
-function applyCharge(balance: number, chargeAmount: number): number {
-  const result = Dinero({ amount: balance }).add(
-    Dinero({ amount: chargeAmount }),
-  )
-  return result.getAmount()
-}
-
-function applyPayment(balance: number, paymentAmount: number): number {
-  const result = Dinero({ amount: balance }).subtract(
-    Dinero({ amount: paymentAmount }),
-  )
-  return result.getAmount()
-}
+import { Dinero, addToBalance, subtractFromBalance } from './transactionDeps'
 
 exports = module.exports = functions.firestore
   .document(
     'companies/{companyId}/leases/{leaseId}/transactions/{transactionId}',
   )
   .onUpdate(
-    async ({ before, after }, context): Promise<boolean> => {
-      const transactionAfter: Transaction = {
-        id: after.id,
-        ...after.data(),
-      } as Transaction
-      const transactionBefore: Transaction = {
-        id: before.id,
-        ...before.data(),
-      } as Transaction
+    async (change, context): Promise<boolean> => {
+      const { eventId } = context
+      const eventDocRef = admin
+        .firestore()
+        .collection('changeEvents')
+        .doc(eventId)
+      console.log('transactionUpdate eventId:', eventId)
 
+      const { before, after } = change
       const leaseRef = after.ref.parent.parent
       if (!leaseRef) {
         console.error(
@@ -56,12 +22,41 @@ exports = module.exports = functions.firestore
             after.id
           }] does not have a parent Lease.`,
         )
+        await admin
+          .firestore()
+          .doc(after.ref.path)
+          .delete()
+        return false
+      }
+
+      const { amount: amountAfter, type, id }: Transaction = {
+        id: after.id,
+        ...after.data(),
+      } as Transaction
+
+      const { amount: amountBefore }: Transaction = {
+        id: before.id,
+        ...before.data(),
+      } as Transaction
+
+      if (amountBefore === amountAfter) {
+        console.log('Amounts equal, not updating..')
         return false
       }
 
       return admin
         .firestore()
         .runTransaction(async trans => {
+          const eventSnap = await trans.get(eventDocRef)
+          if (eventSnap.exists) {
+            // already processed..
+            throw new Error(
+              `Transaction update already processed eventId=[${
+                context.eventId
+              }]`,
+            )
+          }
+
           const leaseSnap = await trans.get(leaseRef)
           const lease: Lease = {
             id: leaseSnap.id,
@@ -69,27 +64,31 @@ exports = module.exports = functions.firestore
           } as Lease
 
           const { balance } = lease
-          const { amount: amountBefore } = transactionBefore
-          const { amount: amountAfter } = transactionAfter
 
-          const changeAmount = amountAfter - amountBefore
-          const currentBalance = balance ? balance : 0
+          // positive value increases magnitude of transactionType...
+          const changeAmount = Dinero({ amount: amountAfter })
+            .subtract(Dinero({ amount: amountBefore }))
+            .getAmount()
+
           let newBalance: number
-          switch (transactionAfter.type) {
+          switch (type) {
+            // add 'changeAmount' to balance
             case 'CHARGE':
-              newBalance = applyCharge(currentBalance, changeAmount)
+              newBalance = addToBalance(balance, changeAmount)
               break
+            // subtract 'changeAmount' from balance
             case 'PAYMENT':
-              newBalance = applyPayment(currentBalance, changeAmount)
+              newBalance = subtractFromBalance(balance, changeAmount)
               break
             default:
               throw new Error(
-                `unhandled Transaction update for type=[${
-                  transactionAfter.type
-                }] for id=${transactionAfter.id}`,
+                `unhandled Transaction update for type=[${type}] for id=${id}`,
               )
           }
           trans.update(leaseRef, { balance: newBalance })
+          trans.create(eventDocRef, {
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          })
         })
         .then(() => {
           console.log('Transaction update committed.')

@@ -1,38 +1,5 @@
 import { admin, functions } from '../globalDeps'
-import { firestore } from 'firebase-admin'
-import { Dinero } from './transactionDeps'
-
-Dinero.globalLocale = 'en-US'
-
-interface Transaction {
-  id: string
-  amount: number
-  type: 'PAYMENT' | 'CHARGE'
-  subType?: 'LATE_FEE' | 'RENT' | string
-  date: firestore.Timestamp
-  error?: {
-    exists: boolean
-    message: string
-  }
-}
-interface Lease {
-  id: string
-  balance: number
-}
-
-function deleteCharge(balance: number, chargeAmount: number): number {
-  const result = Dinero({ amount: balance }).subtract(
-    Dinero({ amount: chargeAmount }),
-  )
-  return result.getAmount()
-}
-
-function deletePayment(balance: number, paymentAmount: number): number {
-  const result = Dinero({ amount: balance }).add(
-    Dinero({ amount: paymentAmount }),
-  )
-  return result.getAmount()
-}
+import { addToBalance, subtractFromBalance } from './transactionDeps'
 
 exports = module.exports = functions.firestore
   .document(
@@ -40,55 +7,70 @@ exports = module.exports = functions.firestore
   )
   .onDelete(
     async (snap, context): Promise<boolean> => {
-      const transaction: Transaction = {
-        id: snap.id,
-        ...snap.data(),
-      } as Transaction
+      const { eventId } = context
+      const eventDocRef = admin
+        .firestore()
+        .collection('changeEvents')
+        .doc(eventId)
+      console.log('transactionDelete eventId:', eventId)
 
       const leaseRef = snap.ref.parent.parent
       if (!leaseRef) {
-        console.error(
+        console.log(
           `Transaction error: [${snap.id}] does not have a parent Lease.`,
         )
         return false
       }
+      const deletedTransaction = { id: snap.id, ...snap.data() } as Transaction
 
       return admin
         .firestore()
         .runTransaction(async trans => {
-          const leaseSnap = await trans.get(leaseRef)
-          const lease: Lease = {
-            id: leaseSnap.id,
-            ...leaseSnap.data(),
-          } as Lease
+          const eventSnap = await trans.get(eventDocRef)
+          if (eventSnap.exists) {
+            // already processed..
+            throw new Error(
+              `Transaction delete already processed eventId=[${
+                context.eventId
+              }]`,
+            )
+          }
 
-          const { balance } = lease
-          const { amount } = transaction
+          const lease = await trans
+            .get(leaseRef)
+            .then(sn => ({ id: sn.id, ...sn.data() }))
 
-          const currentBalance = balance ? balance : 0
+          const { balance } = lease as Lease
+          const { amount } = deletedTransaction
+
           let newBalance: number
-          switch (transaction.type) {
+          switch (deletedTransaction.type) {
+            // reversing charge -> decrease balance
             case 'CHARGE':
-              newBalance = deleteCharge(currentBalance, amount)
+              newBalance = subtractFromBalance(balance, amount)
               break
+            // reversing payment -> increase balance
             case 'PAYMENT':
-              newBalance = deletePayment(currentBalance, amount)
+              newBalance = addToBalance(balance, amount)
               break
             default:
               throw new Error(
-                `unhandled Transaction type=[${transaction.type}] for id=${
-                  transaction.id
-                }`,
+                `Unhandled Transaction type=[${
+                  deletedTransaction.type
+                }] for id=${deletedTransaction.id}`,
               )
           }
           trans.update(leaseRef, { balance: newBalance })
+          trans.create(eventDocRef, {
+            dateCreated: admin.firestore.FieldValue.serverTimestamp(),
+          })
         })
         .then(() => {
-          console.log('Transaction committed.')
+          console.log('Transaction delete committed.')
           return true
         })
         .catch(e => {
-          console.log('Transaction failed: ', e)
+          console.log('Transaction delete failed: ', e)
           return false
         })
     },
