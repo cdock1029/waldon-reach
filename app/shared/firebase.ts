@@ -6,6 +6,7 @@ export const init = async () => {
   if (!firebase.apps.length) {
     firebase.initializeApp(config)
   }
+  // firebase.firestore.setLogLevel('debug')
   firebase.firestore().settings({ timestampsInSnapshots: true })
   try {
     await firebase
@@ -14,9 +15,13 @@ export const init = async () => {
       .then(() => console.log('enabled!!'))
   } catch (e) {
     if (
-      !e.message.includes('Firestore has already been started and persistence')
+      e.message.includes(
+        'There is another tab open with offline persistence enabled',
+      )
     ) {
-      console.log({ e1: e })
+      alert(
+        'Close other Tab runing this application to enable offline storage.',
+      )
     }
   }
 }

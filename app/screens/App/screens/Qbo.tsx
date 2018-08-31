@@ -1,5 +1,10 @@
 import React, { SFC } from 'react'
 import { Button } from 'reactstrap'
+import { Card } from '../components/Card'
+import { Title } from '../components/Title'
+import { Section } from '../components/Section'
+import { Container } from '../components/Container'
+
 declare const firebase: typeof import('firebase')
 
 const getAlgoliaSecuredKey = firebase
@@ -136,13 +141,27 @@ class QboInternal extends React.Component<
       uploadAllData,
     })
     return (
-      <div
-        css={`
-          height: 100%;
-          overflow-y: scroll;
-          padding: 2em;
-          padding-top: 60px;
-        `}>
+      <Container mt="49px">
+        <Section>
+          <Title>Regular Card</Title>
+          <Card>
+            <div>This is some text inside the card.</div>
+          </Card>
+        </Section>
+
+        <Section>
+          <Title>Green Card</Title>
+          <Card bg="green">
+            <div>This is some text inside the card.</div>
+          </Card>
+        </Section>
+
+        <Section>
+          <Title>Red Card</Title>
+          <Card bg="red">
+            <div>This is some text inside the card.</div>
+          </Card>
+        </Section>
         <p>Qbo connect</p>
         {pageLoaded ? (
           <Button color="primary" onClick={this.handleConnectClick}>
@@ -224,7 +243,7 @@ class QboInternal extends React.Component<
             <button onClick={this.handleUploadClick}>Start upload</button>
           </div>
         </div>
-      </div>
+      </Container>
     )
   }
 }

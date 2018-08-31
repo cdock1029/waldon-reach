@@ -20,6 +20,7 @@
     "dinero.js": "^1.4.0",
     "downshift": "^2.1.5",
     "emotion": "^9.2.8",
+    "emotion-theming": "^9.2.6",
     "formik": "^1.1.1",
     "instantsearch.css": "^7.1.0",
     "loadable-components": "^2.2.3",
@@ -35,6 +36,8 @@
     "react-table": "^6.8.6",
     "react-values": "^0.3.0",
     "reactstrap": "^6.4.0",
+    "styled-system": "^3.0.2",
+    "system-components": "^3.0.0",
     "yup": "^0.26.3"
   },
   "devDependencies": {
@@ -51,6 +54,7 @@
     "@types/react-router-dom": "^4.3.0",
     "@types/react-table": "^6.7.12",
     "@types/reactstrap": "^6.0.2",
+    "@types/styled-system": "^3.0.3",
     "@types/webpack": "^4.4.11",
     "@types/webpack-env": "^1.13.6",
     "@types/yup": "^0.24.9",
