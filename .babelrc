@@ -1,6 +1,9 @@
 {
   "plugins": [
-    ["babel-plugin-emotion", { "sourceMap": true, "autoLabel": true }],
+    [
+      "babel-plugin-emotion",
+      { "sourceMap": false, "autoLabel": true, "hoist": true }
+    ],
     ["babel-plugin-transform-object-rest-spread"]
   ]
 }
