@@ -38,6 +38,7 @@
     "reactstrap": "^6.4.0",
     "styled-system": "^3.0.2",
     "system-components": "^3.0.0",
+    "typescript": "^3.0.1",
     "yup": "^0.26.3"
   },
   "devDependencies": {
@@ -63,8 +64,7 @@
     "parcel-plugin-bundle-visualiser": "^1.2.0",
     "parcel-plugin-typescript": "^1.0.0",
     "react-testing-library": "^5.0.0",
-    "serve": "^10.0.0",
-    "typescript": "^3.0.1"
+    "serve": "^10.0.0"
   },
   "browserslist": [
     "chrome 69"
