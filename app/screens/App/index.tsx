@@ -5,12 +5,13 @@ import loadable from 'loadable-components'
 import { ThemeProvider } from 'emotion-theming'
 import system from 'system-components/emotion'
 import { Header } from './components/Header'
+import Index from './screens/Index'
 
 const ZenProvider = loadable(() =>
   import('./shared/components/Zen').then(mod => mod.ZenProvider),
 )
 
-const Index = loadable(() => import('./screens/Index'))
+// const Index = loadable(() => import('./screens/Index'))
 const Lease = loadable(() => import('./screens/Lease'))
 const Qbo = loadable(() => import('./screens/Qbo'))
 const Search = loadable(() => import('./screens/Search'))
