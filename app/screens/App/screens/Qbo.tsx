@@ -15,8 +15,13 @@ const uploadAllData = firebase.functions().httpsCallable('uploadAllData')
 
 declare const intuit: any
 
-const AUTH_URL =
-  'https://us-central1-wpmfirebaseproject.cloudfunctions.net/qbo/auth/hello'
+const root =
+  process.env.NODE_ENV === 'production'
+    ? 'https://us-central1-wpmfirebaseproject.cloudfunctions.net'
+    : 'http://localhost:5000/wpmfirebaseproject/us-central1'
+const AUTH_URL = `${root}/qbo/hello`
+
+console.log({ env: process.env.NODE_ENV, root, AUTH_URL })
 
 class QboInternal extends React.Component<
   {},
@@ -44,8 +49,7 @@ class QboInternal extends React.Component<
         'https://appcenter.intuit.com/Content/IA/intuit.ipp.anywhere-1.3.7.js'
       qboScript.onload = () => {
         intuit.ipp.anywhere.setup({
-          grantUrl:
-            'https://us-central1-wpmfirebaseproject.cloudfunctions.net/qbo/requestToken',
+          grantUrl: `${root}/qbo/requestToken`,
           datasources: {
             quickbooks: true, // set to false if NOT using Quickbooks API
             payments: false, // set to true if using Payments API
