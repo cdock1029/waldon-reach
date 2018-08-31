@@ -1,121 +1,58 @@
-import { functions, admin } from './globalDeps'
-import express from 'express'
+import { functions } from './globalDeps'
+import {
+  // getApp,
+  getRouter,
+  generateAntiForgery,
+  getCookieParser,
+  getCookieSession,
+  validateFirebaseIdToken,
+} from './expressDeps'
 import QuickBooks from 'node-quickbooks'
 import axios from 'axios'
-import path from 'path'
-import cookieSession from 'cookie-session'
-import bodyParser from 'body-parser'
 import qs from 'query-string'
-import Tokens from 'csrf'
 import doAsync from 'doasync'
-import { /*app as adminApp, */ auth as adminAuth } from 'firebase-admin'
+import { auth } from 'firebase-admin'
 // tslint:disable-next-line:no-duplicate-imports
-import { Request, Response, NextFunction } from 'express'
-type AuthRequest = Request & { user?: adminAuth.DecodedIdToken }
+import { Request, Response, Express } from 'express'
+type AuthRequest = Request & { user?: auth.DecodedIdToken }
 
-require('ejs')
-
-const csrf = new Tokens()
-const cookieParser = require('cookie-parser')() // <-- why?
-const cors = require('cors')({ origin: true, maxAge: 86400 })
-
-const app = express()
+const app = getRouter()
 const config = functions.config()
+
+console.log({
+  FIREBASE_CONFIG: process.env.FIREBASE_CONFIG,
+  NODE_ENV: process.env.NODE_ENV,
+  GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+})
+const isDev = process.env.NODE_ENV === 'development'
 
 const {
   consumer_key: consumerKey,
   consumer_secret: consumerSecret,
 } = config.qbo
-const appRoot = config.qbo.app_root || 'qbo'
+const appRoot = isDev ? 'wpmfirebaseproject/us-central1/qbo' : 'qbo'
 const AUTHORIZATION_URL =
   config.qbo.authorization_url || 'https://appcenter.intuit.com/connect/oauth2'
 // const TOKEN_URL = qbo.token_url || 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer'
 // QuickBooks.setOauthVersion('2.0')
 
-async function generateAntiForgery(session: any /* , csrfModule: any*/) {
-  const secret = await csrf.secret()
-  const token = csrf.create(secret)
-  session.secret = secret
-  return token
-}
+app.use(getCookieParser())
+app.use(getCookieSession())
 
-const validateFirebaseIdToken: (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction,
-) => any = (req, res, next) => {
-  const startTime = process.hrtime()
-  if (
-    (!req.headers.authorization ||
-      !req.headers.authorization.startsWith('Bearer ')) &&
-    !(req.cookies && req.cookies.__session)
-  ) {
-    res.status(403).send('Unauthorized')
-    return
-  }
-
-  let idToken
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer ')
-  ) {
-    // console.log('Found "Authorization" header')
-    // Read the ID Token from the Authorization header.
-    idToken = req.headers.authorization.split('Bearer ')[1]
-  } else if (req.cookies) {
-    // console.log('Found "__session" cookie')
-    // Read the ID Token from cookie.
-    idToken = req.cookies.__session
-  } else {
-    // No cookie
-    res.status(403).send('Unauthorized')
-    return
-  }
-  admin
-    .auth()
-    .verifyIdToken(idToken)
-    .then(decodedIdToken => {
-      // console.log('ID Token correctly decoded', decodedIdToken)
-      const endTime = process.hrtime(startTime)
-      console.info('auth timing: %d ms', endTime)
-      req.user = decodedIdToken
-      next()
-    })
-    .catch(error => {
-      console.error('Error while verifying Firebase ID token:', error)
-      res.status(403).send('Unauthorized')
-    })
-}
-
-const authRoutes = express.Router()
-authRoutes.use(validateFirebaseIdToken)
-
-app.set('trust proxy', 1)
-app.set('views', path.join(__dirname, '../src/views'))
-app.set('view engine', 'ejs')
-// todo: look at this
-app.use(cors)
-app.use(cookieParser)
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(
-  cookieSession({
-    name: 'session',
-    keys: ['asdfaopawieoioe', 'qpowehophs', 'qphodoiseh'],
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-  }),
-)
-
-app.use('/auth', authRoutes)
-
-app.get('/start', function(req: Request, res: Response) {
-  res.render('intuit', {
-    protocol: req.protocol,
-    host: req.header('host'),
-    appRoot: appRoot,
-    appCenter: QuickBooks.APP_CENTER_BASE,
-  })
+app.get('/', (req, res) => {
+  res.redirect('start')
 })
+app.post('/', (req, res) => {
+  res.json({ postedBody: req.body })
+})
+// app.get('/start', function(req: Request, res: Response) {
+//   res.render('intuit', {
+//     protocol: req.protocol,
+//     host: req.header('host'),
+//     appRoot,
+//     appCenter: QuickBooks.APP_CENTER_BASE,
+//   })
+// })
 app.get('/apex', (req, res) => {
   res.json({ response: 'ok' })
 })
@@ -191,14 +128,15 @@ app.get('/callback', async (req: Request, res: Response) => {
   }
 })
 
-authRoutes.get('/hello', (req: AuthRequest, res) => {
+app.get('/hello', validateFirebaseIdToken, (req: AuthRequest, res) => {
   res.send(`Hello ${req.user!.uid}`)
 })
 
 function handleRequest(req: Request, resp: Response): void {
   resp.setHeader('Access-Control-Max-Age', 86400)
   resp.setHeader('connection', 'Keep-Alive')
-  return app(req, resp)
+  // "Router" expects a NextFunction, cast as "Express" App instead
+  return (app as Express)(req, resp)
 }
 
 exports = module.exports = functions.https.onRequest(handleRequest)
