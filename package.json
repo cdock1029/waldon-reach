@@ -2,7 +2,7 @@
   "name": "waldon-reach",
   "version": "0.1.0",
   "private": true,
-  "main": "app/index.tsx",
+  "main": "app/index.html",
   "scripts": {
     "start": "parcel app/index.html",
     "prebuild": "npm run clean",
