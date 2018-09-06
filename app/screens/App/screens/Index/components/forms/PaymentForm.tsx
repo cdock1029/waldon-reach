@@ -1,8 +1,10 @@
 import React, { Fragment } from 'react'
-import { Form, FormGroup, Label, Alert, Button } from 'reactstrap'
+import { Form, FormGroup, Label, Alert, Button, Input } from 'reactstrap'
 import { MoneyInput } from '../MoneyInput'
 import { NewTransactionForm } from './NewTransactionForm'
 import styled from 'react-emotion'
+import { toDate, format } from 'date-fns'
+import { DATE_INPUT_FORMAT } from '../../../../../shared/utils'
 
 interface PaymentFormProps {
   lease: Lease
@@ -36,6 +38,21 @@ export class PaymentForm extends React.Component<PaymentFormProps> {
             <StyledPaymentFormComponent
               onSubmit={handleSubmit}
               className="payment-container">
+              <FormGroup>
+                <Label css={'font-weight: bold;'}>Payment</Label>
+              </FormGroup>
+              <FormGroup>
+                <Label>Payment Date</Label>
+                <Input
+                  type="date"
+                  value={format(values.date, DATE_INPUT_FORMAT)}
+                  onChange={e => {
+                    const { value } = e.target
+                    setFieldValue('date', toDate(value))
+                  }}
+                  onBlur={e => setFieldTouched('date')}
+                />
+              </FormGroup>
               <MoneyInput
                 defaultValue={lease.balance > 0 ? lease.balance : undefined}
                 onBlur={e => setFieldTouched('amount')}
@@ -49,14 +66,6 @@ export class PaymentForm extends React.Component<PaymentFormProps> {
                         touched.amount && (
                           <Alert color="danger">{errors.amount}</Alert>
                         )}
-                      <FormGroup
-                        css={'display: flex; justify-content: space-between'}>
-                        <Label
-                          css={'font-weight: bold;'}
-                          htmlFor="payment-whole">
-                          Payment
-                        </Label>
-                      </FormGroup>
                       <FormGroup>
                         <Label>Amount</Label>
                         <div className="money">

@@ -18,8 +18,7 @@
     "suppressImplicitAnyIndexErrors": true,
     "noUnusedLocals": false,
     "baseUrl": ".",
-    "types": ["node"]
+    "typeRoots": ["./node_modules/@types"]
   },
-  "include": ["app"],
   "exclude": ["node_modules", "dist", ".cache", "tmp", "functions"]
 }

@@ -124,7 +124,7 @@ const Index: SFC<RouteProps> = ({ location }: any) => {
               </Fragment>,
 
               <Fragment>
-                <ListHeader label="units" disabled={!propertyId}>
+                <ListHeader label="Units" disabled={!propertyId}>
                   <NewUnitForm propertyId={currentRouteParams.propertyId} />
                 </ListHeader>
 
