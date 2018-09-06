@@ -7,7 +7,8 @@ import 'react-testing-library/cleanup-after-each'
 import firebasemock from 'firebase-mock'
 
 const mockauth = new firebasemock.MockAuthentication()
-;(global as any).mocksdk = new firebasemock.MockFirebaseSdk(
+
+const mocksdk = firebasemock.MockFirebaseSdk(
   null, //RTDB
   () => mockauth,
   null, // firestore
@@ -15,4 +16,7 @@ const mockauth = new firebasemock.MockAuthentication()
   null, // messaging
 )
 
-;(global as any).firebase = (global as any).mocksdk
+mocksdk.auth().autoFlush()
+mocksdk.auth().createUserWithEmailAndPassword('a@b.com', 'hello')
+;(global as any).mocksdk = mocksdk
+;(global as any).firebase = mocksdk

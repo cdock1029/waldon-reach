@@ -1,4 +1,4 @@
-import { notEmpty, sortUnits } from '../shared/utils'
+import { notEmpty, sortUnits } from '../screens/shared/utils'
 
 describe('utils', () => {
   test('notEmpty', () => {

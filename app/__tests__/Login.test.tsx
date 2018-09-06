@@ -1,7 +1,7 @@
 import React from 'react'
 import { render } from 'react-testing-library'
 import { fireEvent } from 'react-testing-library'
-import Login from '../Login'
+import Login from '../screens/Login'
 
 describe('<Login/> component', () => {
   test('renders inputs and labels', () => {
@@ -21,6 +21,8 @@ describe('<Login/> component', () => {
   })
 
   test('submits email and password', () => {
+    const mock = (global as any).mocksdk
+
     const { getByLabelText, getByText } = render(<Login />)
     const emailNode = getByLabelText('Email')
     const pwNode = getByLabelText('Password')
@@ -38,5 +40,9 @@ describe('<Login/> component', () => {
         cancelable: true,
       }),
     )
+
+    // expect(
+    //   (global as any).mocksdk.auth().signInWithEmailAndPassword,
+    // ).toHaveBeenCalledTimes(1)
   })
 })

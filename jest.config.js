@@ -1,5 +1,5 @@
 module.exports = {
-  setupTestFrameworkScriptFile: require.resolve('./jest.setup.ts'),
+  setupTestFrameworkScriptFile: '<rootDir>/jest.setup.ts',
   roots: ['<rootDir>/app'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',

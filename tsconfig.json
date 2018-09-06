@@ -20,5 +20,13 @@
     "baseUrl": ".",
     "typeRoots": ["./node_modules/@types"]
   },
-  "exclude": ["node_modules", "dist", ".cache", "tmp", "functions"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".cache",
+    "tmp",
+    "functions",
+    "**/__tests__/*"
+  ],
+  "include": ["app"]
 }

@@ -3,8 +3,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
-    "jsx": "react",
-    "typeRoots": ["./node_modules/@types"]
+    "jsx": "react"
   },
-  "exclude": ["node_modules", "dist", ".cache", "tmp", "functions"]
+  "exclude": ["node_modules", "dist", ".cache", "tmp", "functions"],
+  "include": ["app", "jest.setup.ts"]
 }
