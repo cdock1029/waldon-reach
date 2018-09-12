@@ -7,5 +7,5 @@
     "types": null
   },
   "exclude": ["node_modules", "dist", ".cache", "tmp", "functions"],
-  "include": ["app", "jest.setup.ts"]
+  "include": ["src", "jest.setup.ts"]
 }
