@@ -6,15 +6,15 @@
     "check-types": "tsc",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "prebuild": "yarn run clean",
     "clean": "rm -rf build",
-    "serve": "serve dist",
+    "serve": "serve build",
     "test": "jest",
     "test:watch": "jest --watch",
     "babel": "babel ./src/ --out-dir lib --extensions '.ts,.tsx'",
     "test:ci": "jest --ci --runInBand --coverage --silent"
   },
   "dependencies": {
+    "@babel/plugin-transform-runtime": "^7.0.0",
     "@babel/preset-typescript": "^7.0.0",
     "@reach/menu-button": "0.1.7",
     "@reach/router": "^1.1.1",

@@ -1,7 +1,7 @@
 import React from 'react'
 import { render } from 'react-dom'
 import { init, onAuthStateChangedWithClaims } from './shared/firebase'
-import * as serviceWorker from './register-service-worker'
+import * as serviceWorker from './registerServiceWorker'
 import loadable from 'loadable-components'
 
 const App = loadable(() => import('./screens/App'))

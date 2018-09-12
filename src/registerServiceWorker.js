@@ -49,7 +49,7 @@ export function register() {
   }
 }
 
-function registerValidSW(swUrl: string) {
+function registerValidSW(swUrl) {
   navigator.serviceWorker
     .register(swUrl)
     .then(registration => {
@@ -81,9 +81,9 @@ function registerValidSW(swUrl: string) {
     })
 }
 
-function checkValidServiceWorker(swUrl: string) {
+function checkValidServiceWorker(sUrl) {
   // Check if the service worker can be found. If it can't reload the page.
-  fetch(swUrl)
+  fetch(sUrl)
     .then(response => {
       // Ensure service worker exists, and that we really are getting a JS file.
       const ct = response.headers.get('content-type')
@@ -96,7 +96,7 @@ function checkValidServiceWorker(swUrl: string) {
         })
       } else {
         // 'Service worker found. Proceed as normal.'
-        registerValidSW(swUrl)
+        registerValidSW(sUrl)
       }
     })
     .catch(() => {
