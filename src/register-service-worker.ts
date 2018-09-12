@@ -10,7 +10,7 @@ const isLocalhost = Boolean(
     ),
 )
 
-export default function register() {
+export function register() {
   if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
     // The URL constructor is available in all browsers that support SW.
     const publicUrl = new URL('/', window.location.href)
@@ -27,7 +27,7 @@ export default function register() {
     console.log('adding event listener load..')
     window.addEventListener('load', () => {
       // const swUrl = `/service-worker.js`
-      const swUrl = `/sw.js`
+      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`
 
       if (isLocalhost) {
         // 'This is running on localhost. Lets check if a service worker still exists or not.',
@@ -104,4 +104,11 @@ function checkValidServiceWorker(swUrl: string) {
         'No internet connection found. App is running in offline mode.',
       )
     })
+}
+export function unregister() {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(registration => {
+      registration.unregister()
+    })
+  }
 }
