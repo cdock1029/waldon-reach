@@ -1,6 +1,7 @@
 const {
   rewireWebpack: rewireTypescript,
   rewireJest: rewireTypescriptJest,
+  rewireTSLint,
 } = require('react-app-rewire-typescript-babel-preset')
 const { injectBabelPlugin } = require('react-app-rewired')
 const { rewireEmotion } = require('react-app-rewire-emotion')
@@ -28,6 +29,7 @@ module.exports = {
         preload: [/\/main\.[\w]+\.js$/],
       }),
     )
+    config = rewireTSLint(config)
 
     return config
   },

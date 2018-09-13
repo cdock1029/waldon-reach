@@ -10,7 +10,7 @@ export interface CollectionProps<T extends Doc> {
     field: string | firebase.firestore.FieldPath
     direction: firebase.firestore.OrderByDirection
   }
-  where?: Array<WhereParam>
+  where?: WhereParam[]
   path?: string
 }
 interface CollectionState<T extends Doc> {

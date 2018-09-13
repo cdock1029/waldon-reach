@@ -12,7 +12,7 @@ function split(amount: number): { whole: number; fraction: number } {
   return { whole, fraction }
 }
 function stringToTotalInt(whole: string, fraction: string): number {
-  return 100 * parseInt(whole || '0') + parseInt(fraction || '0')
+  return 100 * parseInt(whole || '0', 10) + parseInt(fraction || '0', 10)
 }
 
 function to$(whole: string, fraction = '0', fmt = FORMAT) {
@@ -57,17 +57,17 @@ interface WholeInputParams {
 
 interface WholeInputRenderProps {
   value: string
-  onChange(e: React.ChangeEvent<HTMLInputElement>): void
-  onFocus?(e: React.FocusEvent<HTMLInputElement>): void
-  onClick?(e: React.MouseEvent<HTMLInputElement>): void
-  onMouseDown?(e: React.MouseEvent<HTMLInputElement>): void
-  onBlur?(e: React.FocusEvent<HTMLInputElement>): void
   className: string
   id: string
   name: string
   placeholder: string
   autoFocus: boolean
   ref: React.RefObject<HTMLInputElement>
+  onChange(e: React.ChangeEvent<HTMLInputElement>): void
+  onFocus?(e: React.FocusEvent<HTMLInputElement>): void
+  onClick?(e: React.MouseEvent<HTMLInputElement>): void
+  onMouseDown?(e: React.MouseEvent<HTMLInputElement>): void
+  onBlur?(e: React.FocusEvent<HTMLInputElement>): void
 }
 
 interface FractionInputParams {
@@ -79,15 +79,15 @@ interface FractionInputParams {
 }
 interface FractionInputRenderProps {
   value: string
-  onChange(e: React.ChangeEvent<HTMLInputElement>): void
-  onKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void
-  onBlur?(e: React.FocusEvent<HTMLInputElement>): void
   className: string
   id: string
   name: string
   placeholder: string
   autoFocus: boolean
   ref: React.RefObject<HTMLInputElement>
+  onChange(e: React.ChangeEvent<HTMLInputElement>): void
+  onKeyDown(e: React.KeyboardEvent<HTMLInputElement>): void
+  onBlur?(e: React.FocusEvent<HTMLInputElement>): void
 }
 
 const StyledInput = styled.input((props: any) => ({
@@ -167,6 +167,7 @@ export class MoneyInput extends React.Component<
           cb()
         }
         if (this.props.onChange && stateToSet !== null) {
+          // tslint:disable-next-line:prefer-const
           let { whole, fraction } = this.state
           fraction = fraction.padEnd(2, '0') // makes '.2' === 20 fraction units, not 2
           const total = stringToTotalInt(removeCommasAndSpaces(whole), fraction)
@@ -192,11 +193,11 @@ export class MoneyInput extends React.Component<
 
     if (value.indexOf('.') !== -1) {
       const parts = value.split('.')
-      const money = to$(parts[0])
-      console.log({ parts, money, fraction: this.state.fraction })
+      const whole = to$(parts[0])
+      console.log({ parts, whole, fraction: this.state.fraction })
       return this.internalSetState(
         ({ fraction }) => ({
-          whole: money,
+          whole,
           fraction: parts[1] ? parts[1] : fraction,
         }),
         () => {
@@ -212,11 +213,10 @@ export class MoneyInput extends React.Component<
         fixed = fixed.substr(1)
       }
     }
-    const money = to$(fixed)
-    this.internalSetState(() => ({ whole: money }))
+    this.internalSetState(() => ({ whole: to$(fixed) }))
   }
   handleFractionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let { value } = e.target
+    const { value } = e.target
     console.log('fracChange', { value })
     if (value.trim() === '') {
       console.log('fraction is empty.. setting then jumping to whole')
@@ -347,7 +347,6 @@ export class MoneyInput extends React.Component<
     const { children } = this.props
     const { whole, fraction } = this.state
     const { getWholeInputProps, getFractionInputProps, clear } = this
-    // const money = to$(whole.replace(',', ''), fraction, PRETTY)
     return children({
       whole,
       fraction,

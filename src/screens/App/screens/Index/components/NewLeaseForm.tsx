@@ -158,13 +158,13 @@ export class NewLeaseForm extends React.Component<
           const propertyP = fs
             .doc(`${authPath}/properties/${values.propertyId}`)
             .get()
-            .then(snap => ({ id: snap.id, ...snap.data() }))
+            .then(snap => ({ id: snap.id, ...snap.data() } as Property))
           const unitsP = Promise.all(
             Array.from(values.unitIds).map(uid => {
               return fs
                 .doc(`${authPath}/properties/${values.propertyId}/units/${uid}`)
                 .get()
-                .then(snap => ({ id: snap.id, ...snap.data() }))
+                .then(snap => ({ id: snap.id, ...snap.data() } as Unit))
             }),
           )
           const tenantsP = Promise.all(
@@ -172,7 +172,7 @@ export class NewLeaseForm extends React.Component<
               return fs
                 .doc(`${authPath}/tenants/${tid}`)
                 .get()
-                .then(snap => ({ id: snap.id, ...snap.data() }))
+                .then(snap => ({ id: snap.id, ...snap.data() } as Tenant))
             }),
           )
           const [property, units, tenants] = await Promise.all([
@@ -182,10 +182,10 @@ export class NewLeaseForm extends React.Component<
           ])
           const result = confirm(
             `Confirm New Lease:
-            - Property:\t\t${property['name']}
-            - Units:\t\t${units.map(u => u['label']).join(', ')}
+            - Property:\t\t${property.name}
+            - Units:\t\t${units.map(u => u.label).join(', ')}
             - Tenants:\t\t${tenants
-              .map(t => `${t['lastName']}, ${t['firstName']}`)
+              .map(t => `${t.lastName}, ${t.firstName}`)
               .join(', ')}
             - Rent:\t${Dinero({ amount: values.rent }).toFormat('$0,0.00')}
             - Start Date:\t\t${format(values.startDate, DATE_DISPLAY_FORMAT)}
@@ -202,7 +202,7 @@ export class NewLeaseForm extends React.Component<
 
           if (result) {
             console.log('confirmed')
-            const data = {
+            const data: any = {
               // TODO: default values here, hardcoded.. where should we handle this initilization?
               balance: 0,
               status: 'ACTIVE',
@@ -211,15 +211,14 @@ export class NewLeaseForm extends React.Component<
               properties: {
                 [property.id]: {
                   exists: true,
-                  name: property['name'],
+                  name: property.name,
                 },
               },
               units: {
                 ...units.reduce((acc, u) => {
                   acc[u.id] = {
                     exists: true,
-                    label: u['label'],
-                    address: u['address'],
+                    label: u.label,
                   }
                   return acc
                 }, {}),
@@ -228,14 +227,14 @@ export class NewLeaseForm extends React.Component<
                 ...tenants.reduce((acc, t) => {
                   acc[t.id] = {
                     exists: true,
-                    name: `${t['lastName']}, ${t['firstName']}`,
+                    name: `${t.lastName}, ${t.firstName}`,
                   }
                   return acc
                 }, {}),
               },
             }
             if (values.endDate) {
-              data['endDate'] = values.endDate
+              data.endDate = values.endDate
             }
 
             newDoc('leases', data)
@@ -356,7 +355,7 @@ export class NewLeaseForm extends React.Component<
                             if (!hasLoaded) {
                               return null
                             }
-                            let disabled = !units.length
+                            const disabled = !units.length
                             return (
                               <UnitDownshift
                                 setFieldTouched={() =>

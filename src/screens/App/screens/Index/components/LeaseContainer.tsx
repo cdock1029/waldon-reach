@@ -18,19 +18,14 @@ import {
   Input,
   Button,
 } from 'reactstrap'
-import { Field } from 'formik'
 import styled, { css, cx } from 'react-emotion'
 import UnstyledReactTable from 'react-table'
 import { format } from 'date-fns'
 import { Document, Collection } from '../../../shared/components/FirestoreData'
-import { CurrencyAddDecimals } from '../../../../shared/utils'
 import { ListHeader } from './ListHeader'
 import { NewLeaseForm } from './NewLeaseForm'
-import NewTenantForm from './NewTenantForm'
-import { NewTransactionForm } from './forms/NewTransactionForm'
 import { CurrencyCell } from './CurrencyCell'
 import { Cell } from './Cell'
-import { MoneyInput } from './MoneyInput'
 import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
 
@@ -40,14 +35,6 @@ class LeaseCollection extends Collection<Lease> {}
 class CollectionTransaction extends Collection<Transaction> {}
 
 const ReactTable = styled(UnstyledReactTable)`
-  /* *,
-  *:before,
-  *:after {
-    font-family: var(--font-family-monospace);
-  }*/
-  /* table > * {
-    font-family: var(--font-family-monospace);
-  }*/
   font-family: var(--font-family-monospace);
 `
 
@@ -82,13 +69,15 @@ class LeaseContainer extends React.Component<
   render() {
     const { propertyId, unitId, tenantId } = this.props
     const { activeTab } = this.state
-    const where: Array<WhereParam> = [['status', '==', activeTab]]
+    const where: WhereParam[] = [['status', '==', activeTab]]
     if (propertyId) {
       where.push([`properties.${propertyId}.exists`, '==', true])
       if (unitId) {
         where.push([`units.${unitId}.exists`, '==', true])
       }
-    } else if (tenantId) where.push([`tenants.${tenantId}.exists`, '==', true])
+    } else if (tenantId) {
+      where.push([`tenants.${tenantId}.exists`, '==', true])
+    }
     return (
       <Fragment>
         <div className={leaseHeaderStyles}>
@@ -251,7 +240,7 @@ const LeasesView: SFC<LeasesProps> = ({
         getTrProps={(state: any, rowInfo: any) => {
           // console.log({ state, rowInfo })
           const index = rowInfo ? rowInfo.index : -1
-          let result: any = {}
+          const result: any = {}
           if (index >= 0) {
             const isExpanded = !!state.expanded[index]
             if (isExpanded) {

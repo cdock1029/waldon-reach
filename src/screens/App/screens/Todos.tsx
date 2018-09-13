@@ -6,7 +6,7 @@ class CollectionTodo extends Collection<Todo> {}
 interface Todo {
   id: string
   completed: boolean
-  tags?: Array<string | { name: string; id: string }>
+  tags?: Array<string | { name: string; id: string; props_name?: string }>
   text: string
 }
 
@@ -34,8 +34,8 @@ class Todos extends React.Component<{ path: string }> {
                               const key = `${t.id}${index}`
                               if (typeof tag !== 'object') {
                                 return <li key={key}>{tag}</li>
-                              } else if (tag['props_name']) {
-                                return <p key={key}>{tag['props_name']}</p>
+                              } else if (tag.props_name) {
+                                return <p key={key}>{tag.props_name}</p>
                               } else {
                                 return null
                               }

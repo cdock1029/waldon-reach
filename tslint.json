@@ -6,7 +6,6 @@
   "rules": {
     "ordered-imports": false,
     "jsx-self-close": false,
-    "no-unused-variable:": { "severity": "warning" },
     "interface-name": false,
     "object-literal-sort-keys": false,
     "member-access": false,
@@ -15,7 +14,8 @@
     "jsx-no-lambda": false,
     "jsx-boolean-value": false,
     "no-bitwise": false,
-    "no-empty": false
+    "no-empty": false,
+    "comment-format": false
   },
   "jsRules": {
     "no-console": false,

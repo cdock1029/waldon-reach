@@ -52,7 +52,7 @@ export const newDoc = async (
   }
 }
 
-let _claims: { [key: string]: string } = {}
+let claimsData: { [key: string]: string } = {}
 export function onAuthStateChangedWithClaims(
   claimsKeys: string[],
   callback: (
@@ -61,16 +61,16 @@ export function onAuthStateChangedWithClaims(
   ) => void,
 ) {
   return firebase.auth().onAuthStateChanged(async user => {
-    let claims = {}
+    const tempClaims = {}
     if (user) {
       const token = await user.getIdTokenResult()
-      claims = claimsKeys.reduce((acc, claim) => {
+      claimsData = claimsKeys.reduce((acc, claim) => {
         acc[claim] = token.claims[claim]
         return acc
-      }, claims)
+      }, tempClaims)
     }
-    _claims = claims
-    callback(user, claims)
+    claimsData = tempClaims
+    callback(user, claimsData)
   })
 }
-export const getClaim = (key: string) => _claims[key]
+export const getClaim = (key: string) => claimsData[key]

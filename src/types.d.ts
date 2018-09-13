@@ -37,7 +37,7 @@ interface Tenant extends Doc {
 
 interface Lease extends Doc {
   rent: number
-  securityDeposit: number
+  securityDeposit?: number
   balance: number
   tenants: { [id: string]: { exists: boolean; name: string } }
   units: { [id: string]: { exists: boolean; address: string } }

@@ -17,12 +17,12 @@ export const ListHeader: React.SFC<{
       <BooleanValue>
         {({
           value,
-          toggle,
           set,
+          toggle,
         }: {
           value: boolean
-          toggle(): any
           set: any
+          toggle(): any
         }) => (
           <Fragment>
             {!disabled && <Badge onClick={toggle}>New</Badge>}

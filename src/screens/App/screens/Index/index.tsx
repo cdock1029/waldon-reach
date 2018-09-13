@@ -13,9 +13,9 @@ import { css } from 'react-emotion'
 import { adopt } from 'react-adopt'
 import qs from 'query-string'
 
-class CollectionProperty extends Collection<Property>{}
-class CollectionUnit extends Collection<Unit>{}
-class CollectionTenant extends Collection<Tenant>{}
+class CollectionProperty extends Collection<Property> {}
+class CollectionUnit extends Collection<Unit> {}
+class CollectionTenant extends Collection<Tenant> {}
 
 const PropertiesCollection: SFC<{
   children(data: Property[], hasLoaded: boolean): any
@@ -29,8 +29,8 @@ const PropertiesCollection: SFC<{
 )
 
 const UnitsCollection: SFC<{
-  children(data: Unit[], hasLoaded: boolean): any
   propertyId: string
+  children(data: Unit[], hasLoaded: boolean): any
 }> = ({ children, propertyId }) => {
   return (
     <CollectionUnit
@@ -100,7 +100,7 @@ const Index: SFC<RouteProps> = ({ location }: any) => {
           <Dashboard
             leaseContainer={<LeaseContainer {...currentRouteParams} />}
             sidebarItems={[
-              <Fragment key="sidebarTopList">
+              <Fragment key="leftSidebarTop">
                 <ListHeader label="Properties">
                   <NewPropertyForm />
                 </ListHeader>
@@ -127,7 +127,7 @@ const Index: SFC<RouteProps> = ({ location }: any) => {
                 </ListGroup>
               </Fragment>,
 
-              <Fragment>
+              <Fragment key="leftSidebarBottom-units">
                 <ListHeader label="Units" disabled={!propertyId}>
                   <NewUnitForm propertyId={currentRouteParams.propertyId} />
                 </ListHeader>
@@ -155,7 +155,7 @@ const Index: SFC<RouteProps> = ({ location }: any) => {
               </Fragment>,
             ]}
             rightSidebarItems={[
-              <Fragment>
+              <Fragment key="rightSidebar">
                 <ListHeader label="Tenants">
                   <NewTenantForm />
                 </ListHeader>

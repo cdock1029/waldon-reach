@@ -11,7 +11,9 @@ const getAlgoliaSecuredKey = firebase
   .functions()
   .httpsCallable('getAlgoliaSecuredKey')
 
-const uploadAllData = firebase.functions().httpsCallable('uploadAllData')
+const uploadAllDataFunction = firebase
+  .functions()
+  .httpsCallable('uploadAllData')
 
 declare const intuit: any
 
@@ -123,7 +125,7 @@ class QboInternal extends React.Component<
     }))
     const t0 = performance.now()
     try {
-      const result = await uploadAllData()
+      const result = await uploadAllDataFunction()
       const t1 = performance.now()
       this.setState(() => ({
         uploadAllData: {

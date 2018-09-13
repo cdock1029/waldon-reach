@@ -17,7 +17,6 @@ import {
 } from 'reactstrap'
 
 interface Props<T> {
-  setFieldTouched(): void
   downshiftProps: Partial<DownshiftProps<T>>
   focusOnMount?: boolean
   focusOnUpdate?: boolean
@@ -31,6 +30,7 @@ interface Props<T> {
   children(
     props: Partial<ControllerStateAndHelpers<T>> & { items: T[] },
   ): JSX.Element | JSX.Element[] | null
+  setFieldTouched(): void
 }
 
 export function getDownshift<T>(): ComponentClass<Props<T>> {
