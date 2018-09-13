@@ -1,8 +1,8 @@
 import React from 'react'
 import { render } from 'react-dom'
-import { init, onAuthStateChangedWithClaims } from './shared/firebase'
-import * as serviceWorker from './registerServiceWorker'
 import loadable from 'loadable-components'
+import { onAuthStateChangedWithClaims, init } from './shared/firebase'
+import * as serviceWorker from './registerServiceWorker'
 
 const App = loadable(() => import('./screens/App'))
 const Login = loadable(() => import('./screens/Login'))
@@ -13,15 +13,10 @@ async function main() {
   onAuthStateChangedWithClaims(
     ['activeCompany', 'algoliaSecuredApiKey'],
     (user, claims) => {
-      // todo: render something else if no claims present
+      // todo: check claims and show company setup screens if not present
       render(user ? <App /> : <Login />, root)
     },
   )
 }
 main()
-
-// if (module.hot) {
-//   module.hot.accept();
-// }
-
 serviceWorker.register()

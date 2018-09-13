@@ -6,11 +6,9 @@
     "check-types": "tsc",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
-    "clean": "rm -rf build",
     "serve": "serve build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "babel": "babel ./src/ --out-dir lib --extensions '.ts,.tsx'",
     "test:ci": "jest --ci --runInBand --coverage --silent"
   },
   "dependencies": {

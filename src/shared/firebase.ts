@@ -1,34 +1,19 @@
-/*import fb from 'firebase/app'
-import 'firebase/auth'
-import 'firebase/firestore'
-import 'firebase/functions'
-*/
-// fb.firestore.FieldValue
-
-import config from './firebaseConfig'
-
-export const init = async () => {
-  if (!firebase.apps.length) {
-    firebase.initializeApp(config)
-  }
-  // firebase.firestore.setLogLevel('debug')
-  firebase.firestore().settings({ timestampsInSnapshots: true })
-  try {
-    await firebase
-      .firestore()
-      .enablePersistence()
-      .then(() => console.log('enabled!!'))
-  } catch (e) {
-    if (
-      e.message.includes(
-        'There is another tab open with offline persistence enabled',
-      )
-    ) {
-      alert(
-        'Close other Tab runing this application to enable offline storage.',
-      )
-    }
-  }
+const msg =
+  'There is another tab open with offline persistence enabled. Only one such tab'
+export function init() {
+  return firebase
+    .firestore()
+    .enablePersistence()
+    .then(() => console.log('enabled!!'))
+    .catch((e: Error) => {
+      if (e.message.includes(msg)) {
+        alert(
+          'App running in multiple tabs. Please close 1 tab and refresh app for best performance.',
+        )
+      } else {
+        console.log(e.message)
+      }
+    })
 }
 // export const app: () => firebase.app.App = () => firebase.app()
 export const serverTimestamp = () =>
