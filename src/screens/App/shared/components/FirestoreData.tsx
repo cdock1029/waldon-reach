@@ -10,7 +10,7 @@ export interface CollectionProps<T extends Doc> {
     field: string | firebase.firestore.FieldPath
     direction: firebase.firestore.OrderByDirection
   }
-  where?: WhereParam[]
+  where?: WhereTuple[]
   path?: string
 }
 interface CollectionState<T extends Doc> {
@@ -79,8 +79,8 @@ export class Collection<T extends Doc> extends React.Component<
       .firestore()
       .collection(resolvedPath)
     if (where) {
-      where.forEach(([fp, filtOp, val]) => {
-        collectionRef = collectionRef.where(fp, filtOp, val)
+      where.forEach(tuple => {
+        collectionRef = collectionRef.where(...tuple)
       })
     }
     if (orderBy) {

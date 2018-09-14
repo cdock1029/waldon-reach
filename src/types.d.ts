@@ -57,10 +57,14 @@ interface Transaction extends Doc {
   subType?: TransactionSubType
 }
 
-type WhereParam = [
+type WhereTuple = [
   string | firebase.firestore.FieldPath,
   firebase.firestore.WhereFilterOp,
   any
+]
+type OrderByTuple = [
+  string | firebase.firestore.FieldPath,
+  firebase.firestore.OrderByDirection?
 ]
 
 type Unsub = () => void

@@ -12,18 +12,14 @@ import { Dashboard } from './components/Dashboard'
 import { css } from 'react-emotion'
 import { adopt } from 'react-adopt'
 import qs from 'query-string'
-
-class CollectionProperty extends Collection<Property> {}
-class CollectionUnit extends Collection<Unit> {}
-class CollectionTenant extends Collection<Tenant> {}
+import { authCollection } from '../../../../shared/firebase'
+import { Observable, Subscription } from 'rxjs'
 
 const PropertiesCollection: SFC<{
   children(data: Property[], hasLoaded: boolean): any
 }> = ({ children }) => (
-  <CollectionProperty
-    key="properties"
-    authPath="properties"
-    orderBy={{ field: 'name', direction: 'asc' }}
+  <TestRxProperty
+    observable={authCollection<Property>('properties', { orderBy: ['name'] })}
     children={children}
   />
 )
@@ -33,9 +29,9 @@ const UnitsCollection: SFC<{
   children(data: Unit[], hasLoaded: boolean): any
 }> = ({ children, propertyId }) => {
   return (
-    <CollectionUnit
-      key="units"
-      authPath={`properties/${propertyId}/units`}
+    <TestRxUnit
+      key={propertyId}
+      observable={authCollection<Unit>(`properties/${propertyId}/units`)}
       transform={sortUnits}
       children={children}
     />
@@ -44,10 +40,8 @@ const UnitsCollection: SFC<{
 const TenantsCollection: SFC<{
   children(data: Tenant[], hasLoaded: boolean): any
 }> = ({ children }) => (
-  <CollectionTenant
-    key="tenants"
-    authPath="tenants"
-    orderBy={{ field: 'lastName', direction: 'asc' }}
+  <TestRxTenant
+    observable={authCollection<Tenant>('tenants', { orderBy: ['lastName'] })}
     children={children}
   />
 )
@@ -180,6 +174,20 @@ const Index: SFC<RouteProps> = ({ location }: any) => {
                     <NoItems label="tenants" />
                   ) : null}
                 </ListGroup>
+                {/* <br />
+                <TestRxProperty observable={authCollection('properties')}>
+                  {(data, hasLoaded) =>
+                    hasLoaded ? (
+                      <ul>
+                        {data.map(d => (
+                          <li key={d.id}>{d.name}</li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <h1>Loading..</h1>
+                    )
+                  }
+                </TestRxProperty> */}
               </Fragment>,
             ]}
           />
@@ -231,5 +239,51 @@ const tenantListWrapStyles = css`
     border-color: var(--primary);
   }
 `
+
+interface TestRxProps<T> {
+  observable: Observable<T[]>
+  children(data: T[], hasLoaded: boolean): any
+  transform?(data: T[]): T[]
+}
+interface TestRxState<T> {
+  data: T[]
+  hasLoaded: boolean
+}
+class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
+  sub!: Subscription
+  constructor(props: TestRxProps<T>) {
+    super(props)
+    this.state = {
+      data: [],
+      hasLoaded: false,
+    }
+  }
+  handleData = (data: T[]) => {
+    const { transform } = this.props
+    this.setState(() => ({
+      data: transform ? transform(data) : data,
+      hasLoaded: true,
+    }))
+  }
+  componentDidMount() {
+    console.log('subscribing observer')
+    this.sub = this.props.observable.subscribe(this.handleData)
+  }
+  componentWillUnmount() {
+    if (this.sub) {
+      console.log('unsubbing observer')
+      this.sub.unsubscribe()
+    }
+  }
+  render() {
+    const { data, hasLoaded } = this.state
+    const { children } = this.props
+    return children(data, hasLoaded)
+  }
+}
+
+class TestRxProperty extends TestRx<Property> {}
+class TestRxUnit extends TestRx<Unit> {}
+class TestRxTenant extends TestRx<Tenant> {}
 
 export default Index

@@ -1,6 +1,7 @@
 import { user } from 'rxfire/auth'
-import { switchMap } from 'rxjs/operators'
-import { Subscription } from 'rxjs'
+import { collectionData } from 'rxfire/firestore'
+// import { switchMap, map } from 'rxjs/operators'
+import { Subscription, Observable } from 'rxjs'
 
 const msg = 'Another tab has exclusive access to the persistence layer'
 export function init() {
@@ -40,19 +41,38 @@ export const newDoc = async (
   }
 }
 
-export function observeUser(callback: (u: firebase.User) => Subscription) {
-  return user(firebase.auth()).subscribe(callback)
+let claimsData: { [key: string]: string } = {}
+
+export function authCollection<T>(
+  path: string,
+  options?: {
+    orderBy?: OrderByTuple
+    where?: WhereTuple[]
+    // limit, startAfter, ...etc
+  },
+): Observable<T[]> {
+  let ref: firebase.firestore.Query = firebase
+    .firestore()
+    .collection(`companies/${getClaim('activeCompany')}/${path}`)
+  if (options) {
+    const { where, orderBy } = options
+    if (where) {
+      for (const clause of where) {
+        ref = ref.where(...clause)
+      }
+    }
+    if (orderBy) {
+      ref = ref.orderBy(...orderBy)
+    }
+  }
+  return collectionData<T>(ref, 'id')
 }
 
-let claimsData: { [key: string]: string } = {}
-export function onAuthStateChangedWithClaims(
+export function observeUser(
+  callback: (u: firebase.User, c: any) => void,
   claimsKeys: string[],
-  callback: (
-    user: firebase.User | null,
-    claims: { [key: string]: string },
-  ) => void,
-) {
-  return firebase.auth().onAuthStateChanged(async u => {
+): Subscription {
+  return user(firebase.auth()).subscribe(async u => {
     const tempClaims: { [key: string]: any } = {}
     if (u) {
       const token = await u.getIdTokenResult()
@@ -65,4 +85,5 @@ export function onAuthStateChangedWithClaims(
     callback(u, claimsData)
   })
 }
+
 export const getClaim = (key: string) => claimsData[key]

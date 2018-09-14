@@ -11,12 +11,7 @@ import {
   CardText,
   CardSubtitle,
   Badge,
-  Alert,
   Form,
-  FormGroup,
-  Label,
-  Input,
-  Button,
 } from 'reactstrap'
 import styled, { css, cx } from 'react-emotion'
 import UnstyledReactTable from 'react-table'
@@ -28,8 +23,7 @@ import { CurrencyCell } from './CurrencyCell'
 import { Cell } from './Cell'
 import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
-
-type CollectionReference = firebase.firestore.CollectionReference
+import { switchMap, map } from 'rxjs/operators'
 
 class LeaseCollection extends Collection<Lease> {}
 class CollectionTransaction extends Collection<Transaction> {}
@@ -68,7 +62,7 @@ class LeaseContainer extends React.Component<
   render() {
     const { propertyId, unitId, tenantId } = this.props
     const { activeTab } = this.state
-    const where: WhereParam[] = [['status', '==', activeTab]]
+    const where: WhereTuple[] = [['status', '==', activeTab]]
     if (propertyId) {
       where.push([`properties.${propertyId}.exists`, '==', true])
       if (unitId) {
