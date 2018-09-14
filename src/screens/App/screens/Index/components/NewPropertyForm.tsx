@@ -1,5 +1,5 @@
 import React from 'react'
-import { Formik, FormikProps } from 'formik'
+import { Formik, FormikProps, FormikActions } from 'formik'
 import * as Yup from 'yup'
 import { newDoc } from '../../../../../shared/firebase'
 import {
@@ -33,11 +33,11 @@ export class NewPropertyForm extends React.Component<Props> {
     const { isModalOpen, toggleModal } = this.props
     return (
       <Formik
-        initialValues={{ name: '' }}
         validationSchema={validationSchema}
+        initialValues={{ name: '' } as PropertyForm}
         onSubmit={(
           values: PropertyForm,
-          { setStatus, setSubmitting, resetForm }: FormikProps<PropertyForm>,
+          { setStatus, setSubmitting, resetForm }: FormikActions<PropertyForm>,
         ) => {
           newDoc('properties', { name: values.name.toUpperCase() })
             .then(() => {

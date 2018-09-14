@@ -56,7 +56,6 @@ class LeaseContainer extends React.Component<
   LeaseContainerProps,
   LeaseContainerState
 > {
-  leasesRef: CollectionReference
   state: LeaseContainerState = {
     activeTab: ACTIVE,
   }

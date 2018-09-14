@@ -26,7 +26,7 @@ interface AlgoliaState {
   error?: string
 }
 export class Algolia extends React.Component<object, AlgoliaState> {
-  mounted: boolean
+  mounted!: boolean
   searchClient: any
   state: AlgoliaState = {
     clientLoaded: false,

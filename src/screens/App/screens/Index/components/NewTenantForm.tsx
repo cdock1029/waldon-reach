@@ -1,5 +1,5 @@
 import React from 'react'
-import { Formik, FormikProps } from 'formik'
+import { Formik, FormikProps, FormikActions } from 'formik'
 import * as Yup from 'yup'
 import { newDoc } from '../../../../../shared/firebase'
 import {
@@ -39,7 +39,7 @@ class NewTenantForm extends React.Component<Props/*, {topLevelError: string}*/> 
         validationSchema={NewTenantForm.schema}
         onSubmit={(
           { firstName, lastName, email }: TenantForm,
-          { setSubmitting, setStatus, resetForm }: FormikProps<TenantForm>,
+          { setSubmitting, setStatus, resetForm }: FormikActions<TenantForm>,
         ) => {
           newDoc('tenants', {
             firstName: firstName.toUpperCase(),

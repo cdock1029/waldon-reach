@@ -1,9 +1,12 @@
-const msg =
-  'There is another tab open with offline persistence enabled. Only one such tab'
+import { user } from 'rxfire/auth'
+import { switchMap } from 'rxjs/operators'
+import { Subscription } from 'rxjs'
+
+const msg = 'Another tab has exclusive access to the persistence layer'
 export function init() {
-  return firebase
+  return (firebase as any)
     .firestore()
-    .enablePersistence()
+    .enablePersistence({ experimentalTabSynchronization: false })
     .then(() => console.log('enabled!!'))
     .catch((e: Error) => {
       if (e.message.includes(msg)) {
@@ -37,6 +40,10 @@ export const newDoc = async (
   }
 }
 
+export function observeUser(callback: (u: firebase.User) => Subscription) {
+  return user(firebase.auth()).subscribe(callback)
+}
+
 let claimsData: { [key: string]: string } = {}
 export function onAuthStateChangedWithClaims(
   claimsKeys: string[],
@@ -45,17 +52,17 @@ export function onAuthStateChangedWithClaims(
     claims: { [key: string]: string },
   ) => void,
 ) {
-  return firebase.auth().onAuthStateChanged(async user => {
-    const tempClaims = {}
-    if (user) {
-      const token = await user.getIdTokenResult()
+  return firebase.auth().onAuthStateChanged(async u => {
+    const tempClaims: { [key: string]: any } = {}
+    if (u) {
+      const token = await u.getIdTokenResult()
       claimsData = claimsKeys.reduce((acc, claim) => {
         acc[claim] = token.claims[claim]
         return acc
       }, tempClaims)
     }
     claimsData = tempClaims
-    callback(user, claimsData)
+    callback(u, claimsData)
   })
 }
 export const getClaim = (key: string) => claimsData[key]

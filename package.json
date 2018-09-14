@@ -43,15 +43,14 @@
     "react-values": "^0.3.0",
     "reactstrap": "^6.4.0",
     "rebass": "^3.0.0-3",
+    "rxfire": "^3.0.2",
+    "rxjs": "^6.3.2",
     "script-ext-html-webpack-plugin": "^2.0.1",
     "styled-system": "^3.1.0",
     "typescript": "^3.0.3",
     "yup": "^0.26.5"
   },
   "devDependencies": {
-    "@firebase/app-types": "^0.3.2",
-    "@firebase/auth-types": "^0.3.4",
-    "@firebase/firestore-types": "^0.6.0",
     "@types/algoliasearch": "^3.27.7",
     "@types/jest": "^23.3.2",
     "@types/node": "^10.9.4",

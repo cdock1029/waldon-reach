@@ -188,39 +188,6 @@ class QboInternal extends React.Component<
           )}
         </div>
         <br />
-        {/* <div>
-          <SharedValue<boolean> storageKey="qboBool">
-            {({ value, set }) => {
-              console.log({ value1: value })
-              return (
-                <div
-                  css={
-                    'display: flex; flex-direction: column; margin-botton: 1em;'
-                  }>
-                  <label>Boolean 1: {String(value)}</label>
-                  <button onClick={() => set(!value)}>Toggle</button>
-                </div>
-              )
-            }}
-          </SharedValue>
-        </div>
-        <div>
-          <SharedValue<boolean> storageKey="qboBool">
-            {({ value, set }) => {
-              console.log({ value2: value })
-              return (
-                <div
-                  css={
-                    'display: flex; flex-direction: column; margin-botton: 1em;'
-                  }>
-                  <label>Boolean 2: {String(value)}</label>
-                  <button onClick={() => set(!value)}>Toggle</button>
-                </div>
-              )
-            }}
-          </SharedValue>
-        </div> */}
-        <br />
         <div>
           <label>Callable</label>
           {algoliaKey.loading ? (

@@ -1,13 +1,13 @@
 import React from 'react'
 
 interface SubProps {
+  initialState: { [key: string]: any }
   sub(h: any): any
   handleSubPayload(params: {
     payload: any
-    setState(arg: any, ...rest: any[]): any
     props: any
+    setState(arg: any, ...rest: any[]): any
   }): any
-  initialState: { [key: string]: any }
   children(stuff: {
     props: any
     state: any
@@ -15,15 +15,12 @@ interface SubProps {
 }
 
 export class Sub extends React.Component<SubProps> {
-  unsub: () => any
   mounted = false
   state = this.props.initialState
+  unsub!: () => any
   componentDidMount() {
     this.mounted = true
-    this.unsub = this.props.sub.call(
-      this.props.sub,
-      this._internalHandlePayload,
-    )
+    this.unsub = this.props.sub.call(this.props.sub, this.internalHandlePayload)
   }
   componentWillUnmount() {
     this.mounted = false
@@ -31,12 +28,16 @@ export class Sub extends React.Component<SubProps> {
       this.unsub()
     }
   }
-  _internalHandlePayload = (payload: any) => {
+  internalHandlePayload = (payload: any) => {
     console.log(payload.toString())
     const { handleSubPayload } = this.props
-    handleSubPayload({ payload, setState: this._setState, props: this.props })
+    handleSubPayload({
+      payload,
+      setState: this.internalSetState,
+      props: this.props,
+    })
   }
-  _setState = (arg: any, ...rest: any[]) => {
+  internalSetState = (arg: any, ...rest: any[]) => {
     if (this.mounted) {
       this.setState(arg, ...rest)
     }

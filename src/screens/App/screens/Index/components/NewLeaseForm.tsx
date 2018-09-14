@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react'
-import { Formik, Field, Form, FormikProps } from 'formik'
+import { Formik, Field, Form, FormikProps, FormikActions } from 'formik'
 import Dinero from 'dinero.js'
 import * as Yup from 'yup'
 // import { newDoc } from '../lib/firebase'
@@ -150,7 +150,7 @@ export class NewLeaseForm extends React.Component<
         validationSchema={validationSchema}
         onSubmit={async (
           values: LeaseFormValues,
-          { resetForm }: FormikProps<LeaseFormValues>,
+          { resetForm }: FormikActions<LeaseFormValues>,
         ) => {
           const fs = firebase.firestore()
           const cid = await getClaim('activeCompany')
@@ -215,7 +215,7 @@ export class NewLeaseForm extends React.Component<
                 },
               },
               units: {
-                ...units.reduce((acc, u) => {
+                ...units.reduce<{ [key: string]: any }>((acc, u) => {
                   acc[u.id] = {
                     exists: true,
                     label: u.label,
@@ -224,7 +224,7 @@ export class NewLeaseForm extends React.Component<
                 }, {}),
               },
               tenants: {
-                ...tenants.reduce((acc, t) => {
+                ...tenants.reduce<{ [key: string]: any }>((acc, t) => {
                   acc[t.id] = {
                     exists: true,
                     name: `${t.lastName}, ${t.firstName}`,
