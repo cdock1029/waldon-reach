@@ -1,4 +1,4 @@
-import React, { SFC, Fragment } from 'react'
+import React, { SFC, Fragment, Children } from 'react'
 import { Collection } from '../../shared/components/FirestoreData'
 import { Link } from '@reach/router'
 import { ListHeader } from './components/ListHeader'
@@ -13,12 +13,14 @@ import { css } from 'react-emotion'
 import { adopt } from 'react-adopt'
 import qs from 'query-string'
 import { authCollection } from '../../../../shared/firebase'
-import { Observable, Subscription } from 'rxjs'
+import { Observable, Subscription, combineLatest, BehaviorSubject } from 'rxjs'
+import { switchMap, map } from 'rxjs/operators'
 
 const PropertiesCollection: SFC<{
   children(data: Property[], hasLoaded: boolean): any
 }> = ({ children }) => (
   <TestRxProperty
+    initialData={[]}
     observable={authCollection<Property>('properties', { orderBy: ['name'] })}
     children={children}
   />
@@ -31,6 +33,7 @@ const UnitsCollection: SFC<{
   return (
     <TestRxUnit
       key={propertyId}
+      initialData={[]}
       observable={authCollection<Unit>(`properties/${propertyId}/units`)}
       transform={sortUnits}
       children={children}
@@ -41,6 +44,7 @@ const TenantsCollection: SFC<{
   children(data: Tenant[], hasLoaded: boolean): any
 }> = ({ children }) => (
   <TestRxTenant
+    initialData={[]}
     observable={authCollection<Tenant>('tenants', { orderBy: ['lastName'] })}
     children={children}
   />
@@ -80,11 +84,73 @@ const ComposedData = adopt<CombinedRenderProps, ComposedProps>({
   },
 })
 
+interface ComposedRxProps {
+  propertyId: string
+  children(data: {
+    p: { properties: Property[]; hasPropertiesLoaded: boolean }
+    u: { units: Unit[]; hasUnitsLoaded: boolean }
+    t: { tenants: Tenant[]; hasTenantsLoaded: boolean }
+  }): JSX.Element | null
+}
+class ComposedRx extends React.Component<ComposedRxProps> {
+  propertyIdSubject: BehaviorSubject<string>
+  all$: Observable<[Property[], Unit[], Tenant[]]>
+  subs!: Subscription[]
+  // state = {
+  // }
+  constructor(props: ComposedRxProps) {
+    super(props)
+    this.propertyIdSubject = new BehaviorSubject<string>(props.propertyId)
+    this.all$ = combineLatest(
+      authCollection<Property>('properties', { orderBy: ['name'] }),
+      this.propertyIdSubject.pipe(
+        switchMap(id =>
+          authCollection<Unit>(`properties/${id}/units`).pipe(
+            map(units => sortUnits(units)),
+          ),
+        ),
+      ),
+      authCollection<Tenant>('tenants', { orderBy: ['lastName'] }),
+    )
+    this.subs = []
+  }
+  componentDidMount() {}
+  componentWillUnmount() {
+    for (const sub of this.subs) {
+      sub.unsubscribe()
+    }
+  }
+  componentDidUpdate({ propertyId }: ComposedRxProps) {
+    if (propertyId !== this.props.propertyId) {
+      this.propertyIdSubject.next(this.props.propertyId)
+    }
+  }
+  render() {
+    const { propertyId, children } = this.props
+    console.log('composedRx body - propertyId:', propertyId)
+    return (
+      <TestRxAll
+        initialData={[[], [], []]}
+        observable={this.all$}
+        children={(data, hasLoaded) => {
+          const [properties, units, tenants] = data!
+          console.log('testRxAll children', { data })
+          return children({
+            p: { properties, hasPropertiesLoaded: hasLoaded },
+            u: { units, hasUnitsLoaded: hasLoaded },
+            t: { tenants, hasTenantsLoaded: hasLoaded },
+          })
+        }}
+      />
+    )
+  }
+}
+
 const Index: SFC<RouteProps> = ({ location }: any) => {
   const { p: propertyId, u: unitId, t: tenantId } = qs.parse(location.search)
   const currentRouteParams = { propertyId, unitId, tenantId }
   return (
-    <ComposedData propertyId={propertyId}>
+    <ComposedRx propertyId={propertyId}>
       {({
         p: { properties, hasPropertiesLoaded },
         u: { units, hasUnitsLoaded },
@@ -193,7 +259,7 @@ const Index: SFC<RouteProps> = ({ location }: any) => {
           />
         )
       }}
-    </ComposedData>
+    </ComposedRx>
   )
 }
 
@@ -241,12 +307,13 @@ const tenantListWrapStyles = css`
 `
 
 interface TestRxProps<T> {
-  observable: Observable<T[]>
-  children(data: T[], hasLoaded: boolean): any
-  transform?(data: T[]): T[]
+  observable: Observable<T>
+  initialData?: T
+  children(data: T | null, hasLoaded: boolean): any
+  transform?(data: T): T
 }
 interface TestRxState<T> {
-  data: T[]
+  data: T | null
   hasLoaded: boolean
 }
 class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
@@ -254,11 +321,11 @@ class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
   constructor(props: TestRxProps<T>) {
     super(props)
     this.state = {
-      data: [],
+      data: props.initialData || null,
       hasLoaded: false,
     }
   }
-  handleData = (data: T[]) => {
+  handleData = (data: T) => {
     const { transform } = this.props
     this.setState(() => ({
       data: transform ? transform(data) : data,
@@ -282,8 +349,9 @@ class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
   }
 }
 
-class TestRxProperty extends TestRx<Property> {}
-class TestRxUnit extends TestRx<Unit> {}
-class TestRxTenant extends TestRx<Tenant> {}
+class TestRxProperty extends TestRx<Property[]> {}
+class TestRxUnit extends TestRx<Unit[]> {}
+class TestRxTenant extends TestRx<Tenant[]> {}
+class TestRxAll extends TestRx<[Property[], Unit[], Tenant[]]> {}
 
 export default Index
