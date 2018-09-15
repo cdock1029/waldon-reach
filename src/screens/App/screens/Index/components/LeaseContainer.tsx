@@ -16,17 +16,17 @@ import {
 import styled, { css, cx } from 'react-emotion'
 import UnstyledReactTable from 'react-table'
 import { format } from 'date-fns'
-import { Document, Collection } from '../../../shared/components/FirestoreData'
 import { ListHeader } from './ListHeader'
 import { NewLeaseForm } from './NewLeaseForm'
 import { CurrencyCell } from './CurrencyCell'
 import { Cell } from './Cell'
 import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
-import { switchMap, map } from 'rxjs/operators'
+import { TestRx } from '../../../shared/components/FirestoreData'
+import { authCollection, authDoc } from '../../../../../shared/firebase'
 
-class LeaseCollection extends Collection<Lease> {}
-class CollectionTransaction extends Collection<Transaction> {}
+class LeaseCollection extends TestRx<Lease[]> {}
+class CollectionTransaction extends TestRx<Transaction[]> {}
 
 const ReactTable = styled(UnstyledReactTable)`
   font-family: var(--font-family-monospace);
@@ -107,7 +107,9 @@ class LeaseContainer extends React.Component<
           <TabContent
             className={tabContentStyles}
             activeTab={this.state.activeTab}>
-            <LeaseCollection authPath="leases" where={where}>
+            <LeaseCollection
+              initialData={[]}
+              observable={authCollection('leases', { where })}>
               {(leases, hasLoaded) => {
                 const tab = this.state.activeTab
                 return (
@@ -117,7 +119,7 @@ class LeaseContainer extends React.Component<
                         <LeasesView
                           key="active"
                           /* leases={hasLoaded ? leases : []} */
-                          leases={leases}
+                          leases={leases!}
                           showProperties={!Boolean(propertyId)}
                           showUnits={!Boolean(unitId)}
                           loading={!hasLoaded}
@@ -129,7 +131,7 @@ class LeaseContainer extends React.Component<
                         <LeasesView
                           key="inactive"
                           /* leases={hasLoaded ? leases : []}*/
-                          leases={leases}
+                          leases={leases!}
                           showProperties={!Boolean(propertyId)}
                           showUnits={!Boolean(unitId)}
                           loading={!hasLoaded}
@@ -359,8 +361,10 @@ class TransactionsSubComponent extends React.Component<
           </CardBody>
         </Card>
         <CollectionTransaction
-          authPath={`leases/${lease.id}/transactions`}
-          orderBy={{ field: 'date', direction: 'desc' }}>
+          initialData={[]}
+          observable={authCollection(`leases/${lease.id}/transactions`, {
+            orderBy: ['date', 'desc'],
+          })}>
           {(transactions, hasLoaded) => (
             <div className="transactions">
               <CardBody>
@@ -377,7 +381,7 @@ class TransactionsSubComponent extends React.Component<
                 collapseOnDataChange={false}
                 className={transactionTableStyle}
                 loading={!hasLoaded}
-                data={transactions}
+                data={transactions!}
                 defaultPageSize={10}
                 columns={[
                   {
@@ -451,8 +455,8 @@ class TransactionsSubComponent extends React.Component<
   }
 }
 
-class PropertyDoc extends Document<Property> {}
-class UnitDoc extends Document<Unit> {}
+class PropertyDoc extends TestRx<Property> {}
+class UnitDoc extends TestRx<Unit> {}
 
 interface PropertyDetailProps {
   propertyId?: string
@@ -463,7 +467,7 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
 }) => {
   return (
     <Fragment>
-      <PropertyDoc authPath={`properties/${propertyId}`}>
+      <PropertyDoc observable={authDoc<Property>(`properties/${propertyId}`)}>
         {property => (
           <Card>
             <CardBody>
@@ -489,7 +493,7 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
   unitId,
 }) => {
   return (
-    <UnitDoc authPath={`properties/${propertyId}/units/${unitId}`}>
+    <UnitDoc observable={authDoc(`properties/${propertyId}/units/${unitId}`)}>
       {unit =>
         unit ? (
           <Card>
@@ -504,10 +508,10 @@ const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
   )
 }
 
-class TenantDoc extends Document<Tenant> {}
+class TenantDoc extends TestRx<Tenant> {}
 const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
   return (
-    <TenantDoc authPath={`tenants/${tenantId}`}>
+    <TenantDoc observable={authDoc(`tenants/${tenantId}`)}>
       {tenant => (
         <Card>
           <CardBody>

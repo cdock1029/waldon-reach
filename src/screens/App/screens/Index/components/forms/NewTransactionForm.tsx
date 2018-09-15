@@ -1,17 +1,11 @@
-import React, { Fragment } from 'react'
+import React from 'react'
 import * as Yup from 'yup'
 import { newDoc } from '../../../../../../shared/firebase'
-import {
-  Formik,
-  Field,
-  Form,
-  FieldArray,
-  FormikProps,
-  FormikErrors,
-} from 'formik'
+import { Formik, FormikProps } from 'formik'
 import Dinero from 'dinero.js'
 import { format } from 'date-fns'
 import { DATE_DISPLAY_FORMAT } from '../../../../../shared/utils'
+import { createTransaction } from '../../shared/transactionUtils'
 
 class FormikNewTransaction extends Formik<NewTransactionFormState> {}
 
@@ -23,13 +17,6 @@ interface NewTransactionFormProps {
   children(
     props: FormikProps<NewTransactionFormState>,
   ): JSX.Element | JSX.Element[] | null
-}
-interface NewTransactionFormState {
-  type: TransactionType
-  subType?: TransactionSubType
-  date: Date
-  leaseId: string
-  amount: number
 }
 
 const transactionSchema = Yup.object().shape({
@@ -84,9 +71,9 @@ export class NewTransactionForm extends React.Component<
           )
 
           if (result) {
-            const transactionsPath = `leases/${values.leaseId}/transactions`
+            const leaseId = values.leaseId
             delete values.leaseId
-            newDoc(transactionsPath, values)
+            createTransaction(values, leaseId)
               .then(() => {
                 alert('Transaction Saved!')
               })

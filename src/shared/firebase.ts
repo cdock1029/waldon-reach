@@ -1,5 +1,5 @@
 import { user } from 'rxfire/auth'
-import { collectionData } from 'rxfire/firestore'
+import { collectionData, docData } from 'rxfire/firestore'
 // import { switchMap, map } from 'rxjs/operators'
 import { Subscription, Observable } from 'rxjs'
 import LRU from 'lru-cache'
@@ -54,10 +54,13 @@ const cache = LRU<string, () => void>({
   },
 })
 function noOp() {}
-function saveRef(str: string, q: firebase.firestore.Query) {
+function saveRef(
+  str: string,
+  r: firebase.firestore.Query | firebase.firestore.DocumentReference,
+) {
   if (!cache.has(str)) {
     console.log('adding', str)
-    cache.set(str, q.onSnapshot(noOp))
+    cache.set(str, (r as any).onSnapshot(noOp))
   } else {
     console.log('cache hit!', str)
   }
@@ -92,6 +95,18 @@ export function authCollection<T>(
   const serialStr = JSON.stringify({ checkPath, options })
   saveRef(serialStr, ref)
   return collectionData<T>(ref, 'id')
+}
+export function authDoc<T>(path: string): Observable<T> {
+  let checkPath: string
+  if (path.charAt(0) === '/') {
+    checkPath = path
+  } else {
+    checkPath = `companies/${getClaim('activeCompany')}/${path}`
+  }
+  const ref = firebase.firestore().doc(checkPath)
+  const serialStr = JSON.stringify({ checkPath })
+  saveRef(serialStr, ref)
+  return docData<T>(ref, 'id')
 }
 
 export function observeUser(

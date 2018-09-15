@@ -19,7 +19,7 @@ interface RouteProps {
 }
 
 interface Doc {
-  id: string
+  id?: string
   createdAt?: firebase.firestore.Timestamp
   updatedAt?: firebase.firestore.Timestamp
 }
@@ -45,6 +45,14 @@ interface Lease extends Doc {
   startDate?: Date
   endDate?: Date
   status: 'ACTIVE' | 'INACTIVE' | 'COLLECTIONS'
+}
+
+interface NewTransactionFormState {
+  type: TransactionType
+  subType?: TransactionSubType
+  date: Date
+  leaseId: string
+  amount: number
 }
 
 type TransactionType = 'PAYMENT' | 'CHARGE'
