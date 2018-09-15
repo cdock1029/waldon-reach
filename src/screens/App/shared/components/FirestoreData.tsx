@@ -1,5 +1,6 @@
 import { getClaim } from '../../../../shared/firebase'
 import React from 'react'
+import { Observable, Subscription } from 'rxjs'
 
 export interface CollectionProps<T extends Doc> {
   authPath: string
@@ -177,6 +178,49 @@ class FirestoreData extends React.Component<{}, any> {
 
   render() {
     return null
+  }
+}
+
+interface TestRxProps<T> {
+  observable: Observable<T>
+  initialData?: T
+  children(data: T | null, hasLoaded: boolean): any
+  transform?(data: T): T
+}
+interface TestRxState<T> {
+  data: T | null
+  hasLoaded: boolean
+}
+export class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
+  sub!: Subscription
+  constructor(props: TestRxProps<T>) {
+    super(props)
+    this.state = {
+      data: props.initialData || null,
+      hasLoaded: false,
+    }
+  }
+  handleData = (data: T) => {
+    const { transform } = this.props
+    this.setState(() => ({
+      data: transform ? transform(data) : data,
+      hasLoaded: true,
+    }))
+  }
+  componentDidMount() {
+    console.log('subscribing observer')
+    this.sub = this.props.observable.subscribe(this.handleData)
+  }
+  componentWillUnmount() {
+    if (this.sub) {
+      console.log('unsubbing observer')
+      this.sub.unsubscribe()
+    }
+  }
+  render() {
+    const { data, hasLoaded } = this.state
+    const { children } = this.props
+    return children(data, hasLoaded)
   }
 }
 

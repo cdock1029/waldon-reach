@@ -2,13 +2,17 @@ import { user } from 'rxfire/auth'
 import { collectionData } from 'rxfire/firestore'
 // import { switchMap, map } from 'rxjs/operators'
 import { Subscription, Observable } from 'rxjs'
+import LRU from 'lru-cache'
 
 const msg = 'Another tab has exclusive access to the persistence layer'
 export function init() {
-  return (firebase as any)
+  const fb: any = firebase
+  return fb
     .firestore()
     .enablePersistence({ experimentalTabSynchronization: false })
-    .then(() => console.log('enabled!!'))
+    .then(() => {
+      console.log('enabled!!')
+    })
     .catch((e: Error) => {
       if (e.message.includes(msg)) {
         alert(
@@ -42,6 +46,22 @@ export const newDoc = async (
 }
 
 let claimsData: { [key: string]: string } = {}
+const cache = LRU<string, () => void>({
+  max: 10,
+  dispose: (key, unsub) => {
+    console.log('purging:', key)
+    unsub()
+  },
+})
+function noOp() {}
+function saveRef(str: string, q: firebase.firestore.Query) {
+  if (!cache.has(str)) {
+    console.log('adding', str)
+    cache.set(str, q.onSnapshot(noOp))
+  } else {
+    console.log('cache hit!', str)
+  }
+}
 
 export function authCollection<T>(
   path: string,
@@ -51,9 +71,13 @@ export function authCollection<T>(
     // limit, startAfter, ...etc
   },
 ): Observable<T[]> {
-  let ref: firebase.firestore.Query = firebase
-    .firestore()
-    .collection(`companies/${getClaim('activeCompany')}/${path}`)
+  let checkPath: string
+  if (path.charAt(0) === '/') {
+    checkPath = path
+  } else {
+    checkPath = `companies/${getClaim('activeCompany')}/${path}`
+  }
+  let ref: firebase.firestore.Query = firebase.firestore().collection(checkPath)
   if (options) {
     const { where, orderBy } = options
     if (where) {
@@ -65,6 +89,8 @@ export function authCollection<T>(
       ref = ref.orderBy(...orderBy)
     }
   }
+  const serialStr = JSON.stringify({ checkPath, options })
+  saveRef(serialStr, ref)
   return collectionData<T>(ref, 'id')
 }
 
