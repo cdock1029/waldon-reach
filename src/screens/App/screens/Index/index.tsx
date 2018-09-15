@@ -21,7 +21,7 @@ import {
 } from 'rxjs/operators'
 import { TestRx } from '../../shared/components/FirestoreData'
 
-interface IndexProps {
+interface IndexProps extends RouteProps {
   location: {
     search: string
     pathname: string
