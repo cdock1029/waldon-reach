@@ -201,11 +201,20 @@ export class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
     }
   }
   handleData = (data: T) => {
+    console.log('handleData..')
+    if (Array.isArray(data)) {
+      console.table(data)
+    }
     const { transform } = this.props
-    this.setState(() => ({
-      data: transform ? transform(data) : data,
-      hasLoaded: true,
-    }))
+    this.setState(
+      () => ({
+        data: transform ? transform(data) : data,
+        hasLoaded: true,
+      }),
+      () => {
+        console.log('TestRx state updated.')
+      },
+    )
   }
   componentDidMount() {
     console.log('subscribing observer')
@@ -220,6 +229,7 @@ export class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
   render() {
     const { data, hasLoaded } = this.state
     const { children } = this.props
+    console.log('rendering in TestRx:', { data })
     return children(data, hasLoaded)
   }
 }

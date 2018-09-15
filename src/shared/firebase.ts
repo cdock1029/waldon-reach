@@ -47,7 +47,7 @@ export const newDoc = async (
 
 let claimsData: { [key: string]: string } = {}
 const cache = LRU<string, () => void>({
-  max: 10,
+  max: 20,
   dispose: (key, unsub) => {
     console.log('purging:', key)
     unsub()
@@ -59,11 +59,11 @@ function saveRef(
   r: firebase.firestore.Query | firebase.firestore.DocumentReference,
 ) {
   if (!cache.has(str)) {
-    console.log('adding', str)
+    // console.log('adding', str)
     cache.set(str, (r as any).onSnapshot(noOp))
-  } else {
+  } /*else {
     console.log('cache hit!', str)
-  }
+  }*/
 }
 
 export function authCollection<T>(

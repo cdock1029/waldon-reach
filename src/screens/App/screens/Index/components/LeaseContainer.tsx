@@ -24,6 +24,8 @@ import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
 import { TestRx } from '../../../shared/components/FirestoreData'
 import { authCollection, authDoc } from '../../../../../shared/firebase'
+import { Observable, BehaviorSubject, Subscription, combineLatest } from 'rxjs'
+import { switchMap, map, distinctUntilChanged, filter } from 'rxjs/operators'
 
 class LeaseCollection extends TestRx<Lease[]> {}
 class CollectionTransaction extends TestRx<Transaction[]> {}
@@ -43,6 +45,9 @@ export interface LeaseContainerProps extends RouteProps {
   tenantId?: string
 }
 interface LeaseContainerState {
+  propertyIdSubject: BehaviorSubject<string | undefined>
+  unitIdSubject: BehaviorSubject<string | undefined>
+  tenantIdSubject: BehaviorSubject<string | undefined>
   activeTab: LeaseActiveFilter
 }
 
@@ -50,27 +55,67 @@ class LeaseContainer extends React.Component<
   LeaseContainerProps,
   LeaseContainerState
 > {
-  state: LeaseContainerState = {
-    activeTab: ACTIVE,
+  static getDerivedStateFromProps(
+    { propertyId, unitId, tenantId }: LeaseContainerProps,
+    { propertyIdSubject, unitIdSubject, tenantIdSubject }: LeaseContainerState,
+  ) {
+    propertyIdSubject.next(propertyId)
+    unitIdSubject.next(unitId)
+    tenantIdSubject.next(tenantId)
+    return null
   }
-  toggleTab(tab: LeaseActiveFilter) {
-    this.setState(
-      ({ activeTab }) => (tab !== activeTab ? { activeTab: tab } : null),
+  activeTabSubject: BehaviorSubject<LeaseActiveFilter>
+  activeTabSubscription!: Subscription
+  leases$: Observable<Lease[]>
+  constructor(props: LeaseContainerProps) {
+    super(props)
+    this.activeTabSubject = new BehaviorSubject<LeaseActiveFilter>(ACTIVE)
+    this.state = {
+      propertyIdSubject: new BehaviorSubject(props.propertyId),
+      unitIdSubject: new BehaviorSubject(props.unitId),
+      tenantIdSubject: new BehaviorSubject(props.tenantId),
+      activeTab: ACTIVE,
+    }
+    const state$ = combineLatest(
+      this.state.propertyIdSubject.pipe(distinctUntilChanged()),
+      this.state.unitIdSubject.pipe(distinctUntilChanged()),
+      this.state.tenantIdSubject.pipe(distinctUntilChanged()),
+      this.activeTabSubject.pipe(distinctUntilChanged()),
+    )
+    this.leases$ = state$.pipe(
+      switchMap(([pid, uid, tid, activeTab]) => {
+        const where: WhereTuple[] = [['status', '==', activeTab]]
+        if (pid) {
+          where.push([`properties.${pid}.exists`, '==', true])
+          if (uid) {
+            where.push([`units.${uid}.exists`, '==', true])
+          }
+        } else if (tid) {
+          where.push([`tenants.${tid}.exists`, '==', true])
+        }
+        console.log({ pid, uid, tid, activeTab, where })
+        return authCollection<Lease>('leases', { where })
+      }),
     )
   }
-
+  componentDidMount() {
+    this.activeTabSubscription = this.activeTabSubject.subscribe(tab =>
+      this.setState(
+        ({ activeTab }) => (tab !== activeTab ? { activeTab: tab } : null),
+      ),
+    )
+  }
+  componentWillUnmount() {
+    if (this.activeTabSubscription) {
+      this.activeTabSubscription.unsubscribe()
+    }
+  }
+  toggleTab(tab: LeaseActiveFilter) {
+    this.activeTabSubject.next(tab)
+  }
   render() {
     const { propertyId, unitId, tenantId } = this.props
     const { activeTab } = this.state
-    const where: WhereTuple[] = [['status', '==', activeTab]]
-    if (propertyId) {
-      where.push([`properties.${propertyId}.exists`, '==', true])
-      if (unitId) {
-        where.push([`units.${unitId}.exists`, '==', true])
-      }
-    } else if (tenantId) {
-      where.push([`tenants.${tenantId}.exists`, '==', true])
-    }
     return (
       <Fragment>
         <div className={leaseHeaderStyles}>
@@ -89,7 +134,7 @@ class LeaseContainer extends React.Component<
           <Nav tabs className="bg-light">
             <NavItem>
               <NavLink
-                active={this.state.activeTab === ACTIVE}
+                active={activeTab === ACTIVE}
                 className={tabNavLinkStyles}
                 onClick={() => this.toggleTab(ACTIVE)}>
                 Active
@@ -97,28 +142,22 @@ class LeaseContainer extends React.Component<
             </NavItem>
             <NavItem>
               <NavLink
-                active={this.state.activeTab === INACTIVE}
+                active={activeTab === INACTIVE}
                 className={tabNavLinkStyles}
                 onClick={() => this.toggleTab(INACTIVE)}>
                 Inactive
               </NavLink>
             </NavItem>
           </Nav>
-          <TabContent
-            className={tabContentStyles}
-            activeTab={this.state.activeTab}>
-            <LeaseCollection
-              initialData={[]}
-              observable={authCollection('leases', { where })}>
+          <TabContent className={tabContentStyles} activeTab={activeTab}>
+            <LeaseCollection initialData={[]} observable={this.leases$}>
               {(leases, hasLoaded) => {
-                const tab = this.state.activeTab
                 return (
                   <Fragment>
-                    {tab === ACTIVE && (
+                    {activeTab === ACTIVE && (
                       <TabPane tabId={ACTIVE}>
                         <LeasesView
                           key="active"
-                          /* leases={hasLoaded ? leases : []} */
                           leases={leases!}
                           showProperties={!Boolean(propertyId)}
                           showUnits={!Boolean(unitId)}
@@ -126,11 +165,10 @@ class LeaseContainer extends React.Component<
                         />
                       </TabPane>
                     )}
-                    {tab === INACTIVE && (
+                    {activeTab === INACTIVE && (
                       <TabPane tabId={INACTIVE}>
                         <LeasesView
                           key="inactive"
-                          /* leases={hasLoaded ? leases : []}*/
                           leases={leases!}
                           showProperties={!Boolean(propertyId)}
                           showUnits={!Boolean(unitId)}
@@ -530,15 +568,6 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
             )}
           </CardBody>
         </Card>
-        // <Alert className={`${detailCardStyles} tenant-tile`}>
-        //   <h4 className="alert-heading">Tenant</h4>
-        //   {tenant && (
-        //     <Fragment>
-        //       <p>{`${tenant.firstName} ${tenant.lastName}`}</p>
-        //       <p className="mb-0">{tenant.email && tenant.email}</p>
-        //     </Fragment>
-        //   )}
-        // </Alert>
       )}
     </TenantDoc>
   )
