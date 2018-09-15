@@ -48,6 +48,9 @@
     "rxjs": "^6.3.2",
     "script-ext-html-webpack-plugin": "^2.0.1",
     "styled-system": "^3.1.0",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0",
+    "tslint-react": "^3.6.0",
     "typescript": "^3.0.3",
     "yup": "^0.26.5"
   },
@@ -73,10 +76,7 @@
     "jest-dom": "^1.12.0",
     "parcel-plugin-bundle-visualiser": "^1.2.0",
     "react-testing-library": "^5.0.1",
-    "serve": "^10.0.1",
-    "tslint": "^5.11.0",
-    "tslint-config-prettier": "^1.15.0",
-    "tslint-react": "^3.6.0"
+    "serve": "^10.0.1"
   },
   "resolutions": {
     "@babel/runtime": "7.0.0"
