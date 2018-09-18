@@ -24,8 +24,19 @@ import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
 import { TestRx } from '../../../shared/components/FirestoreData'
 import { authCollection, authDoc } from '../../../../../shared/firebase'
+import { componentFromStream, createEventHandler } from 'recompose'
 import { Observable, BehaviorSubject, Subscription, combineLatest } from 'rxjs'
-import { switchMap, map, distinctUntilChanged, filter } from 'rxjs/operators'
+import {
+  distinctUntilChanged,
+  map,
+  mapTo,
+  scan,
+  switchMap,
+  pluck,
+  filter,
+  startWith,
+  catchError,
+} from 'rxjs/operators'
 
 class LeaseCollection extends TestRx<Lease[]> {}
 class CollectionTransaction extends TestRx<Transaction[]> {}
@@ -44,79 +55,54 @@ export interface LeaseContainerProps extends RouteProps {
   unitId?: string
   tenantId?: string
 }
-interface LeaseContainerState {
-  propertyIdSubject: BehaviorSubject<string | undefined>
-  unitIdSubject: BehaviorSubject<string | undefined>
-  tenantIdSubject: BehaviorSubject<string | undefined>
-  activeTab: LeaseActiveFilter
-}
 
-class LeaseContainer extends React.Component<
-  LeaseContainerProps,
-  LeaseContainerState
-> {
-  static getDerivedStateFromProps(
-    { propertyId, unitId, tenantId }: LeaseContainerProps,
-    { propertyIdSubject, unitIdSubject, tenantIdSubject }: LeaseContainerState,
-  ) {
-    propertyIdSubject.next(propertyId)
-    unitIdSubject.next(unitId)
-    tenantIdSubject.next(tenantId)
-    return null
+interface Result {
+  keys: {
+    propertyId: string
+    unitId: string
+    tenantId: string
   }
-  activeTabSubject: BehaviorSubject<LeaseActiveFilter>
-  activeTabSubscription!: Subscription
-  leases$: Observable<Lease[]>
-  constructor(props: LeaseContainerProps) {
-    super(props)
-    this.activeTabSubject = new BehaviorSubject<LeaseActiveFilter>(ACTIVE)
-    this.state = {
-      propertyIdSubject: new BehaviorSubject(props.propertyId),
-      unitIdSubject: new BehaviorSubject(props.unitId),
-      tenantIdSubject: new BehaviorSubject(props.tenantId),
-      activeTab: ACTIVE,
-    }
-    const state$ = combineLatest(
-      this.state.propertyIdSubject.pipe(distinctUntilChanged()),
-      this.state.unitIdSubject.pipe(distinctUntilChanged()),
-      this.state.tenantIdSubject.pipe(distinctUntilChanged()),
-      this.activeTabSubject.pipe(distinctUntilChanged()),
-    )
-    this.leases$ = state$.pipe(
-      switchMap(([pid, uid, tid, activeTab]) => {
-        const where: WhereTuple[] = [['status', '==', activeTab]]
-        if (pid) {
-          where.push([`properties.${pid}.exists`, '==', true])
-          if (uid) {
-            where.push([`units.${uid}.exists`, '==', true])
-          }
-        } else if (tid) {
-          where.push([`tenants.${tid}.exists`, '==', true])
+  activeTab: LeaseActiveFilter
+  leases: Lease[]
+}
+const LeaseContainer = componentFromStream(props$ => {
+  const { handler: toggleTab, stream: tab$ } = createEventHandler()
+  const activeTab$ = tab$.pipe(
+    startWith(ACTIVE),
+    scan(activeState => (activeState === ACTIVE ? INACTIVE : ACTIVE)),
+  )
+  const state$: Observable<Result> = combineLatest(
+    (props$ as Observable<LeaseContainerProps>).pipe(
+      map(({ propertyId, unitId, tenantId }) => [
+        propertyId || '',
+        unitId || '',
+        tenantId || '',
+      ]),
+    ),
+    activeTab$ as Observable<LeaseActiveFilter>,
+  ).pipe(
+    switchMap(([[propertyId, unitId, tenantId], activeTab]) => {
+      const where: WhereTuple[] = [['status', '==', activeTab]]
+      if (propertyId) {
+        where.push([`properties.${propertyId}.exists`, '==', true])
+        if (unitId) {
+          where.push([`units.${unitId}.exists`, '==', true])
         }
-        console.log({ pid, uid, tid, activeTab, where })
-        return authCollection<Lease>('leases', { where })
-      }),
-    )
-  }
-  componentDidMount() {
-    this.activeTabSubscription = this.activeTabSubject.subscribe(tab =>
-      this.setState(
-        ({ activeTab }) => (tab !== activeTab ? { activeTab: tab } : null),
-      ),
-    )
-  }
-  componentWillUnmount() {
-    if (this.activeTabSubscription) {
-      this.activeTabSubscription.unsubscribe()
-    }
-  }
-  toggleTab(tab: LeaseActiveFilter) {
-    this.activeTabSubject.next(tab)
-  }
-  render() {
-    const { propertyId, unitId, tenantId } = this.props
-    const { activeTab } = this.state
-    return (
+      } else if (tenantId) {
+        where.push([`tenants.${tenantId}.exists`, '==', true])
+      }
+      // console.log({ pid, uid, tid, activeTab, where })
+      return authCollection<Lease>('leases', { where }).pipe(
+        map(leases => ({
+          keys: { propertyId, unitId, tenantId },
+          activeTab,
+          leases,
+        })),
+      )
+    }),
+  )
+  return state$.pipe(
+    map(({ keys: { propertyId, unitId, tenantId }, activeTab, leases }) => (
       <Fragment>
         <div className={leaseHeaderStyles}>
           {propertyId && <PropertyDetail propertyId={propertyId} />}
@@ -136,7 +122,7 @@ class LeaseContainer extends React.Component<
               <NavLink
                 active={activeTab === ACTIVE}
                 className={tabNavLinkStyles}
-                onClick={() => this.toggleTab(ACTIVE)}>
+                onClick={toggleTab}>
                 Active
               </NavLink>
             </NavItem>
@@ -144,48 +130,48 @@ class LeaseContainer extends React.Component<
               <NavLink
                 active={activeTab === INACTIVE}
                 className={tabNavLinkStyles}
-                onClick={() => this.toggleTab(INACTIVE)}>
+                onClick={toggleTab}>
                 Inactive
               </NavLink>
             </NavItem>
           </Nav>
           <TabContent className={tabContentStyles} activeTab={activeTab}>
-            <LeaseCollection initialData={[]} observable={this.leases$}>
+            {/* <LeaseCollection initialData={[]} observable={this.leases$}>
               {(leases, hasLoaded) => {
-                return (
-                  <Fragment>
-                    {activeTab === ACTIVE && (
-                      <TabPane tabId={ACTIVE}>
-                        <LeasesView
-                          key="active"
-                          leases={leases!}
-                          showProperties={!Boolean(propertyId)}
-                          showUnits={!Boolean(unitId)}
-                          loading={!hasLoaded}
-                        />
-                      </TabPane>
-                    )}
-                    {activeTab === INACTIVE && (
-                      <TabPane tabId={INACTIVE}>
-                        <LeasesView
-                          key="inactive"
-                          leases={leases!}
-                          showProperties={!Boolean(propertyId)}
-                          showUnits={!Boolean(unitId)}
-                          loading={!hasLoaded}
-                        />
-                      </TabPane>
-                    )}
-                  </Fragment>
-                )
+                return ( */}
+            <Fragment>
+              {activeTab === ACTIVE && (
+                <TabPane tabId={ACTIVE}>
+                  <LeasesView
+                    key="active"
+                    leases={leases!}
+                    showProperties={!Boolean(propertyId)}
+                    showUnits={!Boolean(unitId)}
+                    loading={false}
+                  />
+                </TabPane>
+              )}
+              {activeTab === INACTIVE && (
+                <TabPane tabId={INACTIVE}>
+                  <LeasesView
+                    key="inactive"
+                    leases={leases!}
+                    showProperties={!Boolean(propertyId)}
+                    showUnits={!Boolean(unitId)}
+                    loading={false}
+                  />
+                </TabPane>
+              )}
+            </Fragment>
+            {/* )
               }}
-            </LeaseCollection>
+            </LeaseCollection> */}
           </TabContent>
         </div>
       </Fragment>
-    )
-  }
-}
+    )),
+  )
+})
 
 interface LeasesProps {
   leases: Lease[]
