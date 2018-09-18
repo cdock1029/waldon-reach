@@ -11,7 +11,7 @@ import { Dashboard } from './components/Dashboard'
 import { css } from 'react-emotion'
 import qs from 'query-string'
 import { authCollection } from '../../../../shared/firebase'
-import { Observable, combineLatest, BehaviorSubject } from 'rxjs'
+import { Observable, combineLatest, BehaviorSubject, of } from 'rxjs'
 import {
   switchMap,
   map,
@@ -38,12 +38,14 @@ class Index extends React.Component<IndexProps> {
       orderBy: ['name'],
     })
     const units$ = this.propertyIdSubject.pipe(
-      filter(Boolean),
       distinctUntilChanged(),
-      switchMap(id =>
-        authCollection<Unit>(`properties/${id}/units`).pipe(
-          map(units => sortUnits(units)),
-        ),
+      switchMap(
+        id =>
+          id
+            ? authCollection<Unit>(`properties/${id}/units`).pipe(
+                map(units => sortUnits(units)),
+              )
+            : of([]),
       ),
       startWith([]),
     )

@@ -82,6 +82,7 @@ const leasePipe = pipe(
       } else if (tenantId) {
         where.push([`tenants.${tenantId}.exists`, '==', true])
       }
+      console.log({ where })
       return authCollection<Lease>('leases', { where }).pipe(
         map(leases => ({
           activeTab,
