@@ -234,45 +234,4 @@ export class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
   }
 }
 
-interface ObserverProps {
-  observables: Array<Observable<any>>
-  initialData?: any[]
-  children(data: any): any
-  transform?(data: any): any
-}
-interface ObserverState {
-  data: Array<null | any>
-}
-export class Observer extends React.Component<ObserverProps, ObserverState> {
-  subs: Subscription[]
-  constructor(props: ObserverProps) {
-    super(props)
-    this.state = {
-      data: props.initialData
-        ? props.initialData
-        : Array.from(props.observables).map(() => null),
-    }
-    this.subs = []
-  }
-  componentDidMount() {
-    this.props.observables.forEach((o, i) => {
-      this.subs.push(o.subscribe(data => this.handleSub(data, i)))
-    })
-  }
-  componentWillUnmount() {
-    for (const sub of this.subs) {
-      sub.unsubscribe()
-    }
-  }
-  handleSub = (newDataItem: any, index: number) => {
-    this.setState(({ data }) => {
-      data[index] = newDataItem
-      return { data }
-    })
-  }
-  render() {
-    return this.props.children(this.state.data)
-  }
-}
-
 export default FirestoreData

@@ -22,24 +22,19 @@ import { CurrencyCell } from './CurrencyCell'
 import { Cell } from './Cell'
 import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
-import { TestRx } from '../../../shared/components/FirestoreData'
 import { authCollection, authDoc } from '../../../../../shared/firebase'
-import { componentFromStream, createEventHandler } from 'recompose'
-import { Observable, BehaviorSubject, Subscription, combineLatest } from 'rxjs'
+import { plan, streamProps, scanPlans, StreamProps as SP } from 'react-streams'
+import { pipe } from 'rxjs'
 import {
-  distinctUntilChanged,
   map,
   mapTo,
-  scan,
   switchMap,
-  pluck,
-  filter,
   startWith,
-  catchError,
+  pluck,
+  distinctUntilChanged,
 } from 'rxjs/operators'
 
-class LeaseCollection extends TestRx<Lease[]> {}
-class CollectionTransaction extends TestRx<Transaction[]> {}
+const StreamProps: any = SP
 
 const ReactTable = styled(UnstyledReactTable)`
   font-family: var(--font-family-monospace);
@@ -56,122 +51,142 @@ export interface LeaseContainerProps extends RouteProps {
   tenantId?: string
 }
 
-interface Result {
-  keys: {
-    propertyId: string
-    unitId: string
-    tenantId: string
-  }
+interface LeaseResult extends LeaseContainerProps {
   activeTab: LeaseActiveFilter
   leases: Lease[]
+  toggleActive(): void
+  toggleInactive(): void
 }
-const LeaseContainer = componentFromStream(props$ => {
-  const { handler: toggleTab, stream: tab$ } = createEventHandler()
-  const activeTab$ = tab$.pipe(
-    startWith(ACTIVE),
-    scan(activeState => (activeState === ACTIVE ? INACTIVE : ACTIVE)),
-  )
-  const state$: Observable<Result> = combineLatest(
-    (props$ as Observable<LeaseContainerProps>).pipe(
-      map(({ propertyId, unitId, tenantId }) => [
-        propertyId || '',
-        unitId || '',
-        tenantId || '',
-      ]),
-    ),
-    activeTab$ as Observable<LeaseActiveFilter>,
-  ).pipe(
-    switchMap(([[propertyId, unitId, tenantId], activeTab]) => {
-      const where: WhereTuple[] = [['status', '==', activeTab]]
-      if (propertyId) {
-        where.push([`properties.${propertyId}.exists`, '==', true])
-        if (unitId) {
-          where.push([`units.${unitId}.exists`, '==', true])
-        }
-      } else if (tenantId) {
-        where.push([`tenants.${tenantId}.exists`, '==', true])
-      }
-      // console.log({ pid, uid, tid, activeTab, where })
-      return authCollection<Lease>('leases', { where }).pipe(
-        map(leases => ({
-          keys: { propertyId, unitId, tenantId },
-          activeTab,
-          leases,
-        })),
-      )
+
+const LeaseParams: any = streamProps(
+  pipe(
+    startWith({ activeTab: ACTIVE }),
+    scanPlans({
+      toggleActive: plan(pipe(mapTo({ activeTab: ACTIVE }))),
+      toggleInactive: plan(pipe(mapTo({ activeTab: INACTIVE }))),
     }),
+    switchMap(
+      ({
+        propertyId,
+        unitId,
+        tenantId,
+        activeTab,
+        toggleActive,
+        toggleInactive,
+      }) => {
+        const where: WhereTuple[] = [['status', '==', activeTab]]
+        if (propertyId) {
+          where.push([`properties.${propertyId}.exists`, '==', true])
+          if (unitId) {
+            where.push([`units.${unitId}.exists`, '==', true])
+          }
+        } else if (tenantId) {
+          where.push([`tenants.${tenantId}.exists`, '==', true])
+        }
+        return authCollection<Lease>('leases', { where }).pipe(
+          map(leases => ({
+            activeTab,
+            leases,
+            toggleActive,
+            toggleInactive,
+            propertyId,
+            unitId,
+            tenantId,
+          })),
+        )
+      },
+    ),
+  ),
+)
+
+const LeaseContainer: SFC<LeaseContainerProps> = props => {
+  return (
+    <LeaseParams {...props}>
+      {({
+        activeTab,
+        leases,
+        toggleActive,
+        toggleInactive,
+        propertyId,
+        tenantId,
+        unitId,
+      }: LeaseResult) => (
+        <Fragment>
+          <div className={leaseHeaderStyles}>
+            {propertyId && <PropertyDetail propertyId={propertyId} />}
+            {propertyId &&
+              unitId && <UnitDetail propertyId={propertyId} unitId={unitId} />}
+            {tenantId && <TenantDetail tenantId={tenantId} />}
+          </div>
+          <div className={leaseContainerStyles}>
+            <ListHeader label="Leases">
+              <NewLeaseForm
+                propertyId={propertyId}
+                unitId={unitId}
+                tenantId={tenantId}
+              />
+            </ListHeader>
+            <Nav tabs className="bg-light">
+              <NavItem>
+                <NavLink
+                  active={activeTab === ACTIVE}
+                  className={tabNavLinkStyles}
+                  onClick={toggleActive}>
+                  Active
+                </NavLink>
+              </NavItem>
+              <NavItem>
+                <NavLink
+                  active={activeTab === INACTIVE}
+                  className={tabNavLinkStyles}
+                  onClick={toggleInactive}>
+                  Inactive
+                </NavLink>
+              </NavItem>
+            </Nav>
+            <TabContent className={tabContentStyles} activeTab={activeTab}>
+              <Fragment>
+                {activeTab === ACTIVE && (
+                  <TabPane tabId={ACTIVE}>
+                    <LeasesView
+                      key="active"
+                      leases={leases!}
+                      showProperties={!Boolean(propertyId)}
+                      showUnits={!Boolean(unitId)}
+                      loading={false}
+                    />
+                  </TabPane>
+                )}
+                {activeTab === INACTIVE && (
+                  <TabPane tabId={INACTIVE}>
+                    <LeasesView
+                      key="inactive"
+                      leases={leases!}
+                      showProperties={!Boolean(propertyId)}
+                      showUnits={!Boolean(unitId)}
+                      loading={false}
+                    />
+                  </TabPane>
+                )}
+              </Fragment>
+            </TabContent>
+          </div>
+        </Fragment>
+      )}
+    </LeaseParams>
   )
-  return state$.pipe(
-    map(({ keys: { propertyId, unitId, tenantId }, activeTab, leases }) => (
-      <Fragment>
-        <div className={leaseHeaderStyles}>
-          {propertyId && <PropertyDetail propertyId={propertyId} />}
-          {unitId && <UnitDetail propertyId={propertyId} unitId={unitId} />}
-          {tenantId && <TenantDetail tenantId={tenantId} />}
-        </div>
-        <div className={leaseContainerStyles}>
-          <ListHeader label="Leases">
-            <NewLeaseForm
-              propertyId={propertyId}
-              unitId={unitId}
-              tenantId={tenantId}
-            />
-          </ListHeader>
-          <Nav tabs className="bg-light">
-            <NavItem>
-              <NavLink
-                active={activeTab === ACTIVE}
-                className={tabNavLinkStyles}
-                onClick={toggleTab}>
-                Active
-              </NavLink>
-            </NavItem>
-            <NavItem>
-              <NavLink
-                active={activeTab === INACTIVE}
-                className={tabNavLinkStyles}
-                onClick={toggleTab}>
-                Inactive
-              </NavLink>
-            </NavItem>
-          </Nav>
-          <TabContent className={tabContentStyles} activeTab={activeTab}>
-            {/* <LeaseCollection initialData={[]} observable={this.leases$}>
-              {(leases, hasLoaded) => {
-                return ( */}
-            <Fragment>
-              {activeTab === ACTIVE && (
-                <TabPane tabId={ACTIVE}>
-                  <LeasesView
-                    key="active"
-                    leases={leases!}
-                    showProperties={!Boolean(propertyId)}
-                    showUnits={!Boolean(unitId)}
-                    loading={false}
-                  />
-                </TabPane>
-              )}
-              {activeTab === INACTIVE && (
-                <TabPane tabId={INACTIVE}>
-                  <LeasesView
-                    key="inactive"
-                    leases={leases!}
-                    showProperties={!Boolean(propertyId)}
-                    showUnits={!Boolean(unitId)}
-                    loading={false}
-                  />
-                </TabPane>
-              )}
-            </Fragment>
-            {/* )
-              }}
-            </LeaseCollection> */}
-          </TabContent>
-        </div>
-      </Fragment>
-    )),
-  )
-})
+}
+
+const TransactionsRx: any = streamProps(
+  pipe(
+    pluck('leaseId'),
+    switchMap(leaseId =>
+      authCollection(`leases/${leaseId}/transactions`, {
+        orderBy: ['date', 'desc'],
+      }),
+    ),
+  ),
+)
 
 interface LeasesProps {
   leases: Lease[]
@@ -384,12 +399,18 @@ class TransactionsSubComponent extends React.Component<
             </div>
           </CardBody>
         </Card>
-        <CollectionTransaction
-          initialData={[]}
-          observable={authCollection(`leases/${lease.id}/transactions`, {
-            orderBy: ['date', 'desc'],
-          })}>
-          {(transactions, hasLoaded) => (
+        <StreamProps
+          leaseId={lease.id}
+          pipe={pipe(
+            pluck('leaseId'),
+            distinctUntilChanged(),
+            switchMap(leaseId =>
+              authCollection(`leases/${leaseId}/transactions`, {
+                orderBy: ['date', 'desc'],
+              }).pipe(map(transactions => ({ transactions }))),
+            ),
+          )}>
+          {({ transactions }: { transactions: Transaction[] }) => (
             <div className="transactions">
               <CardBody>
                 <CardTitle
@@ -404,7 +425,7 @@ class TransactionsSubComponent extends React.Component<
               <ReactTable
                 collapseOnDataChange={false}
                 className={transactionTableStyle}
-                loading={!hasLoaded}
+                loading={false}
                 data={transactions!}
                 defaultPageSize={10}
                 columns={[
@@ -473,26 +494,32 @@ class TransactionsSubComponent extends React.Component<
               />
             </div>
           )}
-        </CollectionTransaction>
+        </StreamProps>
       </div>
     )
   }
 }
-
-class PropertyDoc extends TestRx<Property> {}
-class UnitDoc extends TestRx<Unit> {}
 
 interface PropertyDetailProps {
   propertyId?: string
 }
 const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
   propertyId,
-  children,
 }) => {
   return (
-    <Fragment>
-      <PropertyDoc observable={authDoc<Property>(`properties/${propertyId}`)}>
-        {property => (
+    <StreamProps
+      propertyId={propertyId}
+      pipe={pipe(
+        pluck('propertyId'),
+        distinctUntilChanged(),
+        switchMap(pid =>
+          authDoc<Property | null>(`properties/${pid}`).pipe(
+            map(property => ({ property })),
+          ),
+        ),
+      )}>
+      {({ property }: { property?: Property }) => {
+        return (
           <Card>
             <CardBody>
               <CardText className="text-secondary">Property</CardText>
@@ -501,10 +528,9 @@ const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
               </CardTitle>
             </CardBody>
           </Card>
-        )}
-      </PropertyDoc>
-      {children}
-    </Fragment>
+        )
+      }}
+    </StreamProps>
   )
 }
 
@@ -512,31 +538,39 @@ interface UnitDetailProps {
   propertyId?: string
   unitId?: string
 }
-const UnitDetail: SFC<UnitDetailProps & RouteProps> = ({
-  propertyId,
-  unitId,
-}) => {
+const UnitDetail: SFC<UnitDetailProps & RouteProps> = props => {
   return (
-    <UnitDoc observable={authDoc(`properties/${propertyId}/units/${unitId}`)}>
-      {unit =>
-        unit ? (
-          <Card>
-            <CardBody>
-              <CardText className="text-secondary">Unit</CardText>
-              <CardTitle className="color-units">{unit.label}</CardTitle>
-            </CardBody>
-          </Card>
-        ) : null
-      }
-    </UnitDoc>
+    <StreamProps
+      {...props}
+      pipe={switchMap<UnitDetailProps, any>(({ propertyId, unitId }) =>
+        authDoc(`properties/${propertyId}/units/${unitId}`).pipe(
+          map(unit => ({ unit })),
+        ),
+      )}>
+      {({ unit }: { unit?: Unit }) => (
+        <Card>
+          <CardBody>
+            <CardText className="text-secondary">Unit</CardText>
+            <CardTitle className="color-units">{unit && unit.label}</CardTitle>
+          </CardBody>
+        </Card>
+      )}
+    </StreamProps>
   )
 }
 
-class TenantDoc extends TestRx<Tenant> {}
-const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
+const TenantDetail: SFC<RouteProps & { tenantId: string }> = props => {
   return (
-    <TenantDoc observable={authDoc(`tenants/${tenantId}`)}>
-      {tenant => (
+    <StreamProps
+      tenantId={props.tenantId}
+      pipe={pipe(
+        pluck('tenantId'),
+        distinctUntilChanged(),
+        switchMap(tid =>
+          authDoc(`tenants/${tid}`).pipe(map(tenant => ({ tenant }))),
+        ),
+      )}>
+      {({ tenant }: { tenant?: Tenant }) => (
         <Card>
           <CardBody>
             <CardText className="text-secondary">Tenant</CardText>
@@ -555,7 +589,7 @@ const TenantDetail: SFC<RouteProps & { tenantId: string }> = ({ tenantId }) => {
           </CardBody>
         </Card>
       )}
-    </TenantDoc>
+    </StreamProps>
   )
 }
 
