@@ -23,7 +23,7 @@ import { Cell } from './Cell'
 import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
 import { authCollection, authDoc } from '../../../../../shared/firebase'
-import { plan, streamProps, scanPlans, StreamProps as SP } from 'react-streams'
+import { plan, scanPlans, StreamProps as SP } from 'react-streams'
 import { pipe } from 'rxjs'
 import {
   map,
@@ -58,50 +58,48 @@ interface LeaseResult extends LeaseContainerProps {
   toggleInactive(): void
 }
 
-const LeaseParams: any = streamProps(
-  pipe(
-    startWith({ activeTab: ACTIVE }),
-    scanPlans({
-      toggleActive: plan(pipe(mapTo({ activeTab: ACTIVE }))),
-      toggleInactive: plan(pipe(mapTo({ activeTab: INACTIVE }))),
-    }),
-    switchMap(
-      ({
-        propertyId,
-        unitId,
-        tenantId,
-        activeTab,
-        toggleActive,
-        toggleInactive,
-      }) => {
-        const where: WhereTuple[] = [['status', '==', activeTab]]
-        if (propertyId) {
-          where.push([`properties.${propertyId}.exists`, '==', true])
-          if (unitId) {
-            where.push([`units.${unitId}.exists`, '==', true])
-          }
-        } else if (tenantId) {
-          where.push([`tenants.${tenantId}.exists`, '==', true])
+const leasePipe = pipe(
+  startWith({ activeTab: ACTIVE }),
+  scanPlans({
+    toggleActive: plan(pipe(mapTo({ activeTab: ACTIVE }))),
+    toggleInactive: plan(pipe(mapTo({ activeTab: INACTIVE }))),
+  }),
+  switchMap(
+    ({
+      propertyId,
+      unitId,
+      tenantId,
+      activeTab,
+      toggleActive,
+      toggleInactive,
+    }) => {
+      const where: WhereTuple[] = [['status', '==', activeTab]]
+      if (propertyId) {
+        where.push([`properties.${propertyId}.exists`, '==', true])
+        if (unitId) {
+          where.push([`units.${unitId}.exists`, '==', true])
         }
-        return authCollection<Lease>('leases', { where }).pipe(
-          map(leases => ({
-            activeTab,
-            leases,
-            toggleActive,
-            toggleInactive,
-            propertyId,
-            unitId,
-            tenantId,
-          })),
-        )
-      },
-    ),
+      } else if (tenantId) {
+        where.push([`tenants.${tenantId}.exists`, '==', true])
+      }
+      return authCollection<Lease>('leases', { where }).pipe(
+        map(leases => ({
+          activeTab,
+          leases,
+          toggleActive,
+          toggleInactive,
+          propertyId,
+          unitId,
+          tenantId,
+        })),
+      )
+    },
   ),
 )
 
 const LeaseContainer: SFC<LeaseContainerProps> = props => {
   return (
-    <LeaseParams {...props}>
+    <StreamProps {...props} pipe={leasePipe}>
       {({
         activeTab,
         leases,
@@ -173,20 +171,9 @@ const LeaseContainer: SFC<LeaseContainerProps> = props => {
           </div>
         </Fragment>
       )}
-    </LeaseParams>
+    </StreamProps>
   )
 }
-
-const TransactionsRx: any = streamProps(
-  pipe(
-    pluck('leaseId'),
-    switchMap(leaseId =>
-      authCollection(`leases/${leaseId}/transactions`, {
-        orderBy: ['date', 'desc'],
-      }),
-    ),
-  ),
-)
 
 interface LeasesProps {
   leases: Lease[]
