@@ -1,7 +1,7 @@
 import { user } from 'rxfire/auth'
 import { collectionData, docData } from 'rxfire/firestore'
-// import { switchMap, map } from 'rxjs/operators'
-import { Subscription, Observable } from 'rxjs'
+import { Subscription, Observable, of } from 'rxjs'
+import { startWith, delay } from 'rxjs/operators'
 import LRU from 'lru-cache'
 
 const msg = 'Another tab has exclusive access to the persistence layer'
@@ -66,6 +66,16 @@ function saveRef(
   }*/
 }
 
+function getRef(path: string): [firebase.firestore.Query, string] {
+  let fixedPath: string
+  if (path.charAt(0) === '/') {
+    fixedPath = path
+  } else {
+    fixedPath = `companies/${getClaim('activeCompany')}/${path}`
+  }
+  return [firebase.firestore().collection(fixedPath), fixedPath]
+}
+
 export function authCollection<T>(
   path: string,
   options?: {
@@ -74,13 +84,7 @@ export function authCollection<T>(
     // limit, startAfter, ...etc
   },
 ): Observable<T[]> {
-  let checkPath: string
-  if (path.charAt(0) === '/') {
-    checkPath = path
-  } else {
-    checkPath = `companies/${getClaim('activeCompany')}/${path}`
-  }
-  let ref: firebase.firestore.Query = firebase.firestore().collection(checkPath)
+  let [ref, fixedPath] = getRef(path)
   if (options) {
     const { where, orderBy } = options
     if (where) {
@@ -92,8 +96,9 @@ export function authCollection<T>(
       ref = ref.orderBy(...orderBy)
     }
   }
-  const serialStr = JSON.stringify({ checkPath, options })
+  const serialStr = JSON.stringify({ fixedPath, options })
   saveRef(serialStr, ref)
+
   return collectionData<T>(ref, 'id')
 }
 export function authDoc<T>(path: string): Observable<T> {

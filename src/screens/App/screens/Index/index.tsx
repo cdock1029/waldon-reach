@@ -1,8 +1,7 @@
-import React, { Fragment } from 'react'
+import React, { Fragment, SFC } from 'react'
 import { Link } from '@reach/router'
 import { ListHeader } from './components/ListHeader'
 import { ListGroup, ListGroupItem, Card, CardText, CardTitle } from 'reactstrap'
-import { sortUnits } from '../../../shared/utils'
 import { NewPropertyForm } from './components/NewPropertyForm'
 import NewUnitForm from './components/NewUnitForm'
 import NewTenantForm from './components/NewTenantForm'
@@ -10,16 +9,14 @@ import LeaseContainer from './components/LeaseContainer'
 import { Dashboard } from './components/Dashboard'
 import { css } from 'react-emotion'
 import qs from 'query-string'
-import { authCollection } from '../../../../shared/firebase'
-import { Observable, combineLatest, BehaviorSubject, of } from 'rxjs'
+import { streamProps } from 'react-streams'
+import { pipe } from 'rxjs'
+import { map } from 'rxjs/operators'
 import {
-  switchMap,
-  map,
-  filter,
-  distinctUntilChanged,
-  startWith,
-} from 'rxjs/operators'
-import { TestRx } from '../../shared/components/FirestoreData'
+  PropertiesList,
+  UnitsList,
+  TenantsList,
+} from './components/EntitiesLists'
 
 interface IndexProps extends RouteProps {
   location: {
@@ -27,153 +24,163 @@ interface IndexProps extends RouteProps {
     pathname: string
   }
 }
-class Index extends React.Component<IndexProps> {
-  propertyIdSubject: BehaviorSubject<string>
-  data$: Observable<[Property[], Unit[], Tenant[]]>
-  constructor(props: IndexProps) {
-    super(props)
-    const { p } = qs.parse(props.location.search)
-    this.propertyIdSubject = new BehaviorSubject<string>(p)
-    const properties$ = authCollection<Property>('properties', {
-      orderBy: ['name'],
-    })
-    const units$ = this.propertyIdSubject.pipe(
-      distinctUntilChanged(),
-      switchMap(
-        id =>
-          id
-            ? authCollection<Unit>(`properties/${id}/units`).pipe(
-                map(units => sortUnits(units)),
-              )
-            : of([]),
-      ),
-      startWith([]),
-    )
-    const tenants$ = authCollection<Tenant>('tenants', {
-      orderBy: ['lastName'],
-    })
-    this.data$ = combineLatest(properties$, units$, tenants$)
-  }
-  componentDidUpdate(prevProps: IndexProps) {
-    const { p: prevP } = qs.parse(prevProps.location.search)
-    const { p } = qs.parse(this.props.location.search)
-    if (p !== prevP) {
-      this.propertyIdSubject.next(p)
-    }
-  }
-  render() {
-    const { p: propertyId, u: unitId, t: tenantId } = qs.parse(
-      this.props.location.search,
-    )
-    return (
-      <TestRxAll observable={this.data$}>
-        {(data, hasLoaded) => {
-          const [properties, units, tenants] = data ? data : [[], [], []]
-          const hasPropertiesLoaded = hasLoaded
-          const hasUnitsLoaded = hasLoaded
-          const hasTenantsLoaded = hasLoaded
-          return (
-            <Dashboard
-              leaseContainer={
-                <LeaseContainer
-                  propertyId={propertyId}
-                  unitId={unitId}
-                  tenantId={tenantId}
-                />
-              }
-              sidebarItems={[
-                <Fragment key="leftSidebarTop">
-                  <ListHeader label="Properties">
-                    <NewPropertyForm />
-                  </ListHeader>
-                  <ListGroup
-                    key="sidebarTopListGroup"
-                    className={propertiesListWrapStyles}
-                    flush>
-                    {properties.length ? (
-                      properties.map(p => {
-                        return (
-                          <ListGroupItem
-                            action
-                            key={p.id}
-                            to={`${location.pathname}?p=${p.id}`}
-                            active={p.id === propertyId}
-                            tag={props => <Link {...props} />}>
-                            {p.name}
-                          </ListGroupItem>
-                        )
-                      })
-                    ) : hasPropertiesLoaded ? (
-                      <NoItems label="properties" />
-                    ) : null}
-                  </ListGroup>
-                </Fragment>,
+interface IndexStreamResult {
+  p?: string
+  u?: string
+  t?: string
+  pathname: string
+}
 
-                <Fragment key="leftSidebarBottom-units">
-                  <ListHeader label="Units" disabled={!propertyId}>
-                    <NewUnitForm propertyId={propertyId} />
-                  </ListHeader>
+const IndexStream: any = streamProps(
+  pipe(
+    map<IndexProps, IndexStreamResult>(({ location }) => {
+      const { p, u, t }: any = qs.parse(location.search)
+      return {
+        p,
+        u,
+        t,
+        pathname: location.pathname,
+      }
+    }),
+  ),
+)
+const Index: SFC<IndexProps> = ({ location }) => {
+  return (
+    <IndexStream location={location}>
+      {({
+        p: propertyId,
+        u: unitId,
+        t: tenantId,
+        pathname,
+      }: IndexStreamResult) => {
+        return (
+          <Dashboard
+            leaseContainer={
+              <LeaseContainer
+                propertyId={propertyId}
+                unitId={unitId}
+                tenantId={tenantId}
+              />
+            }
+            sidebarItems={[
+              <Fragment key="leftSidebarTop">
+                <ListHeader label="Properties">
+                  <NewPropertyForm />
+                </ListHeader>
 
-                  <ListGroup flush className={unitsListWrapStyles}>
-                    {units.length ? (
-                      units.map(u => {
-                        return (
-                          <ListGroupItem
-                            action
-                            key={u.id}
-                            to={`${location.pathname}?p=${propertyId}&u=${
-                              u.id
-                            }`}
-                            active={unitId === u.id}
-                            tag={props => <Link {...props} />}>
-                            {u.label}
-                          </ListGroupItem>
-                        )
-                      })
-                    ) : hasUnitsLoaded ? (
-                      <NoItems label="units" />
-                    ) : null}
-                  </ListGroup>
-                </Fragment>,
-              ]}
-              rightSidebarItems={[
-                <Fragment key="rightSidebar">
-                  <ListHeader label="Tenants">
-                    <NewTenantForm />
-                  </ListHeader>
-                  <ListGroup
-                    key="sidebarTopListGroup"
-                    className={tenantListWrapStyles}
-                    flush>
-                    {/* <TestRxTenant
-                      observable={}
-                    >{(tenants, hasLoaded) => (
-                    )}</TestRxTenant> */}
-                    {tenants.length ? (
-                      tenants.map(t => {
-                        return (
-                          <ListGroupItem
-                            action
-                            key={t.id}
-                            to={`${location.pathname}?t=${t.id}`}
-                            active={tenantId === t.id}
-                            tag={p => <Link {...p} />}>
-                            {`${t.lastName}, ${t.firstName}`}
-                          </ListGroupItem>
-                        )
-                      })
-                    ) : hasTenantsLoaded ? (
-                      <NoItems label="tenants" />
-                    ) : null}
-                  </ListGroup>
-                </Fragment>,
-              ]}
-            />
-          )
-        }}
-      </TestRxAll>
-    )
-  }
+                <ListGroup
+                  key="sidebarTopListGroup"
+                  className={propertiesListWrapStyles}
+                  flush>
+                  <PropertiesList
+                    selectedProperty={propertyId}
+                    pathname={pathname}>
+                    {(props: {
+                      properties: Property[]
+                      selectedProperty: string
+                      pathname: string
+                    }) =>
+                      props.properties.length ? (
+                        props.properties.map(p => {
+                          return (
+                            <ListGroupItem
+                              action
+                              key={p.id}
+                              to={`${props.pathname}?p=${p.id}`}
+                              active={p.id === props.selectedProperty}
+                              tag={linkProps => <Link {...linkProps} />}>
+                              {p.name}
+                            </ListGroupItem>
+                          )
+                        })
+                      ) : (
+                        <NoItems label="properties" />
+                      )
+                    }
+                  </PropertiesList>
+                </ListGroup>
+              </Fragment>,
+
+              <Fragment key="leftSidebarBottom-units">
+                <ListHeader label="Units" disabled={!propertyId}>
+                  <NewUnitForm propertyId={propertyId!} />
+                </ListHeader>
+
+                <ListGroup flush className={unitsListWrapStyles}>
+                  <UnitsList
+                    selectedProperty={propertyId}
+                    selectedUnit={unitId}
+                    pathname={pathname}>
+                    {(props: {
+                      units: Unit[]
+                      selectedProperty: string
+                      selectedUnit: string
+                      pathname: string
+                    }) =>
+                      props.units.length ? (
+                        props.units.map(u => {
+                          return (
+                            <ListGroupItem
+                              action
+                              key={u.id}
+                              to={`${props.pathname}?p=${
+                                props.selectedProperty
+                              }&u=${u.id}`}
+                              active={u.id === props.selectedUnit}
+                              tag={lProps => <Link {...lProps} />}>
+                              {u.label}
+                            </ListGroupItem>
+                          )
+                        })
+                      ) : true ? (
+                        <NoItems label="units" />
+                      ) : null
+                    }
+                  </UnitsList>
+                </ListGroup>
+              </Fragment>,
+            ]}
+            rightSidebarItems={[
+              <Fragment key="rightSidebar">
+                <ListHeader label="Tenants">
+                  <NewTenantForm />
+                </ListHeader>
+                <ListGroup
+                  key="sidebarTopListGroup"
+                  className={tenantListWrapStyles}
+                  flush>
+                  <TenantsList selectedTenant={tenantId} pathname={pathname}>
+                    {(props: {
+                      tenants: Tenant[]
+                      selectedTenant: string
+                      pathname: string
+                    }) =>
+                      props.tenants.length ? (
+                        props.tenants.map(t => {
+                          return (
+                            <ListGroupItem
+                              action
+                              key={t.id}
+                              to={`${props.pathname}?t=${t.id}`}
+                              active={t.id === props.selectedTenant}
+                              tag={lProps => <Link {...lProps} />}>
+                              {`${t.lastName}, ${t.firstName}`}
+                            </ListGroupItem>
+                          )
+                        })
+                      ) : true ? (
+                        <NoItems label="tenants" />
+                      ) : null
+                    }
+                  </TenantsList>
+                </ListGroup>
+              </Fragment>,
+            ]}
+          />
+        )
+      }}
+    </IndexStream>
+  )
 }
 
 const NoItems: React.SFC<{ label: string }> = ({ label }) => (
@@ -218,7 +225,5 @@ const tenantListWrapStyles = css`
     border-color: var(--primary);
   }
 `
-
-class TestRxAll extends TestRx<[Property[], Unit[], Tenant[]]> {}
 
 export default Index

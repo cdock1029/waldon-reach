@@ -201,10 +201,6 @@ export class TestRx<T> extends React.Component<TestRxProps<T>, TestRxState<T>> {
     }
   }
   handleData = (data: T) => {
-    console.log('handleData..')
-    if (Array.isArray(data)) {
-      console.table(data)
-    }
     const { transform } = this.props
     this.setState(
       () => ({

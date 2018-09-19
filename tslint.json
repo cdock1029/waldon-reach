@@ -15,7 +15,8 @@
     "jsx-boolean-value": false,
     "no-bitwise": false,
     "no-empty": false,
-    "comment-format": false
+    "comment-format": false,
+    "prefer-const": false
   },
   "jsRules": {
     "no-console": false,
