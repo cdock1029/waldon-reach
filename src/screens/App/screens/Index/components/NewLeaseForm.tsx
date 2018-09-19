@@ -35,10 +35,11 @@ import {
 } from '../../../../shared/utils'
 import { Collection } from '../../../../App/shared/components/FirestoreData'
 import { newDoc, getClaim } from '../../../../../shared/firebase'
+import { PropertiesList } from './EntitiesLists'
 
 Dinero.globalLocale = 'en-US'
 
-class CollectionProperty extends Collection<Property> {}
+// class CollectionProperty extends Collection<Property> {}
 class CollectionUnit extends Collection<Unit> {}
 class CollectionTenant extends Collection<Tenant> {}
 
@@ -288,13 +289,8 @@ export class NewLeaseForm extends React.Component<
                         errors.propertyId && (
                           <Alert color="danger">{errors.propertyId}</Alert>
                         )}
-                      <CollectionProperty
-                        authPath={authPath}
-                        orderBy={{ field: 'name', direction: 'asc' }}>
-                        {(properties, hasLoaded: boolean) => {
-                          if (!hasLoaded) {
-                            return null
-                          }
+                      <PropertiesList>
+                        {({ properties }: { properties: Property[] }) => {
                           return (
                             <PropertyDownshift
                               focusOnMount
@@ -343,7 +339,7 @@ export class NewLeaseForm extends React.Component<
                             </PropertyDownshift>
                           )
                         }}
-                      </CollectionProperty>
+                      </PropertiesList>
                       {touched.unitIds &&
                         errors.unitIds && (
                           <Alert color="danger">{errors.unitIds}</Alert>
