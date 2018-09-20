@@ -1,4 +1,4 @@
-import React, { SFC, Fragment } from 'react'
+import React, { SFC, Fragment, ChangeEvent } from 'react'
 import {
   CardBody,
   TabContent,
@@ -23,9 +23,8 @@ import { Cell } from './Cell'
 import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
 import { authCollection, authDoc } from '../../../../../shared/firebase'
-import { StreamProps as SP } from 'react-streams'
 import { componentFromStream, createEventHandler } from 'recompose'
-import { pipe, Observable, combineLatest, merge } from 'rxjs'
+import { Observable, combineLatest, merge } from 'rxjs'
 import {
   map,
   mapTo,
@@ -33,11 +32,8 @@ import {
   startWith,
   pluck,
   distinctUntilChanged,
-  scan,
   tap,
 } from 'rxjs/operators'
-
-const StreamProps: any = SP
 
 const ReactTable = styled(UnstyledReactTable)`
   font-family: var(--font-family-monospace);
@@ -282,174 +278,172 @@ const LeasesView: SFC<LeasesProps> = ({
 interface TransactionsTableProps {
   lease: Lease
 }
-interface TransactionsTableState {
-  type: TransactionType
-}
-class TransactionsSubComponent extends React.Component<
-  TransactionsTableProps,
-  TransactionsTableState
-> {
-  state: TransactionsTableState = {
-    type: 'PAYMENT',
-  }
-  handleTypeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target
-    const type = value as TransactionType
-    this.setState(() => ({ type }))
-  }
-  render() {
-    const { lease } = this.props
-    return (
-      <TransactionsSubComponentWrapper>
-        <Card className="controls">
-          <CardBody>
-            <CardTitle
-              css={{
-                textTransform: 'uppercase',
-                fontVariantCaps: 'small-caps',
-                fontSize: '1em',
-              }}>
-              Actions
-            </CardTitle>
-            <Form inline>
-              <div className="form-check form-check-inline">
-                <input
-                  className="form-check-input"
-                  type="radio"
-                  value="PAYMENT"
-                  id="paymentRadio"
-                  onChange={this.handleTypeChange}
-                  checked={this.state.type === 'PAYMENT'}
-                />
-                <label className="form-check-label" htmlFor="paymentRadio">
-                  Payment
-                </label>
+const TransactionsSubComponent = componentFromStream<TransactionsTableProps>(
+  props$ => {
+    const PAYMENT = 'PAYMENT'
+    const CHARGE = 'CHARGE'
+    const {
+      handler: typeChangeHandler,
+      stream: typeChange$,
+    } = createEventHandler<
+      ChangeEvent<HTMLInputElement>,
+      Observable<ChangeEvent<HTMLInputElement>>
+    >()
+
+    const type$ = typeChange$.pipe(
+      map<ChangeEvent<HTMLInputElement>, TransactionType>(
+        e => e.target.value as TransactionType,
+      ),
+      startWith(PAYMENT as TransactionType),
+    )
+    const lease$ = (props$ as Observable<TransactionsTableProps>).pipe(
+      switchMap(({ lease }) =>
+        authCollection(`leases/${lease.id}/transactions`, {
+          orderBy: ['date', 'desc'],
+        }).pipe(map(transactions => ({ lease, transactions }))),
+      ),
+    )
+
+    const data$ = combineLatest(lease$, type$)
+
+    return data$.pipe(
+      map(([{ lease, transactions }, type]) => (
+        <TransactionsSubComponentWrapper>
+          <Card className="controls">
+            <CardBody>
+              <CardTitle
+                css={{
+                  textTransform: 'uppercase',
+                  fontVariantCaps: 'small-caps',
+                  fontSize: '1em',
+                }}>
+                Actions
+              </CardTitle>
+              <Form inline>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    value="PAYMENT"
+                    id="paymentRadio"
+                    onChange={typeChangeHandler}
+                    checked={type === PAYMENT}
+                  />
+                  <label className="form-check-label" htmlFor="paymentRadio">
+                    Payment
+                  </label>
+                </div>
+                <div className="form-check form-check-inline">
+                  <input
+                    className="form-check-input"
+                    type="radio"
+                    value="CHARGE"
+                    id="chargeRadio"
+                    onChange={typeChangeHandler}
+                    checked={type === CHARGE}
+                  />
+                  <label className="form-check-label" htmlFor="chargeRadio">
+                    Charge
+                  </label>
+                </div>
+              </Form>
+            </CardBody>
+            <CardBody>
+              <div className="content">
+                {type === PAYMENT ? (
+                  <PaymentForm lease={lease} />
+                ) : (
+                  <ChargeForm lease={lease} />
+                )}
               </div>
-              <div className="form-check form-check-inline">
-                <input
-                  className="form-check-input"
-                  type="radio"
-                  value="CHARGE"
-                  id="chargeRadio"
-                  onChange={this.handleTypeChange}
-                  checked={this.state.type === 'CHARGE'}
-                />
-                <label className="form-check-label" htmlFor="chargeRadio">
-                  Charge
-                </label>
-              </div>
-            </Form>
-          </CardBody>
-          <CardBody>
-            <div className="content">
-              {this.state.type === 'PAYMENT' ? (
-                <PaymentForm lease={lease} />
-              ) : (
-                <ChargeForm lease={lease} />
-              )}
-            </div>
-          </CardBody>
-        </Card>
-        <StreamProps
-          leaseId={lease.id}
-          pipe={pipe(
-            pluck('leaseId'),
-            distinctUntilChanged(),
-            switchMap(leaseId =>
-              authCollection(`leases/${leaseId}/transactions`, {
-                orderBy: ['date', 'desc'],
-              }).pipe(map(transactions => ({ transactions }))),
-            ),
-          )}>
-          {({ transactions }: { transactions: Transaction[] }) => (
-            <div className="transactions">
-              <CardBody>
-                <CardTitle
-                  css={{
-                    textTransform: 'uppercase',
-                    fontVariantCaps: 'small-caps',
-                    fontSize: '1em',
-                  }}>
-                  Transactions
-                </CardTitle>
-              </CardBody>
-              <ReactTable
-                collapseOnDataChange={false}
-                className={transactionTableStyle}
-                loading={false}
-                data={transactions!}
-                defaultPageSize={10}
-                columns={[
-                  {
-                    Header: 'type',
-                    accessor: 'type',
-                    Cell: ({
-                      original: { type, subType },
-                    }: {
-                      original: Transaction
-                    }) => {
-                      return (
-                        <div
-                          css={'display: flex; & > * {margin-right: 0.5em;}'}>
+            </CardBody>
+          </Card>
+          <div className="transactions">
+            <CardBody>
+              <CardTitle
+                css={{
+                  textTransform: 'uppercase',
+                  fontVariantCaps: 'small-caps',
+                  fontSize: '1em',
+                }}>
+                Transactions
+              </CardTitle>
+            </CardBody>
+            <ReactTable
+              collapseOnDataChange={false}
+              className={transactionTableStyle}
+              loading={false}
+              data={transactions!}
+              defaultPageSize={10}
+              columns={[
+                {
+                  Header: 'type',
+                  accessor: 'type',
+                  Cell: ({
+                    original: { type: itemType, subType },
+                  }: {
+                    original: Transaction
+                  }) => {
+                    return (
+                      <div css={'display: flex; & > * {margin-right: 0.5em;}'}>
+                        <Badge
+                          pill
+                          color={itemType === CHARGE ? 'secondary' : 'success'}>
+                          {type}
+                        </Badge>
+                        {subType ? (
                           <Badge
                             pill
-                            color={type === 'CHARGE' ? 'secondary' : 'success'}>
-                            {type}
+                            color={
+                              subType === 'LATE_FEE' ? 'danger' : 'primary'
+                            }>
+                            {subType.replace('_', ' ')}
                           </Badge>
-                          {subType ? (
-                            <Badge
-                              pill
-                              color={
-                                subType === 'LATE_FEE' ? 'danger' : 'primary'
-                              }>
-                              {subType.replace('_', ' ')}
-                            </Badge>
-                          ) : null}
-                        </div>
-                      )
-                    },
+                        ) : null}
+                      </div>
+                    )
                   },
-                  {
-                    Header: 'amount',
-                    accessor: 'amount',
-                    Cell: ({
-                      value,
-                      original: { type },
-                    }: {
-                      original: Transaction
-                      value: number
-                    }) => {
-                      return (
-                        <div
-                          className={cx({
-                            'text-success': type === 'PAYMENT',
-                          })}>
-                          <CurrencyCell
-                            amount={value}
-                            formatNegative={type === 'PAYMENT'}
-                          />
-                        </div>
-                      )
-                    },
+                },
+                {
+                  Header: 'amount',
+                  accessor: 'amount',
+                  Cell: ({
+                    value,
+                    original: { type: itemType },
+                  }: {
+                    original: Transaction
+                    value: number
+                  }) => {
+                    return (
+                      <div
+                        className={cx({
+                          'text-success': itemType === PAYMENT,
+                        })}>
+                        <CurrencyCell
+                          amount={value}
+                          formatNegative={itemType === PAYMENT}
+                        />
+                      </div>
+                    )
                   },
-                  {
-                    Header: 'date',
-                    id: 'date',
-                    accessor: (t: Transaction) =>
-                      format(t.date.toDate(), 'EEE d MMM YYYY'),
-                    Cell: ({ value }: any) => (
-                      <div css={'text-align: right;'}>{value}</div>
-                    ),
-                  },
-                ]}
-              />
-            </div>
-          )}
-        </StreamProps>
-      </TransactionsSubComponentWrapper>
+                },
+                {
+                  Header: 'date',
+                  id: 'date',
+                  accessor: (t: Transaction) =>
+                    format(t.date.toDate(), 'EEE d MMM YYYY'),
+                  Cell: ({ value }: any) => (
+                    <div css={'text-align: right;'}>{value}</div>
+                  ),
+                },
+              ]}
+            />
+          </div>
+        </TransactionsSubComponentWrapper>
+      )),
     )
-  }
-}
+  },
+)
 
 interface PropertyDetailProps {
   propertyId?: string

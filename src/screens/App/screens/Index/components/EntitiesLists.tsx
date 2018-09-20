@@ -8,7 +8,8 @@ interface ExtraProps {
   [key: string]: any
 }
 interface PropertiesListProps {
-  orderBy?: OrderByTuple
+  selectedProperty?: string
+  pathname?: string
   children(data: { properties: Property[] } & ExtraProps): React.ReactNode
 }
 export const PropertiesList = componentFromStream<PropertiesListProps>(
@@ -27,6 +28,8 @@ export const PropertiesList = componentFromStream<PropertiesListProps>(
 
 interface UnitsListProps {
   selectedProperty?: string
+  selectedUnit?: string
+  pathname?: string
   children(data: { units: Unit[] } & ExtraProps): React.ReactNode
 }
 export const UnitsList = componentFromStream<UnitsListProps>(props$ => {
@@ -48,6 +51,8 @@ export const UnitsList = componentFromStream<UnitsListProps>(props$ => {
 })
 
 interface TenantsListProps {
+  selectedTenant?: string
+  pathname?: string
   children(data: { tenants: Tenant[] } & ExtraProps): React.ReactNode
 }
 export const TenantsList = componentFromStream<TenantsListProps>(props$ => {

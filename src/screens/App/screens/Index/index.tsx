@@ -107,12 +107,7 @@ const Index: SFC<IndexProps> = ({ location }) => {
                     selectedProperty={propertyId}
                     selectedUnit={unitId}
                     pathname={pathname}>
-                    {(props: {
-                      units: Unit[]
-                      selectedProperty: string
-                      selectedUnit: string
-                      pathname: string
-                    }) =>
+                    {props =>
                       props.units.length ? (
                         props.units.map(u => {
                           return (
