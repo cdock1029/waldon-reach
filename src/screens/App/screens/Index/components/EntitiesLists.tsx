@@ -1,52 +1,61 @@
-import { SFC } from 'react'
-import { streamProps } from 'react-streams'
 import { Observable, combineLatest, of } from 'rxjs'
 import { map, distinctUntilChanged, switchMap, pluck } from 'rxjs/operators'
 import { authCollection } from '../../../../../shared/firebase'
 import { sortUnits } from '../../../../shared/utils'
+import { componentFromStream } from 'recompose'
 
 interface ExtraProps {
   [key: string]: any
 }
-export const PropertiesList: SFC<{
-  children(data: { properties: Property[] } & ExtraProps): any
-}> = streamProps((props$: Observable<{ orderBy?: OrderByTuple }>) =>
-  combineLatest(
-    props$,
-    props$.pipe(
-      pluck('orderBy'),
-      distinctUntilChanged(),
-      switchMap<any, Property[]>((orderBy?: OrderByTuple) =>
-        authCollection<Property>('properties', {
-          orderBy: orderBy ? orderBy : ['name'],
-        }),
+interface PropertiesListProps {
+  orderBy?: OrderByTuple
+  children(data: { properties: Property[] } & ExtraProps): React.ReactNode
+}
+export const PropertiesList = componentFromStream<PropertiesListProps>(
+  props$ => {
+    const data$ = combineLatest(
+      props$ as Observable<PropertiesListProps>,
+      authCollection<Property>('properties', { orderBy: ['name'] }),
+    )
+    return data$.pipe(
+      map(([{ children, ...rest }, properties]) =>
+        children({ ...rest, properties }),
       ),
-    ),
-  ).pipe(
-    map(([{ orderBy, ...rest }, properties]) => ({ ...rest, properties })),
-  ),
-) as any
+    )
+  },
+)
 
-export const UnitsList: SFC<{
-  children(data: { units: Unit[] }): any
-}> = streamProps((props$: Observable<any>) =>
-  combineLatest(
-    props$,
-    props$.pipe(
+interface UnitsListProps {
+  selectedProperty?: string
+  children(data: { units: Unit[] } & ExtraProps): React.ReactNode
+}
+export const UnitsList = componentFromStream<UnitsListProps>(props$ => {
+  const data$ = combineLatest(
+    props$ as Observable<UnitsListProps>,
+    (props$ as Observable<UnitsListProps>).pipe(
       pluck('selectedProperty'),
       distinctUntilChanged(),
       switchMap(
         sp => (sp ? authCollection<Unit>(`properties/${sp}/units`) : of([])),
       ),
     ),
-  ).pipe(map(([props, units]) => ({ ...props, units: sortUnits(units) }))),
-) as any
+  )
+  return data$.pipe(
+    map(([{ children, ...rest }, units]) =>
+      children({ ...rest, units: sortUnits(units) }),
+    ),
+  )
+})
 
-export const TenantsList: SFC<{
-  children(data: { tenants: Tenant[] }): any
-}> = streamProps((props$: any) =>
-  combineLatest(
-    props$,
+interface TenantsListProps {
+  children(data: { tenants: Tenant[] } & ExtraProps): React.ReactNode
+}
+export const TenantsList = componentFromStream<TenantsListProps>(props$ => {
+  const data$ = combineLatest(
+    props$ as Observable<TenantsListProps>,
     authCollection<Tenant>('tenants', { orderBy: ['lastName'] }),
-  ).pipe(map(([props, tenants]) => ({ ...props, tenants }))),
-) as any
+  )
+  return data$.pipe(
+    map(([{ children, ...rest }, tenants]) => children({ ...rest, tenants })),
+  )
+})

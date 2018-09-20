@@ -35,13 +35,13 @@ import {
 } from '../../../../shared/utils'
 import { Collection } from '../../../../App/shared/components/FirestoreData'
 import { newDoc, getClaim } from '../../../../../shared/firebase'
-import { PropertiesList } from './EntitiesLists'
+import { PropertiesList, UnitsList, TenantsList } from './EntitiesLists'
 
 Dinero.globalLocale = 'en-US'
 
 // class CollectionProperty extends Collection<Property> {}
 class CollectionUnit extends Collection<Unit> {}
-class CollectionTenant extends Collection<Tenant> {}
+// class CollectionTenant extends Collection<Tenant> {}
 
 const PropertyDownshift = getDownshift<Property>()
 const TenantDownshift = getDownshift<Tenant>()
@@ -210,14 +210,14 @@ export class NewLeaseForm extends React.Component<
               rent: values.rent,
               startDate: values.startDate,
               properties: {
-                [property.id]: {
+                [property.id!]: {
                   exists: true,
                   name: property.name,
                 },
               },
               units: {
                 ...units.reduce<{ [key: string]: any }>((acc, u) => {
-                  acc[u.id] = {
+                  acc[u.id!] = {
                     exists: true,
                     label: u.label,
                   }
@@ -226,7 +226,7 @@ export class NewLeaseForm extends React.Component<
               },
               tenants: {
                 ...tenants.reduce<{ [key: string]: any }>((acc, t) => {
-                  acc[t.id] = {
+                  acc[t.id!] = {
                     exists: true,
                     name: `${t.lastName}, ${t.firstName}`,
                   }
@@ -261,7 +261,6 @@ export class NewLeaseForm extends React.Component<
             resetForm()
             this.props.closeModal!()
           }
-          const authPath = 'properties'
           console.log({ values, touched, errors })
           return (
             <Modal
@@ -404,13 +403,8 @@ export class NewLeaseForm extends React.Component<
                         errors.tenantIds && (
                           <Alert color="danger">{errors.tenantIds}</Alert>
                         )}
-                      <CollectionTenant
-                        authPath="tenants"
-                        orderBy={{ field: 'lastName', direction: 'asc' }}>
-                        {(tenants, hasLoaded) => {
-                          if (!hasLoaded) {
-                            return null
-                          }
+                      <TenantsList>
+                        {({ tenants }: { tenants: Tenant[] }) => {
                           return (
                             <TenantDownshift
                               setFieldTouched={() =>
@@ -444,7 +438,7 @@ export class NewLeaseForm extends React.Component<
                             </TenantDownshift>
                           )
                         }}
-                      </CollectionTenant>
+                      </TenantsList>
                       <MoneyInput
                         onBlur={() => {
                           setFieldTouched('rent')

@@ -23,8 +23,9 @@ import { Cell } from './Cell'
 import { PaymentForm } from './forms/PaymentForm'
 import { ChargeForm } from './forms/ChargeForm'
 import { authCollection, authDoc } from '../../../../../shared/firebase'
-import { plan, scanPlans, StreamProps as SP } from 'react-streams'
-import { pipe } from 'rxjs'
+import { StreamProps as SP } from 'react-streams'
+import { componentFromStream, createEventHandler } from 'recompose'
+import { pipe, Observable, combineLatest, merge } from 'rxjs'
 import {
   map,
   mapTo,
@@ -32,6 +33,8 @@ import {
   startWith,
   pluck,
   distinctUntilChanged,
+  scan,
+  tap,
 } from 'rxjs/operators'
 
 const StreamProps: any = SP
@@ -43,36 +46,35 @@ const ReactTable = styled(UnstyledReactTable)`
 const ACTIVE = 'ACTIVE'
 const INACTIVE = 'INACTIVE'
 
-type LeaseActiveFilter = typeof ACTIVE | typeof INACTIVE
-
 export interface LeaseContainerProps extends RouteProps {
   propertyId?: string
   unitId?: string
   tenantId?: string
 }
 
-interface LeaseResult extends LeaseContainerProps {
-  activeTab: LeaseActiveFilter
-  leases: Lease[]
-  toggleActive(): void
-  toggleInactive(): void
-}
+const LeaseContainer = componentFromStream<LeaseContainerProps>(props$ => {
+  const { handler: toggleActive, stream: toggleActive$ } = createEventHandler<
+    any,
+    Observable<string>
+  >()
+  const {
+    handler: toggleInactive,
+    stream: toggleInactive$,
+  } = createEventHandler<any, Observable<string>>()
 
-const leasePipe = pipe(
-  startWith({ activeTab: ACTIVE }),
-  scanPlans({
-    toggleActive: plan(pipe(mapTo({ activeTab: ACTIVE }))),
-    toggleInactive: plan(pipe(mapTo({ activeTab: INACTIVE }))),
-  }),
-  switchMap(
-    ({
-      propertyId,
-      unitId,
-      tenantId,
-      activeTab,
-      toggleActive,
-      toggleInactive,
-    }) => {
+  const active$ = merge(
+    toggleActive$.pipe(mapTo(ACTIVE)),
+    toggleInactive$.pipe(mapTo(INACTIVE)),
+  ).pipe(
+    startWith(ACTIVE),
+    distinctUntilChanged(),
+    tap(active => console.log({ tapActive: active })),
+  )
+
+  const data$ = combineLatest(active$, props$ as Observable<
+    LeaseContainerProps
+  >).pipe(
+    switchMap(([activeTab, { propertyId, unitId, tenantId }]) => {
       const where: WhereTuple[] = [['status', '==', activeTab]]
       if (propertyId) {
         where.push([`properties.${propertyId}.exists`, '==', true])
@@ -87,29 +89,17 @@ const leasePipe = pipe(
         map(leases => ({
           activeTab,
           leases,
-          toggleActive,
-          toggleInactive,
           propertyId,
           unitId,
           tenantId,
         })),
       )
-    },
-  ),
-)
-
-const LeaseContainer: SFC<LeaseContainerProps> = props => {
-  return (
-    <StreamProps {...props} pipe={leasePipe}>
-      {({
-        activeTab,
-        leases,
-        toggleActive,
-        toggleInactive,
-        propertyId,
-        tenantId,
-        unitId,
-      }: LeaseResult) => (
+    }),
+  )
+  return data$.pipe(
+    map(props => {
+      const { activeTab, leases, propertyId, tenantId, unitId } = props
+      return (
         <Fragment>
           <div className={leaseHeaderStyles}>
             {propertyId && <PropertyDetail propertyId={propertyId} />}
@@ -171,10 +161,10 @@ const LeaseContainer: SFC<LeaseContainerProps> = props => {
             </TabContent>
           </div>
         </Fragment>
-      )}
-    </StreamProps>
+      )
+    }),
   )
-}
+})
 
 interface LeasesProps {
   leases: Lease[]
@@ -310,34 +300,7 @@ class TransactionsSubComponent extends React.Component<
   render() {
     const { lease } = this.props
     return (
-      <div
-        css={`
-          display: flex;
-          flex-direction: row-reverse;
-          align-items: stretch;
-          flex-wrap: wrap;
-          padding: 1em 0.5em 1em 0.5em;
-          .transactions {
-            flex: 2;
-            margin: 0 0.5em 1em 0.5em;
-          }
-          .controls {
-            border: none;
-            min-width: 350px;
-            display: flex;
-            flex-direction: column;
-            flex: 1;
-            .control-forms {
-              display: flex;
-              flex-direction: column;
-              justify-content: flex-start;
-              .content {
-                display: flex;
-                justify-content: center;
-              }
-            }
-          }
-        `}>
+      <TransactionsSubComponentWrapper>
         <Card className="controls">
           <CardBody>
             <CardTitle
@@ -483,7 +446,7 @@ class TransactionsSubComponent extends React.Component<
             </div>
           )}
         </StreamProps>
-      </div>
+      </TransactionsSubComponentWrapper>
     )
   }
 }
@@ -491,96 +454,108 @@ class TransactionsSubComponent extends React.Component<
 interface PropertyDetailProps {
   propertyId?: string
 }
-const PropertyDetail: SFC<PropertyDetailProps & RouteProps> = ({
-  propertyId,
-}) => {
-  return (
-    <StreamProps
-      propertyId={propertyId}
-      pipe={pipe(
-        pluck('propertyId'),
-        distinctUntilChanged(),
-        switchMap(pid =>
-          authDoc<Property | null>(`properties/${pid}`).pipe(
-            map(property => ({ property })),
-          ),
-        ),
-      )}>
-      {({ property }: { property?: Property }) => {
-        return (
-          <Card>
-            <CardBody>
-              <CardText className="text-secondary">Property</CardText>
-              <CardTitle className="color-properties">
-                {property && property.name}
-              </CardTitle>
-            </CardBody>
-          </Card>
-        )
-      }}
-    </StreamProps>
+const PropertyDetail = componentFromStream<PropertyDetailProps>(props$ => {
+  const data$ = (props$ as Observable<PropertyDetailProps>).pipe(
+    pluck('propertyId'),
+    distinctUntilChanged(),
+    switchMap(pid => authDoc<Property | null>(`properties/${pid}`)),
   )
-}
+  return data$.pipe(
+    map(property => (
+      <Card>
+        <CardBody>
+          <CardText className="text-secondary">Property</CardText>
+          <CardTitle className="color-properties">
+            {property && property.name}
+          </CardTitle>
+        </CardBody>
+      </Card>
+    )),
+  )
+})
 
 interface UnitDetailProps {
   propertyId?: string
   unitId?: string
 }
-const UnitDetail: SFC<UnitDetailProps & RouteProps> = props => {
-  return (
-    <StreamProps
-      {...props}
-      pipe={switchMap<UnitDetailProps, any>(({ propertyId, unitId }) =>
-        authDoc(`properties/${propertyId}/units/${unitId}`).pipe(
-          map(unit => ({ unit })),
-        ),
-      )}>
-      {({ unit }: { unit?: Unit }) => (
-        <Card>
-          <CardBody>
-            <CardText className="text-secondary">Unit</CardText>
-            <CardTitle className="color-units">{unit && unit.label}</CardTitle>
-          </CardBody>
-        </Card>
-      )}
-    </StreamProps>
+const UnitDetail = componentFromStream<UnitDetailProps>(props$ => {
+  const data$ = (props$ as Observable<UnitDetailProps>).pipe(
+    switchMap(props =>
+      authDoc<Unit>(`properties/${props.propertyId}/units/${props.unitId}`),
+    ),
   )
-}
-
-const TenantDetail: SFC<RouteProps & { tenantId: string }> = props => {
-  return (
-    <StreamProps
-      tenantId={props.tenantId}
-      pipe={pipe(
-        pluck('tenantId'),
-        distinctUntilChanged(),
-        switchMap(tid =>
-          authDoc(`tenants/${tid}`).pipe(map(tenant => ({ tenant }))),
-        ),
-      )}>
-      {({ tenant }: { tenant?: Tenant }) => (
-        <Card>
-          <CardBody>
-            <CardText className="text-secondary">Tenant</CardText>
-            {tenant && (
-              <Fragment>
-                <CardTitle className="color-tenants">
-                  {`${tenant.firstName} ${tenant.lastName}`}
-                </CardTitle>
-                {tenant.email && (
-                  <CardSubtitle className="text-muted">
-                    {tenant.email}
-                  </CardSubtitle>
-                )}
-              </Fragment>
-            )}
-          </CardBody>
-        </Card>
-      )}
-    </StreamProps>
+  return data$.pipe(
+    map(unit => (
+      <Card>
+        <CardBody>
+          <CardText className="text-secondary">Unit</CardText>
+          <CardTitle className="color-units">{unit && unit.label}</CardTitle>
+        </CardBody>
+      </Card>
+    )),
   )
-}
+})
 
+interface TenantDetailProps {
+  tenantId?: string
+}
+const TenantDetail = componentFromStream<TenantDetailProps>(props$ => {
+  const data$ = (props$ as Observable<TenantDetailProps>).pipe(
+    pluck('tenantId'),
+    distinctUntilChanged(),
+    switchMap(tid => authDoc<Tenant>(`tenants/${tid}`)),
+  )
+
+  return data$.pipe(
+    map(tenant => (
+      <Card>
+        <CardBody>
+          <CardText className="text-secondary">Tenant</CardText>
+          {tenant && (
+            <Fragment>
+              <CardTitle className="color-tenants">
+                {`${tenant.firstName} ${tenant.lastName}`}
+              </CardTitle>
+              {tenant.email && (
+                <CardSubtitle className="text-muted">
+                  {tenant.email}
+                </CardSubtitle>
+              )}
+            </Fragment>
+          )}
+        </CardBody>
+      </Card>
+    )),
+  )
+})
+
+const TransactionsSubComponentWrapper = styled.div`
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: stretch;
+  flex-wrap: wrap;
+  padding: 1em 0.5em 1em 0.5em;
+  .transactions {
+    flex: 2;
+    margin: 0 0.5em 1em 0.5em;
+  }
+  .controls {
+    border: none;
+    min-width: 350px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    .control-forms {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      .content {
+        display: flex;
+        justify-content: center;
+      }
+    }
+  }
+`
 const StringStack = styled('pre')`
   margin: 0;
   font-family: var(--font-family-sans-serif);
