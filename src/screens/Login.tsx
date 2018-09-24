@@ -11,52 +11,54 @@ import {
   ModalBody,
   Label,
 } from 'reactstrap'
+import {componentFromStream, createEventHandler} from 'recompose'
+import {from, of, merge} from 'rxjs'
+import {map, catchError, mapTo, switchMap, startWith} from 'rxjs/operators'
 
 declare const firebase: FB
+
+const noop = () => {}
 
 interface LoginState {
   error?: string
   isModalOpen: boolean
+  handleSubmit(): void
 }
-class Login extends React.Component<{}, LoginState> {
-  state: LoginState = {
-    isModalOpen: true,
-  }
-  clearError = () =>
-    this.setState(
-      ({ error }: Pick<LoginState, 'error'>) =>
-        error ? { error: undefined } : null,
-    )
-  handleSubmit = (e: any) => {
+const Login = componentFromStream(props$ => {
+
+  const {handler: clearError, stream: clearError$} = createEventHandler()
+  const {handler: handleSubmit, stream: handleSubmit$} = createEventHandler()
+
+  const emptyError$ = clearError$.pipe(mapTo({error: undefined, isModalOpen: true}))
+
+  const form$ = handleSubmit$.pipe(
+    switchMap((e: any) => {
     e.preventDefault()
     const {
       email: { value: email },
       password: { value: password },
-    } = e.target.elements
-    firebase
+    } = e.target.elements 
+    return from(firebase
       .auth()
-      .signInWithEmailAndPassword(email, password)
-      .then(() => this.setState({ isModalOpen: false }))
-      .catch(error => {
-        this.setState({ error: error.message })
-      })
-  }
-  noop() {}
-  render() {
-    const { error, isModalOpen } = this.state
-    return (
+      .signInWithEmailAndPassword(email, password)).pipe(
+        map(() => ({isModalOpen: false, error: undefined})),
+        catchError((err: Error) => of({isModalOpen: true, error: err.message}))
+      )
+  }), startWith({isModalOpen: true, error: undefined}))
+
+    return merge<LoginState>(form$, emptyError$).pipe(map<LoginState, any>(({isModalOpen, error}) =>
       <div>
         <Modal
           className={loginStyle}
           isOpen={isModalOpen}
-          toggle={this.noop}
+          toggle={noop}
           backdrop="static">
           <ModalHeader className="title">Login</ModalHeader>
           <ModalBody>
             <Form
-              onSubmit={this.handleSubmit}
+              onSubmit={handleSubmit}
               method="post"
-              onFocus={this.clearError}>
+              onFocus={clearError}>
               <FormGroup>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -89,9 +91,8 @@ class Login extends React.Component<{}, LoginState> {
           </ModalBody>
         </Modal>
       </div>
-    )
-  }
-}
+    ))
+})
 
 const loginStyle = css`
   /* margin: 1.5em auto;

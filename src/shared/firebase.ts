@@ -60,7 +60,8 @@ function saveRef(
 ) {
   if (!cache.has(str)) {
     // console.log('adding', str)
-    cache.set(str, (r as any).onSnapshot(noOp))
+    const unsub = (r as any).onSnapshot({ next: noOp, error: () => unsub() })
+    cache.set(str, unsub)
   } /*else {
     console.log('cache hit!', str)
   }*/

@@ -6,7 +6,6 @@ import { ThemeProvider } from 'emotion-theming'
 import { hot } from 'react-hot-loader'
 import { Box } from 'rebass/emotion'
 import { Header } from './components/Header'
-import '../../shared/observableConfig'
 
 const ZenProvider = loadable(() =>
   import('./shared/components/Zen').then(mod => mod.ZenProvider),
