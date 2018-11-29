@@ -71,9 +71,6 @@ const validateSets = ({ unitIds, tenantIds }: LeaseFormValues) => {
 }
 
 const noOp = () => {}
-// function alertData(data: any) {
-//   alert(JSON.stringify(data, null, 2))
-// }
 
 function calculateYearLeaseEndDate(startDate: Date) {
   return subDays(addYears(startDate, 1), 1)
